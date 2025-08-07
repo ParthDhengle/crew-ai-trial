@@ -3,27 +3,4 @@ analyzer:
   goal: Determine project type and required team composition
   backstory: Expert in analyzing technical requirements and designing optimal development teams
   tools: []
-
-architect:
-  role: Technical Architect
-  goal: Create project structure and technical specifications
-  backstory: Seasoned architect with experience in multiple tech stacks
-  tools: [FileManager]
-
-developer:
-  role: Senior Developer
-  goal: Implement high-quality code for the project
-  backstory: Expert programmer with 10+ years experience
-  tools: [FileManager]
-
-debugger:
-  role: Debugging Specialist
-  goal: Identify and fix errors in the project
-  backstory: Specialist in static analysis and debugging complex systems
-  tools: [FileManager]
-
-manager:
-  role: Project Manager
-  goal: Coordinate team and ensure project success
-  backstory: Technical PM with track record of delivering complex projects
-  tools: [FileManager]
+  

@@ -1,9 +1,8 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from typing import List, Dict, Any
-import yaml
-import os
 import json
+from .tools.file_manager import FileManagerTool  # Add this import
 
 @CrewBase
 class DynamicProjectCrew():
@@ -17,6 +16,7 @@ class DynamicProjectCrew():
         self.project_type = None
         self.agent_configs = {}
         self.task_configs = {}
+        self.tool_functions = {'FileManager': FileManagerTool}  # Register the tool
     
     @agent
     def analyzer(self) -> Agent:
@@ -77,9 +77,10 @@ class DynamicProjectCrew():
             raise ValueError(f"Error creating dynamic crew: {str(e)}")
     
     def _get_tool(self, tool_name: str):
-        """Dynamically load tools based on name"""
-        # In a real implementation, this would map to actual tool classes
-        return tool_name
+        """Get tool instance by name"""
+        if tool_name in self.tool_functions:
+            return self.tool_functions[tool_name]()
+        raise ValueError(f"Tool {tool_name} not available")
     
     def _get_task_context(self, context_names: List[str]):
         """Get context from previous tasks"""

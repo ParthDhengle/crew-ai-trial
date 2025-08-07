@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 import sys
 import warnings
-
 from datetime import datetime
-
-import json
 from agent_demo.crew import DynamicProjectCrew
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
 # This main file is intended to be a way for you to run your
 # crew locally, so refrain from adding unnecessary logic into this file.
 # Replace with inputs you want to test with, it will automatically
@@ -19,12 +15,19 @@ def run():
     
     try:
         crew = DynamicProjectCrew()
-        crew.analyze_project().execute(inputs={"user_request": user_request})
-        result = crew.crew().kickoff()
-        print(f"\n\nFinal result: {result}")
+        # Execute only the initial analysis task
+        analysis_task = crew.analyze_project()
+        analysis_result = analysis_task.execute(inputs={"user_request": user_request})
+        
+        # Now kickoff the dynamically created crew
+        if crew.agents and crew.tasks:
+            result = crew.crew().kickoff()
+            print(f"\n\nFinal result: {result}")
+        else:
+            print("Failed to create dynamic crew")
+    
     except Exception as e:
         raise Exception(f"Crew execution failed: {e}")
-    
 
 def train():
     """
