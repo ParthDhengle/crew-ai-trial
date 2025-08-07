@@ -223,5 +223,5 @@ class DynamicProjectCrew():
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,  # Changed from hierarchical to sequential
-            verbose=2
+            verbose=True  # Changed from 2 to True (boolean)
         )

@@ -1,0 +1,72 @@
+{
+  "project_type": "Web Application Development",
+  "agents": {
+    "FrontendDeveloper": {
+      "role": "Frontend Developer",
+      "goal": "Develop and maintain the user interface of the e-commerce dashboard.",
+      "backstory": "Experienced in creating responsive user interfaces with modern design principles.",
+      "tools": [
+        "VisualEditor"
+      ],
+      "allow_delegation": true,
+      "technologies": [
+        "HTML5",
+        "CSS3",
+        "JavaScript",
+        "React.js"
+      ]
+    },
+    "BackendDeveloper": {
+      "role": "Backend Developer",
+      "goal": "Develop and maintain the server-side logic, database interactions, and API integrations of the e-commerce dashboard.",
+      "backstory": "Skilled in building robust and scalable backend systems.",
+      "tools": [
+        "DatabaseManager",
+        "CodeGenerator"
+      ],
+      "allow_delegation": false,
+      "technologies": [
+        "Node.js",
+        "Express.js",
+        "MongoDB"
+      ]
+    }
+  },
+  "tasks": {
+    "DesignDashboard": {
+      "description": "Design the initial layout and visual style of the e-commerce dashboard.",
+      "expected_output": "Wireframes and mockups of the dashboard.",
+      "agent": "FrontendDeveloper",
+      "tools": [
+        "VisualEditor"
+      ],
+      "async": false,
+      "context": [],
+      "output_file": "dashboard_design.json"
+    },
+    "DevelopProductManagement": {
+      "description": "Implement the product management functionality, including CRUD operations (Create, Read, Update, Delete) for products.",
+      "expected_output": "Functional product management module within the dashboard.",
+      "agent": "BackendDeveloper",
+      "tools": [
+        "DatabaseManager",
+        "CodeGenerator"
+      ],
+      "async": false,
+      "context": ["DesignDashboard"],
+      "output_file": "api/products.js"
+    },
+    "ImplementOrderTracking": {
+      "description": "Implement order tracking and management features, allowing users to view and update order status.",
+      "expected_output": "Functional order tracking system integrated with the dashboard.",
+      "agent": "BackendDeveloper",
+      "tools": [
+        "DatabaseManager",
+        "CodeGenerator"
+      ],
+      "async": false,
+      "context": ["DevelopProductManagement"],
+      "output_file": "api/orders.js"
+    }
+  }
+}

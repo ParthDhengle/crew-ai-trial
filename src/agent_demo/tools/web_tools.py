@@ -398,3 +398,349 @@ document.addEventListener('DOMContentLoaded', () => {{
 if (typeof module !== 'undefined' && module.exports) {{
     module.exports = {name}Manager;
 }}'''
+        return js_template
+
+    def _generate_node_server(self, name: str, features: str) -> str:
+        server_template = f'''// {name} Node.js Server
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// In-memory data store (replace with database in production)
+let data = [];
+let nextId = 1;
+
+// Routes
+app.get('/api/{name.lower()}', (req, res) => {{
+    res.json(data);
+}});
+
+app.get('/api/{name.lower()}/:id', (req, res) => {{
+    const id = parseInt(req.params.id);
+    const item = data.find(d => d.id === id);
+    
+    if (!item) {{
+        return res.status(404).json({{ error: 'Item not found' }});
+    }}
+    
+    res.json(item);
+}});
+
+app.post('/api/{name.lower()}', (req, res) => {{
+    const newItem = {{
+        id: nextId++,
+        ...req.body,
+        createdAt: new Date().toISOString()
+    }};
+    
+    data.push(newItem);
+    res.status(201).json(newItem);
+}});
+
+app.put('/api/{name.lower()}/:id', (req, res) => {{
+    const id = parseInt(req.params.id);
+    const index = data.findIndex(d => d.id === id);
+    
+    if (index === -1) {{
+        return res.status(404).json({{ error: 'Item not found' }});
+    }}
+    
+    data[index] = {{ ...data[index], ...req.body, updatedAt: new Date().toISOString() }};
+    res.json(data[index]);
+}});
+
+app.delete('/api/{name.lower()}/:id', (req, res) => {{
+    const id = parseInt(req.params.id);
+    const index = data.findIndex(d => d.id === id);
+    
+    if (index === -1) {{
+        return res.status(404).json({{ error: 'Item not found' }});
+    }}
+    
+    data.splice(index, 1);
+    res.status(204).send();
+}});
+
+// Health check
+app.get('/health', (req, res) => {{
+    res.json({{ status: 'OK', timestamp: new Date().toISOString() }});
+}});
+
+// Serve static files
+app.get('*', (req, res) => {{
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+}});
+
+// Error handling middleware
+app.use((err, req, res, next) => {{
+    console.error(err.stack);
+    res.status(500).json({{ error: 'Something went wrong!' }});
+}});
+
+app.listen(PORT, () => {{
+    console.log(`{name} server running on port ${{PORT}}`);
+}});
+
+module.exports = app;'''
+        return server_template
+
+
+class ProjectStructureTool(BaseTool):
+    """Tool for creating and managing project directory structures"""
+    name: str = "ProjectStructure"
+    description: str = "Creates project directory structures and manages file organization"
+
+    def _run(self, action: str, project_type: str, project_name: str, features: Optional[str] = None) -> str:
+        try:
+            if action == "create_structure":
+                return self._create_project_structure(project_type, project_name, features)
+            elif action == "list_structure":
+                return self._list_project_structure(project_name)
+            else:
+                return "Invalid action. Valid actions: create_structure, list_structure"
+        except Exception as e:
+            return f"Error managing project structure: {str(e)}"
+
+    def _create_project_structure(self, project_type: str, project_name: str, features: str) -> str:
+        """Create a project directory structure based on type"""
+        base_path = project_name
+        
+        if project_type.lower() in ["react", "frontend", "web"]:
+            return self._create_react_structure(base_path)
+        elif project_type.lower() in ["nodejs", "backend", "api"]:
+            return self._create_nodejs_structure(base_path)
+        elif project_type.lower() in ["fullstack", "ecommerce"]:
+            return self._create_fullstack_structure(base_path)
+        else:
+            return self._create_generic_structure(base_path)
+
+    def _create_react_structure(self, base_path: str) -> str:
+        directories = [
+            f"{base_path}/public",
+            f"{base_path}/src/components",
+            f"{base_path}/src/pages",
+            f"{base_path}/src/hooks",
+            f"{base_path}/src/services",
+            f"{base_path}/src/utils",
+            f"{base_path}/src/styles",
+            f"{base_path}/src/assets/images",
+            f"{base_path}/src/assets/icons"
+        ]
+        
+        for directory in directories:
+            os.makedirs(directory, exist_ok=True)
+        
+        return f"React project structure created at {base_path}"
+
+    def _create_nodejs_structure(self, base_path: str) -> str:
+        directories = [
+            f"{base_path}/src/controllers",
+            f"{base_path}/src/models",
+            f"{base_path}/src/routes",
+            f"{base_path}/src/middleware",
+            f"{base_path}/src/services",
+            f"{base_path}/src/utils",
+            f"{base_path}/config",
+            f"{base_path}/tests",
+            f"{base_path}/public"
+        ]
+        
+        for directory in directories:
+            os.makedirs(directory, exist_ok=True)
+        
+        return f"Node.js project structure created at {base_path}"
+
+    def _create_fullstack_structure(self, base_path: str) -> str:
+        directories = [
+            # Frontend
+            f"{base_path}/frontend/public",
+            f"{base_path}/frontend/src/components",
+            f"{base_path}/frontend/src/pages",
+            f"{base_path}/frontend/src/services",
+            f"{base_path}/frontend/src/styles",
+            f"{base_path}/frontend/src/assets",
+            # Backend
+            f"{base_path}/backend/src/controllers",
+            f"{base_path}/backend/src/models",
+            f"{base_path}/backend/src/routes",
+            f"{base_path}/backend/src/middleware",
+            f"{base_path}/backend/src/services",
+            f"{base_path}/backend/config",
+            # Shared
+            f"{base_path}/shared/types",
+            f"{base_path}/shared/utils",
+            f"{base_path}/docs",
+            f"{base_path}/tests"
+        ]
+        
+        for directory in directories:
+            os.makedirs(directory, exist_ok=True)
+        
+        return f"Full-stack project structure created at {base_path}"
+
+    def _create_generic_structure(self, base_path: str) -> str:
+        directories = [
+            f"{base_path}/src",
+            f"{base_path}/docs",
+            f"{base_path}/tests",
+            f"{base_path}/config",
+            f"{base_path}/assets"
+        ]
+        
+        for directory in directories:
+            os.makedirs(directory, exist_ok=True)
+        
+        return f"Generic project structure created at {base_path}"
+
+    def _list_project_structure(self, project_name: str) -> str:
+        """List the structure of an existing project"""
+        if not os.path.exists(project_name):
+            return f"Project {project_name} does not exist"
+        
+        structure = []
+        for root, dirs, files in os.walk(project_name):
+            level = root.replace(project_name, '').count(os.sep)
+            indent = ' ' * 2 * level
+            structure.append(f"{indent}{os.path.basename(root)}/")
+            subindent = ' ' * 2 * (level + 1)
+            for file in files:
+                structure.append(f"{subindent}{file}")
+        
+        return "\n".join(structure)
+
+
+class DatabaseTool(BaseTool):
+    """Tool for database operations and schema management"""
+    name: str = "Database"
+    description: str = "Manages database schemas, migrations, and basic CRUD operations"
+
+    def _run(self, action: str, table_name: str, schema: Optional[str] = None, data: Optional[str] = None) -> str:
+        try:
+            if action == "create_schema":
+                return self._create_database_schema(table_name, schema)
+            elif action == "generate_model":
+                return self._generate_model_code(table_name, schema)
+            elif action == "create_migration":
+                return self._create_migration(table_name, schema)
+            else:
+                return "Invalid action. Valid actions: create_schema, generate_model, create_migration"
+        except Exception as e:
+            return f"Error with database operation: {str(e)}"
+
+    def _create_database_schema(self, table_name: str, schema: str) -> str:
+        """Generate SQL schema for a table"""
+        try:
+            schema_data = json.loads(schema) if schema else {}
+            
+            sql_parts = [f"CREATE TABLE {table_name} ("]
+            sql_parts.append("    id SERIAL PRIMARY KEY,")
+            
+            for field, field_type in schema_data.items():
+                if field.lower() != 'id':
+                    sql_type = self._map_to_sql_type(field_type)
+                    sql_parts.append(f"    {field} {sql_type},")
+            
+            sql_parts.append("    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,")
+            sql_parts.append("    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            sql_parts.append(");")
+            
+            return "\n".join(sql_parts)
+            
+        except Exception as e:
+            return f"Error creating schema: {str(e)}"
+
+    def _generate_model_code(self, table_name: str, schema: str) -> str:
+        """Generate model code for different frameworks"""
+        try:
+            schema_data = json.loads(schema) if schema else {}
+            
+            # Generate Mongoose model (Node.js)
+            model_code = f"""const mongoose = require('mongoose');
+
+const {table_name.capitalize()}Schema = new mongoose.Schema({{
+"""
+            
+            for field, field_type in schema_data.items():
+                if field.lower() != 'id':
+                    mongoose_type = self._map_to_mongoose_type(field_type)
+                    model_code += f"    {field}: {{{mongoose_type}}},\n"
+            
+            model_code += """}, {
+    timestamps: true
+});
+
+module.exports = mongoose.model('""" + table_name.capitalize() + """', """ + table_name.capitalize() + """Schema);"""
+            
+            return model_code
+            
+        except Exception as e:
+            return f"Error generating model: {str(e)}"
+
+    def _create_migration(self, table_name: str, schema: str) -> str:
+        """Create a database migration file"""
+        try:
+            schema_data = json.loads(schema) if schema else {}
+            timestamp = "20240101000000"  # Simple timestamp
+            
+            migration_code = f"""-- Migration: Create {table_name} table
+-- Created: {timestamp}
+
+-- Up
+CREATE TABLE {table_name} (
+    id SERIAL PRIMARY KEY,
+"""
+            
+            for field, field_type in schema_data.items():
+                if field.lower() != 'id':
+                    sql_type = self._map_to_sql_type(field_type)
+                    migration_code += f"    {field} {sql_type},\n"
+            
+            migration_code += """    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Down
+DROP TABLE IF EXISTS """ + table_name + """;"""
+            
+            return migration_code
+            
+        except Exception as e:
+            return f"Error creating migration: {str(e)}"
+
+    def _map_to_sql_type(self, field_type: str) -> str:
+        """Map generic types to SQL types"""
+        type_mapping = {
+            "string": "VARCHAR(255)",
+            "text": "TEXT",
+            "integer": "INTEGER",
+            "float": "DECIMAL(10,2)",
+            "boolean": "BOOLEAN",
+            "date": "DATE",
+            "datetime": "TIMESTAMP",
+            "email": "VARCHAR(255)",
+            "url": "VARCHAR(500)"
+        }
+        return type_mapping.get(field_type.lower(), "VARCHAR(255)")
+
+    def _map_to_mongoose_type(self, field_type: str) -> str:
+        """Map generic types to Mongoose types"""
+        type_mapping = {
+            "string": "type: String, required: true",
+            "text": "type: String",
+            "integer": "type: Number, required: true",
+            "float": "type: Number",
+            "boolean": "type: Boolean, default: false",
+            "date": "type: Date",
+            "datetime": "type: Date, default: Date.now",
+            "email": "type: String, lowercase: true, trim: true",
+            "url": "type: String"
+        }
+        return type_mapping.get(field_type.lower(), "type: String")
