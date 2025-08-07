@@ -1,5 +1,9 @@
 # FILE: src/agent_demo/config/tasks.yaml
 analyze_project:
-  description: Analyze user request and determine project requirements
-  expected_output: JSON configuration for dynamic crew
+  description: >
+    Analyze the user request and create a JSON configuration for the dynamic crew.
+    The configuration must include agents and tasks needed to complete the project.
+  expected_output: >
+    Valid JSON configuration with project_type, agents, and tasks
   agent: analyzer
+  output_file: project_config.json

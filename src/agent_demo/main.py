@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys
 import warnings
 import json
@@ -8,8 +7,9 @@ from agent_demo.crew import DynamicProjectCrew
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
+# FILE: src/agent_demo/main.py
 def run():
-    user_request = "Build a responsive e-commerce dashboard with user authentication"
+    user_request = "Build a fully responsive e-commerce dashboard web application with user authentication. The system should include a user registration and login flow, securely storing user credentials. Upon successful login, the user should be redirected to a personalized dashboard that dynamically displays their name retrieved from the signup data. The dashboard should also include sections for recent orders, product management, and account settings. Ensure clean UI/UX, mobile responsiveness, and protected routes for unauthorized access."
     
     try:
         # Create the crew instance
@@ -20,16 +20,22 @@ def run():
             agents=[crew_instance.analyzer()],
             tasks=[crew_instance.analyze_project()],
             process=Process.sequential,
-            verbose=2
+            verbose=True
         )
         
-        # Run the analysis crew
+        # Run the analysis crew with proper inputs
         analysis_result = analysis_crew.kickoff(inputs={
             "user_request": user_request
         })
         
+        # Extract the JSON output
+        if hasattr(analysis_result, 'output'):
+            config_json = analysis_result.output
+        else:
+            config_json = str(analysis_result)
+        
         # Create the dynamic crew based on analysis
-        crew_instance._create_dynamic_crew(analysis_result)
+        crew_instance._create_dynamic_crew(config_json)
         
         # Run the main crew
         if crew_instance.agents and crew_instance.tasks:
@@ -37,7 +43,7 @@ def run():
                 agents=crew_instance.agents,
                 tasks=crew_instance.tasks,
                 process=Process.hierarchical,
-                verbose=2
+                verbose=True
             )
             result = main_crew.kickoff()
             print(f"\n\nFinal result: {result}")
@@ -45,7 +51,10 @@ def run():
             print("Failed to create dynamic crew")
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise Exception(f"Crew execution failed: {e}")
+
     
 def train():
     """

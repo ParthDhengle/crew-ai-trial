@@ -32,8 +32,31 @@ class DynamicProjectCrew():
     @task
     def analyze_project(self) -> Task:
         return Task(
-            description="Analyze user request and determine project type, required agents, and their configurations",
-            expected_output="JSON containing project type, agent configurations, and task configurations",
+            description="""Analyze the user request and determine project type, required agents, and their configurations.
+            Output MUST be valid JSON with this structure:
+            {
+                "project_type": "string",
+                "agents": {
+                    "agent_name": {
+                        "role": "string",
+                        "goal": "string",
+                        "backstory": "string",
+                        "tools": ["list"],
+                        "allow_delegation": bool
+                    }
+                },
+                "tasks": {
+                    "task_name": {
+                        "description": "string",
+                        "expected_output": "string",
+                        "agent": "agent_name",
+                        "tools": ["list"],
+                        "async": bool,
+                        "context": ["task_names"],
+                        "output_file": "string"
+                    }
+                }
+            }""",
             agent=self.analyzer(),
             output_file="project_config.json"
         )

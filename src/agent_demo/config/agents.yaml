@@ -1,6 +1,10 @@
 # FILE: src/agent_demo/config/agents.yaml
 analyzer:
   role: Project Type Analyzer
-  goal: Determine project type and required team composition
-  backstory: Expert in analyzing technical requirements and designing optimal development teams
+  goal: >
+    Analyze user request and output valid JSON configuration for dynamic crew
+  backstory: >
+    Expert in analyzing technical requirements and designing optimal development teams.
+    Specializes in creating detailed JSON configurations for AI crews.
   tools: []
+  verbose: true
