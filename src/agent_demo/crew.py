@@ -1,64 +1,119 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai.agents.agent_builder.base_agent import BaseAgent
-from typing import List
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+from typing import List, Dict, Any
+import yaml
+import os
+import json
 
 @CrewBase
-class AgentDemo():
-    """AgentDemo crew"""
-
-    agents: List[BaseAgent]
-    tasks: List[Task]
-
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
+class DynamicProjectCrew():
+    """Fully dynamic project generator crew"""
     
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
+    agents: List[Agent] = []
+    tasks: List[Task] = []
+    max_retries = 3
+    
+    def __init__(self):
+        self.project_type = None
+        self.agent_configs = {}
+        self.task_configs = {}
+    
     @agent
-    def researcher(self) -> Agent:
+    def analyzer(self) -> Agent:
         return Agent(
-            config=self.agents_config['researcher'], # type: ignore[index]
-            verbose=True
+            role="Project Type Analyzer",
+            goal="Determine project type and required team composition",
+            backstory="Expert in analyzing technical requirements and designing optimal development teams",
+            verbose=True,
+            allow_delegation=False
         )
-
-    @agent
-    def reporting_analyst(self) -> Agent:
-        return Agent(
-            config=self.agents_config['reporting_analyst'], # type: ignore[index]
-            verbose=True
-        )
-
-    # To learn more about structured task outputs,
-    # task dependencies, and task callbacks, check out the documentation:
-    # https://docs.crewai.com/concepts/tasks#overview-of-a-task
+    
     @task
-    def research_task(self) -> Task:
+    def analyze_project(self) -> Task:
         return Task(
-            config=self.tasks_config['research_task'], # type: ignore[index]
+            description="Analyze user request and determine project type, required agents, and their configurations",
+            expected_output="JSON containing project type, agent configurations, and task configurations",
+            agent=self.analyzer(),
+            output_file="project_config.json",
+            callback=self._create_dynamic_crew
         )
-
-    @task
-    def reporting_task(self) -> Task:
-        return Task(
-            config=self.tasks_config['reporting_task'], # type: ignore[index]
-            output_file='report.md'
-        )
-
+    
+    def _create_dynamic_crew(self, config_json: str):
+        """Create agents and tasks based on dynamic configuration"""
+        try:
+            config = json.loads(config_json)
+            self.project_type = config.get("project_type", "unknown")
+            
+            # Create agent configurations
+            self.agent_configs = config.get("agents", {})
+            for agent_name, agent_cfg in self.agent_configs.items():
+                agent = Agent(
+                    role=agent_cfg["role"],
+                    goal=agent_cfg["goal"],
+                    backstory=agent_cfg["backstory"],
+                    tools=[self._get_tool(t) for t in agent_cfg.get("tools", [])],
+                    verbose=True,
+                    allow_delegation=agent_cfg.get("allow_delegation", True)
+                )
+                setattr(self, agent_name, agent)
+                self.agents.append(agent)
+            
+            # Create task configurations
+            self.task_configs = config.get("tasks", {})
+            for task_name, task_cfg in self.task_configs.items():
+                task = Task(
+                    description=task_cfg["description"],
+                    expected_output=task_cfg["expected_output"],
+                    agent=getattr(self, task_cfg["agent"]),
+                    tools=[self._get_tool(t) for t in task_cfg.get("tools", [])],
+                    async_execution=task_cfg.get("async", False),
+                    context=self._get_task_context(task_cfg.get("context", [])),
+                    output_file=task_cfg.get("output_file"),
+                    callback=self._debug_callback if task_name == "quality_assurance" else None
+                )
+                self.tasks.append(task)
+                
+        except Exception as e:
+            raise ValueError(f"Error creating dynamic crew: {str(e)}")
+    
+    def _get_tool(self, tool_name: str):
+        """Dynamically load tools based on name"""
+        # In a real implementation, this would map to actual tool classes
+        return tool_name
+    
+    def _get_task_context(self, context_names: List[str]):
+        """Get context from previous tasks"""
+        return [t for t in self.tasks if t.config_id in context_names]
+    
+    def _debug_callback(self):
+        """Handle debugging recursively"""
+        for i in range(self.max_retries):
+            if self._verify_build():
+                return "Project verified successfully"
+            
+            # Create debug task dynamically
+            debug_task = Task(
+                description=f"Debug iteration {i+1}: Fix errors in {self.project_type} project",
+                expected_output="Error-free project code",
+                agent=self.debugger,
+                tools=[self._get_tool("FileManager")],
+                context=self.tasks
+            )
+            debug_task.execute()
+        
+        return "Max debug iterations reached"
+    
+    def _verify_build(self):
+        """Project-specific verification"""
+        # Implementation would vary by project type
+        return True  # Simplified for example
+    
     @crew
     def crew(self) -> Crew:
-        """Creates the AgentDemo crew"""
-        # To learn how to add knowledge sources to your crew, check out the documentation:
-        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
-
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
-            process=Process.sequential,
-            verbose=True,
-            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
+            agents=self.agents,
+            tasks=self.tasks,
+            process=Process.hierarchical,
+            manager_llm=self.manager.llm if hasattr(self, "manager") else None,
+            verbose=2
         )

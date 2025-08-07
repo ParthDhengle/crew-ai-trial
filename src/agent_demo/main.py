@@ -4,7 +4,8 @@ import warnings
 
 from datetime import datetime
 
-from agent_demo.crew import AgentDemo
+import json
+from agent_demo.crew import DynamicProjectCrew
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -14,19 +15,16 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 # interpolate any tasks and agents information
 
 def run():
-    """
-    Run the crew.
-    """
-    inputs = {
-        'topic': 'Ai jobs',
-        'current_year': str(datetime.now().year)
-    }
+    user_request = "Build a responsive e-commerce dashboard with user authentication"
     
     try:
-        AgentDemo().crew().kickoff(inputs=inputs)
+        crew = DynamicProjectCrew()
+        crew.analyze_project().execute(inputs={"user_request": user_request})
+        result = crew.crew().kickoff()
+        print(f"\n\nFinal result: {result}")
     except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
-
+        raise Exception(f"Crew execution failed: {e}")
+    
 
 def train():
     """
