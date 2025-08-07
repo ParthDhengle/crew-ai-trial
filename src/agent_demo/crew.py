@@ -1,10 +1,52 @@
+import os
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, task
 from typing import List, Dict, Any
 import json
 import re
+from litellm import completion
 from .tools.file_manager import FileManagerTool
 from .tools.web_tools import CodeGeneratorTool, ProjectStructureTool, DatabaseTool
+
+# Define LLM functions with correct provider prefixes and API keys from environment
+def deepseek_v3(messages):
+    return completion(
+        model="openrouter/deepseek/deepseek-chat-v3-0324:free",
+        messages=messages,
+        api_key=os.getenv("open_router_api_key")
+    )
+
+def qwen3(messages):
+    return completion(
+        model="together_ai/Qwen/Qwen3-Coder-30B-A3B-Instruct",
+        messages=messages,
+        api_key=os.getenv("together_api_key")
+    )
+
+def gemini(messages):
+    return completion(
+        model="google/gemini-1.5-flash",
+        messages=messages,
+        api_key=os.getenv("gemini_api_key")
+    )
+
+def groq(messages):
+    return completion(
+        model="groq/gemma2-9b-it",
+        messages=messages,
+        api_key=os.getenv("GROQ_API_KEY")
+    )
+
+# Fallback wrapper to switch LLMs on rate limit errors
+def resilient_completion(primary_llm, fallback_llm, messages):
+    try:
+        return primary_llm(messages)
+    except Exception as e:
+        if "rate_limit_exceeded" in str(e).lower() or "token_limit" in str(e).lower():
+            print(f"Rate limit hit for {primary_llm.__name__}, switching to {fallback_llm.__name__}")
+            return fallback_llm(messages)
+        else:
+            raise e
 
 @CrewBase
 class DynamicProjectCrew:
@@ -31,12 +73,15 @@ class DynamicProjectCrew:
     
     @agent
     def analyzer(self) -> Agent:
+        # Use DeepSeek for analysis with fallback to Groq
+        llm = lambda messages: resilient_completion(deepseek_v3, groq, messages)
         return Agent(
             role="Project Type Analyzer",
             goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
             backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
             verbose=True,
-            allow_delegation=False
+            allow_delegation=False,
+            llm=llm
         )
     
     @task
@@ -91,13 +136,26 @@ class DynamicProjectCrew:
             self.agent_configs = config.get("agents", {})
             for agent_name, agent_cfg in self.agent_configs.items():
                 valid_tools = self._get_valid_tools(agent_cfg.get("tools", []))
+                
+                # Assign LLMs based on agent role
+                if "Developer" in agent_cfg["role"]:
+                    # Use Qwen for development tasks with fallback to Gemini
+                    agent_llm = lambda messages: resilient_completion(qwen3, gemini, messages)
+                elif "Database" in agent_cfg["role"]:
+                    # Use Gemini for database tasks with fallback to Groq
+                    agent_llm = lambda messages: resilient_completion(gemini, groq, messages)
+                else:
+                    # Default to DeepSeek with fallback to Groq
+                    agent_llm = lambda messages: resilient_completion(deepseek_v3, groq, messages)
+                
                 agent = Agent(
                     role=agent_cfg["role"],
                     goal=agent_cfg["goal"],
                     backstory=self._enhance_backstory(agent_cfg["backstory"], agent_cfg.get("technologies", [])),
                     tools=valid_tools,
                     verbose=True,
-                    allow_delegation=agent_cfg.get("allow_delegation", True)
+                    allow_delegation=agent_cfg.get("allow_delegation", True),
+                    llm=agent_llm
                 )
                 setattr(self, agent_name.replace(" ", "_").lower(), agent)
                 self.agents.append(agent)
@@ -188,6 +246,7 @@ class DynamicProjectCrew:
     
     def get_main_crew(self) -> Crew:
         """Create the main crew with dynamic agents and tasks"""
+        
         if not self.agents or not self.tasks:
             print("Warning: No agents or tasks created")
             return None
