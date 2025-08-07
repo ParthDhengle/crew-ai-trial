@@ -3,7 +3,20 @@ analyze_project:
   description: >
     Analyze the user request and create a JSON configuration for the dynamic crew.
     The configuration must include agents and tasks needed to complete the project.
+    
+    CRITICAL INSTRUCTIONS:
+    - Only use actual CrewAI tool names like 'FileManager' in the tools arrays
+    - Do NOT use technology names like 'HTML5', 'CSS3', 'React.js' as tools
+    - Put technology names in a separate 'technologies' field for reference
+    - Every agent should have at least 'FileManager' as a tool if they need to create files
+    - Ensure all task agents reference agents that exist in the agents section
+    - Use meaningful task names and clear descriptions
+    
   expected_output: >
-    Valid JSON configuration with project_type, agents, and tasks
+    Valid JSON configuration with:
+    1. project_type (string)
+    2. agents object with agent configurations including roles, goals, backstories, and tools
+    3. tasks object with task configurations including descriptions, expected outputs, and agent assignments
+    4. Proper tool usage (only actual CrewAI tools, not technology names)
   agent: analyzer
   output_file: project_config.json
