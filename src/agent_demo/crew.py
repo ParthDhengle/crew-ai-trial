@@ -73,17 +73,15 @@ class DynamicProjectCrew:
     
     @agent
     def analyzer(self) -> Agent:
-        # Use DeepSeek for analysis with fallback to Groq
-        llm = lambda messages: resilient_completion(deepseek_v3, groq, messages)
         return Agent(
             role="Project Type Analyzer",
             goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
             backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
             verbose=True,
             allow_delegation=False,
-            llm=llm
+            llm="openrouter/deepseek/deepseek-chat-v3-0324:free"  # Use a specific model string
         )
-    
+        
     @task
     def analyze_project(self) -> Task:
         return Task(

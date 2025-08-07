@@ -2,14 +2,17 @@ import sys
 import warnings
 import json
 from datetime import datetime
-from crewai import Crew, Process
+from crewai import Crew, Process, Agent
 from agent_demo.crew import DynamicProjectCrew
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
 def run():
     """Main function to run the dynamic project crew"""
-    # Test case; will be replaced with user input later
     user_request = """Build a fully responsive e-commerce dashboard web application that includes:
     - Product management (CRUD operations)
     - Order tracking and management
@@ -26,16 +29,15 @@ def run():
         print("🚀 Starting Dynamic Project Crew Analysis...")
         crew_instance = DynamicProjectCrew()
         
-        # Step 1: Analyze the project
-        print("📋 Step 1: Analyzing project requirements...")
-        analysis_crew = Crew(
-            agents=[crew_instance.analyzer()],
-            tasks=[crew_instance.analyze_project()],
-            process=Process.sequential,
-            verbose=True
-        )
+        # List of models to try in order
+        models = [
+            "openrouter/deepseek/deepseek-chat-v3-0324:free",
+            "groq/gemma2-9b-it"
+        ]
         
-        analysis_result = analysis_crew.kickoff(inputs={"input": user_request})
+        # Step 1: Analyze the project with fallback logic
+        print("📋 Step 1: Analyzing project requirements...")
+        analysis_result = execute_with_fallback(crew_instance, user_request, models)
         
         config_json = analysis_result.output if hasattr(analysis_result, 'output') else str(analysis_result)
         print("✅ Project analysis completed")
@@ -78,7 +80,35 @@ def run():
         print("\n🔍 Debugging information:")
         print("- Check project_config.json")
         print("- Verify tool dependencies")
-        print("- Ensure OpenAI API key is set in .env")
+        print("- Ensure API keys are set in .env")
+
+def execute_with_fallback(crew_instance, user_request, models):
+    """Execute the analysis crew with fallback to different models on rate limit errors"""
+    for model in models:
+        try:
+            # Create a new analyzer agent with the current model
+            analyzer = Agent(
+                role="Project Type Analyzer",
+                goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
+                backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
+                verbose=True,
+                allow_delegation=False,
+                llm=model
+            )
+            analysis_crew = Crew(
+                agents=[analyzer],
+                tasks=[crew_instance.analyze_project()],
+                process=Process.sequential,
+                verbose=True
+            )
+            return analysis_crew.kickoff(inputs={"input": user_request})
+        except Exception as e:
+            if "rate_limit_exceeded" in str(e).lower() or "token_limit" in str(e).lower():
+                print(f"Rate limit hit for {model}, trying next model")
+                continue
+            else:
+                raise e
+    raise Exception("All models hit rate limits or failed")
 
 def save_execution_summary(crew_instance, result):
     """Save a summary of the execution"""
