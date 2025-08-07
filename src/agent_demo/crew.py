@@ -1,6 +1,5 @@
-# FILE: src/agent_demo/crew.py
 from crewai import Agent, Crew, Process, Task
-from crewai.project import CrewBase, agent, crew, task
+from crewai.project import CrewBase, agent, task
 from typing import List, Dict, Any
 import json
 import re
@@ -8,7 +7,7 @@ from .tools.file_manager import FileManagerTool
 from .tools.web_tools import CodeGeneratorTool, ProjectStructureTool, DatabaseTool
 
 @CrewBase
-class DynamicProjectCrew():
+class DynamicProjectCrew:
     """Fully dynamic project generator crew"""
     
     agents: List[Agent] = []
@@ -19,7 +18,6 @@ class DynamicProjectCrew():
         self.project_type = None
         self.agent_configs = {}
         self.task_configs = {}
-        # Only register actual CrewAI tools
         self.tool_functions = {
             'FileManager': FileManagerTool,
             'file_manager': FileManagerTool,
@@ -29,15 +27,14 @@ class DynamicProjectCrew():
             'project_structure': ProjectStructureTool,
             'Database': DatabaseTool,
             'database': DatabaseTool,
-            # Add more actual tools here as needed
         }
     
     @agent
     def analyzer(self) -> Agent:
         return Agent(
             role="Project Type Analyzer",
-            goal="Determine project type and required team composition",
-            backstory="Expert in analyzing technical requirements and designing optimal development teams. Only uses actual CrewAI tools, not technology names.",
+            goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
+            backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
             verbose=True,
             allow_delegation=False
         )
@@ -45,22 +42,26 @@ class DynamicProjectCrew():
     @task
     def analyze_project(self) -> Task:
         return Task(
-            description="""Analyze the following user request and determine project type, required agents, and their configurations:
+            description="""Analyze the following user request and determine project type, required agents, tasks, and technologies:
             {{input}}
             
-            IMPORTANT: For tools, only use actual CrewAI tool names like 'FileManager', NOT technology names like 'HTML5', 'CSS3', 'React.js'.
+            IMPORTANT:
+            - For tools, use only actual crewAI tool names (e.g., 'FileManager', 'CodeGenerator').
+            - Do NOT use technology names (e.g., 'React.js', 'Node.js') as tools; list them in 'technologies'.
+            - Suggest the best technologies for each agent/task based on the request.
+            - Ensure every agent has at least one valid tool like 'FileManager' for file operations.
             
-            Output MUST be valid JSON with this structure:
+            Output MUST be valid JSON:
             {
                 "project_type": "string",
                 "agents": {
                     "agent_name": {
                         "role": "string",
-                        "goal": "string", 
+                        "goal": "string",
                         "backstory": "string",
-                        "tools": ["FileManager"],
+                        "tools": ["FileManager", "CodeGenerator"],
                         "allow_delegation": bool,
-                        "technologies": ["HTML5", "CSS3", "React.js"]
+                        "technologies": ["React.js", "Node.js"]
                     }
                 },
                 "tasks": {
@@ -68,39 +69,32 @@ class DynamicProjectCrew():
                         "description": "string",
                         "expected_output": "string",
                         "agent": "agent_name",
-                        "tools": ["FileManager"],
+                        "tools": ["FileManager", "CodeGenerator"],
                         "async": bool,
                         "context": ["task_names"],
                         "output_file": "string"
                     }
                 }
             }""",
-            expected_output="Valid JSON configuration with project type, agents, and tasks",
+            expected_output="Valid JSON configuration with project type, agents, tasks, and technologies",
             agent=self.analyzer(),
             output_file="project_config.json"
         )
 
-    
     def _create_dynamic_crew(self, config_json: str):
         """Create agents and tasks based on dynamic configuration"""
         try:
-            # Parse JSON from the output
             config = self._extract_json_from_output(config_json)
-                    
             self.project_type = config.get("project_type", "unknown")
             print(f"Creating dynamic crew for project type: {self.project_type}")
             
-            # Create agent configurations
             self.agent_configs = config.get("agents", {})
             for agent_name, agent_cfg in self.agent_configs.items():
-                # Get only valid tools
                 valid_tools = self._get_valid_tools(agent_cfg.get("tools", []))
-                
                 agent = Agent(
                     role=agent_cfg["role"],
                     goal=agent_cfg["goal"],
-                    backstory=self._enhance_backstory(agent_cfg["backstory"], 
-                                                    agent_cfg.get("technologies", [])),
+                    backstory=self._enhance_backstory(agent_cfg["backstory"], agent_cfg.get("technologies", [])),
                     tools=valid_tools,
                     verbose=True,
                     allow_delegation=agent_cfg.get("allow_delegation", True)
@@ -108,16 +102,12 @@ class DynamicProjectCrew():
                 setattr(self, agent_name.replace(" ", "_").lower(), agent)
                 self.agents.append(agent)
             
-            # Create task configurations
             self.task_configs = config.get("tasks", {})
             for task_name, task_cfg in self.task_configs.items():
-                # Find the correct agent
                 agent_name = task_cfg["agent"]
                 target_agent = self._find_agent_by_name(agent_name)
-                
                 if target_agent:
                     valid_tools = self._get_valid_tools(task_cfg.get("tools", []))
-                    
                     task = Task(
                         description=task_cfg["description"],
                         expected_output=task_cfg["expected_output"],
@@ -139,17 +129,13 @@ class DynamicProjectCrew():
     def _extract_json_from_output(self, output: str) -> dict:
         """Extract JSON from various output formats"""
         try:
-            # First, try to parse the entire string as JSON
             return json.loads(output)
         except json.JSONDecodeError:
             try:
-                # Try to extract JSON from markdown code block
                 pattern = r'```(?:json)?\s*(\{.*\})\s*```'
                 match = re.search(pattern, output, re.DOTALL)
                 if match:
                     return json.loads(match.group(1))
-                
-                # Try to find JSON-like content without code blocks
                 json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
                 matches = re.findall(json_pattern, output, re.DOTALL)
                 for match in matches:
@@ -157,7 +143,6 @@ class DynamicProjectCrew():
                         return json.loads(match)
                     except:
                         continue
-                        
                 raise ValueError("Could not find valid JSON in output")
             except Exception as e:
                 raise ValueError(f"Failed to extract JSON: {str(e)}")
@@ -166,40 +151,29 @@ class DynamicProjectCrew():
         """Get only valid tool instances, skip invalid ones"""
         valid_tools = []
         for tool_name in tool_names:
-            try:
-                if tool_name in self.tool_functions:
-                    valid_tools.append(self.tool_functions[tool_name]())
-                else:
-                    # Skip invalid tools silently or add FileManager as default
-                    if not valid_tools:  # Add at least one tool
-                        valid_tools.append(FileManagerTool())
-            except Exception as e:
-                print(f"Warning: Could not load tool {tool_name}: {e}")
-        
+            if tool_name in self.tool_functions:
+                valid_tools.append(self.tool_functions[tool_name]())
+            else:
+                if not valid_tools:
+                    valid_tools.append(FileManagerTool())
         return valid_tools
 
     def _enhance_backstory(self, backstory: str, technologies: List[str]) -> str:
         """Enhance backstory with technology information"""
         if technologies:
             tech_str = ", ".join(technologies)
-            return f"{backstory} Specializes in technologies including: {tech_str}."
+            return f"{backstory} Specializes in technologies: {tech_str}."
         return backstory
 
     def _find_agent_by_name(self, agent_name: str) -> Agent:
         """Find agent by name (case insensitive, handles spaces)"""
         normalized_name = agent_name.replace(" ", "_").lower()
-        
-        # Try exact match first
         if hasattr(self, normalized_name):
             return getattr(self, normalized_name)
-        
-        # Try to find by role or partial match
         for agent in self.agents:
             if (agent.role.lower() == agent_name.lower() or 
                 agent.role.replace(" ", "_").lower() == normalized_name):
                 return agent
-        
-        # If no exact match, return the first agent as fallback
         return self.agents[0] if self.agents else None
 
     def _get_task_context(self, context_names: List[str]) -> List[Task]:
@@ -207,21 +181,19 @@ class DynamicProjectCrew():
         context_tasks = []
         for context_name in context_names:
             for task in self.tasks:
-                # Simple matching - you might want to improve this
                 if context_name.lower() in task.description.lower():
                     context_tasks.append(task)
                     break
         return context_tasks
     
-    @crew
-    def crew(self) -> Crew:
+    def get_main_crew(self) -> Crew:
+        """Create the main crew with dynamic agents and tasks"""
         if not self.agents or not self.tasks:
             print("Warning: No agents or tasks created")
             return None
-            
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.sequential,  # Changed from hierarchical to sequential
-            verbose=True  # Changed from 2 to True (boolean)
+            process=Process.sequential,
+            verbose=True
         )

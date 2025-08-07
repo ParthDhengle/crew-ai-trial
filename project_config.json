@@ -1,72 +1,118 @@
 {
-  "project_type": "Web Application Development",
-  "agents": {
-    "FrontendDeveloper": {
-      "role": "Frontend Developer",
-      "goal": "Develop and maintain the user interface of the e-commerce dashboard.",
-      "backstory": "Experienced in creating responsive user interfaces with modern design principles.",
-      "tools": [
-        "VisualEditor"
-      ],
-      "allow_delegation": true,
-      "technologies": [
-        "HTML5",
-        "CSS3",
-        "JavaScript",
-        "React.js"
-      ]
+    "project_type": "E-commerce Dashboard Web Application",
+    "agents": {
+        "FrontendDeveloper": {
+            "role": "Front-End Development",
+            "goal": "Build and maintain a responsive and interactive user interface for the e-commerce dashboard.",
+            "backstory": "Highly skilled in HTML, CSS, and JavaScript, with expertise in building user-friendly and visually appealing web applications.",
+            "tools": [
+                "FileManager",
+                "CodeGenerator",
+                "StyleGuide"
+            ],
+            "allow_delegation": true,
+            "technologies": [
+                "React.js",
+                "Redux"
+            ]
+        },
+        "BackendDeveloper": {
+            "role": "Back-End Development",
+            "goal": "Develop and maintain the server-side logic, database functionalities, and API endpoints for the e-commerce dashboard.",
+            "backstory": "Proficient in Node.js, Express.js, and database management systems. Experienced in building secure and scalable RESTful APIs.",
+            "tools": [
+                "FileManager",
+                "CodeGenerator",
+                "API Tester"
+            ],
+            "allow_delegation": true,
+            "technologies": [
+                "Node.js",
+                "Express.js",
+                "MongoDB"
+            ]
+        },
+        "DatabaseAdministrator": {
+            "role": "Database Management",
+            "goal": "Design, implement, and manage the database schema and ensure data integrity, availability, and security for the e-commerce dashboard.",
+            "backstory": "Expertise in database design principles and optimization. Experienced in working with NoSQL databases and implementing security measures.",
+            "tools": [
+                "FileManager",
+                "DatabaseSchemaDesigner",
+                "QueryAnalyzer"
+            ],
+            "allow_delegation": false,
+            "technologies": [
+                "MongoDB"
+            ]
+        },
+        "SecurityAnalyst": {
+            "role": "Security Audit and Implementation",
+            "goal": "Conduct security audits, implement security practices, and ensure compliance with industry standards to protect the e-commerce dashboard from potential threats.",
+            "backstory": "Cybersecurity professional with in-depth knowledge of security protocols, vulnerability assessments, and penetration testing.",
+            "tools": [
+                "FileManager",
+                "SecurityScanner",
+                "VulnerabilityChecker"
+            ],
+            "allow_delegation": false,
+            "technologies": [
+                "OWASP Top 10"
+            ]
+        }
     },
-    "BackendDeveloper": {
-      "role": "Backend Developer",
-      "goal": "Develop and maintain the server-side logic, database interactions, and API integrations of the e-commerce dashboard.",
-      "backstory": "Skilled in building robust and scalable backend systems.",
-      "tools": [
-        "DatabaseManager",
-        "CodeGenerator"
-      ],
-      "allow_delegation": false,
-      "technologies": [
-        "Node.js",
-        "Express.js",
-        "MongoDB"
-      ]
+    "tasks": {
+        "FrontendDevelopment": {
+            "description": "Develop and implement the user interface for all features of the e-commerce dashboard, ensuring responsiveness across different devices.",
+            "expected_output": "Fully functional and responsive frontend code components for each feature of the dashboard.",
+            "agent": "FrontendDeveloper",
+            "tools": [
+                "FileManager",
+                "CodeGenerator",
+                "StyleGuide"
+            ],
+            "async": false,
+            "context": [],
+            "output_file": "src/components/"
+        },
+        "BackendDevelopment": {
+            "description": "Build the server-side logic, APIs, and database interactions for the e-commerce dashboard functionalities.",
+            "expected_output": "Secure and scalable backend code for APIs, database CRUD operations, and business logic.",
+            "agent": "BackendDeveloper",
+            "tools": [
+                "FileManager",
+                "CodeGenerator",
+                "API Tester"
+            ],
+            "async": false,
+            "context": [],
+            "output_file": "src/server/"
+        },
+        "DatabaseDesign": {
+            "description": "Design the database schema and structure for the e-commerce dashboard, ensuring efficient data storage and retrieval.",
+            "expected_output": "Database schema design document and implementation in MongoDB.",
+            "agent": "DatabaseAdministrator",
+            "tools": [
+                "FileManager",
+                "DatabaseSchemaDesigner",
+                "QueryAnalyzer"
+            ],
+            "async": false,
+            "context": [],
+            "output_file": "database/schema.json"
+        },
+        "SecurityImplementation": {
+            "description": "Implement security measures and best practices to protect the e-commerce dashboard and its data from vulnerabilities and threats.",
+            "expected_output": "Secure API endpoints, authentication and authorization mechanisms, and database access controls.",
+            "agent": "SecurityAnalyst",
+            "tools": [
+                "FileManager",
+                "SecurityScanner",
+                "VulnerabilityChecker"
+            ],
+            "async": false,
+            "context": [],
+            "output_file": "security_policy.txt"
+        }
     }
-  },
-  "tasks": {
-    "DesignDashboard": {
-      "description": "Design the initial layout and visual style of the e-commerce dashboard.",
-      "expected_output": "Wireframes and mockups of the dashboard.",
-      "agent": "FrontendDeveloper",
-      "tools": [
-        "VisualEditor"
-      ],
-      "async": false,
-      "context": [],
-      "output_file": "dashboard_design.json"
-    },
-    "DevelopProductManagement": {
-      "description": "Implement the product management functionality, including CRUD operations (Create, Read, Update, Delete) for products.",
-      "expected_output": "Functional product management module within the dashboard.",
-      "agent": "BackendDeveloper",
-      "tools": [
-        "DatabaseManager",
-        "CodeGenerator"
-      ],
-      "async": false,
-      "context": ["DesignDashboard"],
-      "output_file": "api/products.js"
-    },
-    "ImplementOrderTracking": {
-      "description": "Implement order tracking and management features, allowing users to view and update order status.",
-      "expected_output": "Functional order tracking system integrated with the dashboard.",
-      "agent": "BackendDeveloper",
-      "tools": [
-        "DatabaseManager",
-        "CodeGenerator"
-      ],
-      "async": false,
-      "context": ["DevelopProductManagement"],
-      "output_file": "api/orders.js"
-    }
-  }
 }

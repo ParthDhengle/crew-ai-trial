@@ -1,4 +1,3 @@
-# FILE: src/agent_demo/main.py
 import sys
 import warnings
 import json
@@ -9,10 +8,8 @@ from agent_demo.crew import DynamicProjectCrew
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
 def run():
-    """
-    Main function to run the dynamic project crew
-    """
-    # You can modify this user request as needed
+    """Main function to run the dynamic project crew"""
+    # Test case; will be replaced with user input later
     user_request = """Build a fully responsive e-commerce dashboard web application that includes:
     - Product management (CRUD operations)
     - Order tracking and management
@@ -29,7 +26,7 @@ def run():
         print("🚀 Starting Dynamic Project Crew Analysis...")
         crew_instance = DynamicProjectCrew()
         
-        # Step 1: Analyze the project and generate configuration
+        # Step 1: Analyze the project
         print("📋 Step 1: Analyzing project requirements...")
         analysis_crew = Crew(
             agents=[crew_instance.analyzer()],
@@ -38,20 +35,13 @@ def run():
             verbose=True
         )
         
-        analysis_result = analysis_crew.kickoff(inputs={
-            "input": user_request
-        })
+        analysis_result = analysis_crew.kickoff(inputs={"input": user_request})
         
-        # Extract the JSON output
-        if hasattr(analysis_result, 'output'):
-            config_json = analysis_result.output
-        else:
-            config_json = str(analysis_result)
-        
+        config_json = analysis_result.output if hasattr(analysis_result, 'output') else str(analysis_result)
         print("✅ Project analysis completed")
         print(f"📄 Configuration generated (first 200 chars): {config_json[:200]}...")
         
-        # Step 2: Create the dynamic crew based on analysis
+        # Step 2: Create dynamic crew
         print("\n🔧 Step 2: Creating dynamic crew...")
         crew_instance._create_dynamic_crew(config_json)
         
@@ -63,17 +53,18 @@ def run():
         for i, task in enumerate(crew_instance.tasks, 1):
             print(f"   {i}. {task.description[:60]}...")
         
-        # Step 3: Execute the main crew
+        # Step 3: Execute main crew
         if crew_instance.agents and crew_instance.tasks:
             print("\n🚀 Step 3: Executing main project crew...")
-            
-            main_crew = crew_instance.crew()
+            main_crew = crew_instance.get_main_crew()
             if main_crew:
+                print("Tasks in main crew:")
+                for task in main_crew.tasks:
+                    print(f"- {task.description[:50]}...")
+                
                 result = main_crew.kickoff()
                 print(f"\n✅ Project execution completed successfully!")
                 print(f"📊 Final result: {result}")
-                
-                # Save results summary
                 save_execution_summary(crew_instance, result)
             else:
                 print("❌ Failed to create main crew")
@@ -82,14 +73,12 @@ def run():
     
     except Exception as e:
         import traceback
-        print(f"\n❌ Error occurred during execution:")
-        print(f"Error: {str(e)}")
+        print(f"\n❌ Error occurred during execution: {str(e)}")
         traceback.print_exc()
         print("\n🔍 Debugging information:")
-        print(f"- Check if the project_config.json was created properly")
-        print(f"- Verify all tool dependencies are installed")
-        print(f"- Ensure OpenAI API key is set in .env file")
-
+        print("- Check project_config.json")
+        print("- Verify tool dependencies")
+        print("- Ensure OpenAI API key is set in .env")
 
 def save_execution_summary(crew_instance, result):
     """Save a summary of the execution"""
@@ -100,56 +89,13 @@ def save_execution_summary(crew_instance, result):
             "agents_created": len(crew_instance.agents),
             "tasks_executed": len(crew_instance.tasks),
             "agent_roles": [agent.role for agent in crew_instance.agents],
-            "final_result": str(result)[:500]  # Truncate for readability
+            "final_result": str(result)[:500]
         }
-        
         with open("execution_summary.json", "w") as f:
             json.dump(summary, f, indent=2)
-        
         print("📄 Execution summary saved to execution_summary.json")
     except Exception as e:
         print(f"Warning: Could not save execution summary: {e}")
-
-
-def train():
-    """
-    Train the crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI jobs",
-        'current_year': str(datetime.now().year)
-    }
-    try:
-        # Note: You'll need to implement a proper training setup
-        print("Training functionality not implemented for dynamic crews yet")
-        
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
-
-
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        # Note: You'll need to implement replay functionality
-        print("Replay functionality not implemented for dynamic crews yet")
-        
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-
-def test():
-    """
-    Test the crew execution and returns the results.
-    """
-    try:
-        # Note: You'll need to implement testing functionality
-        print("Test functionality not implemented for dynamic crews yet")
-        
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
-
 
 if __name__ == "__main__":
     run()
