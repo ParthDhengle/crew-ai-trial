@@ -1,0 +1,93 @@
+```json
+{
+    "project_type": "E-commerce Dashboard Web Application",
+    "agents": {
+        "Frontend Developer": {
+            "role": "Frontend Development",
+            "goal": "Design and develop an intuitive and responsive user interface for the e-commerce dashboard",
+            "backstory": "Experienced in building user-friendly web applications with a focus on aesthetics and user experience",
+            "tools": ["HTML5", "CSS3", "JavaScript", "React.js", "Bootstrap"],
+            "allow_delegation": false
+        },
+        "Backend Developer": {
+            "role": "Backend Development",
+            "goal": "Develop the server-side logic, database integration, and API endpoints for the e-commerce dashboard",
+            "backstory": "Proficient in server-side languages, databases, and API development",
+            "tools": ["Node.js", "Express.js", "MongoDB", "RESTful APIs"],
+            "allow_delegation": false
+        },
+        "UI/UX Designer": {
+            "role": "UI/UX Design",
+            "goal": "Create wireframes, mockups, and prototypes to ensure a user-centered design for the dashboard",
+            "backstory": "Passionate about user experience and interface design with a keen eye for detail",
+            "tools": ["Figma", "Adobe XD", "InVision Studio"],
+            "allow_delegation": true
+        }
+    },
+    "tasks": {
+        "Define Requirements": {
+            "description": "Gather and document functional and non-functional requirements for the e-commerce dashboard",
+            "expected_output": "Detailed project requirements document",
+            "agent": "Project Manager",
+            "tools": ["Trello", "Jira"],
+            "async": false,
+            "context": [],
+            "output_file": "requirements.md"
+        },
+        "Design Wireframes": {
+            "description": "Create initial wireframes to map out the structure and flow of the dashboard",
+            "expected_output": "High-fidelity wireframes",
+            "agent": "UI/UX Designer",
+            "tools": ["Figma"],
+            "async": false,
+            "context": ["Define Requirements"],
+            "output_file": "wireframes.fig"
+        },
+        "Develop Frontend": {
+            "description": "Build the front-end user interface components using HTML, CSS, and JavaScript",
+            "expected_output": "Responsive frontend code",
+            "agent": "Frontend Developer",
+            "tools": ["React.js", "Bootstrap", "Git"],
+            "async": false,
+            "context": ["Design Wireframes"],
+            "output_file": "src"
+        },
+        "Develop Backend": {
+            "description": "Build the server-side logic, database integration, and API endpoints for the dashboard",
+            "expected_output": "Functional backend code",
+            "agent": "Backend Developer",
+            "tools": ["Node.js", "Express.js", "MongoDB", "API testing tools"],
+            "async": false,
+            "context": ["Design Wireframes"],
+            "output_file": "server"
+        },
+        "Integrate Frontend and Backend": {
+            "description": "Connect the frontend and backend components to ensure seamless data flow and functionality",
+            "expected_output": "Integrated e-commerce dashboard",
+            "agent": "Backend Developer", 
+            "tools": ["Postman", "Debugging tools"],
+            "async": false,
+            "context": ["Develop Frontend", "Develop Backend"],
+            "output_file": "undefined"
+        },
+        "Testing": {
+            "description": "Conduct thorough testing of the dashboard's functionality, security, and performance",
+            "expected_output": "Documented test results and resolved bugs",
+            "agent": "QA Engineer",
+            "tools": ["Selenium", "Cypress", "Testing frameworks"],
+            "async": false,
+            "context": ["Integrate Frontend and Backend"],
+            "output_file": "test_reports.md"
+        },
+        "Deployment": {
+            "description": "Deploy the e-commerce dashboard to the chosen hosting environment",
+            "expected_output": "Live e-commerce dashboard",
+            "agent": "DevOps Engineer", 
+            "tools": ["Docker", "AWS", "Heroku"],
+            "async": false,
+            "context": ["Testing"],
+            "output_file": "undefined"
+        }
+    }
+}
+```

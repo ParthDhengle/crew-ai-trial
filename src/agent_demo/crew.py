@@ -32,7 +32,9 @@ class DynamicProjectCrew():
     @task
     def analyze_project(self) -> Task:
         return Task(
-            description="""Analyze the user request and determine project type, required agents, and their configurations.
+            description="""Analyze the following user request and determine project type, required agents, and their configurations:
+            {{input}}
+            
             Output MUST be valid JSON with this structure:
             {
                 "project_type": "string",
@@ -57,14 +59,28 @@ class DynamicProjectCrew():
                     }
                 }
             }""",
+            expected_output="Valid JSON configuration with project type, agents, and tasks",
             agent=self.analyzer(),
             output_file="project_config.json"
         )
+
     
     def _create_dynamic_crew(self, config_json: str):
         """Create agents and tasks based on dynamic configuration"""
         try:
-            config = json.loads(config_json)
+            # First, try to parse the entire string as JSON
+            try:
+                config = json.loads(config_json)
+            except json.JSONDecodeError:
+                # Try to extract JSON from markdown code block
+                import re
+                pattern = r'```(?:json)?\s*(\{.*\})\s*```'
+                match = re.search(pattern, config_json, re.DOTALL)
+                if match:
+                    config = json.loads(match.group(1))
+                else:
+                    raise ValueError("Could not find valid JSON in output")
+                    
             self.project_type = config.get("project_type", "unknown")
             
             # Create agent configurations
@@ -96,8 +112,10 @@ class DynamicProjectCrew():
                 self.tasks.append(task)
                 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             raise ValueError(f"Error creating dynamic crew: {str(e)}")
-    
+
     def _get_tool(self, tool_name: str):
         """Get tool instance by name"""
         if tool_name in self.tool_functions:
