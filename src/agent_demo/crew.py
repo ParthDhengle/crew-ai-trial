@@ -13,21 +13,21 @@ def deepseek_v3(messages):
     return completion(
         model="openrouter/deepseek/deepseek-chat-v3-0324:free",
         messages=messages,
-        api_key=os.getenv("open_router_api_key")
+        api_key=os.getenv("OPENROUTER_API_KEY")
     )
 
 def qwen3(messages):
     return completion(
         model="together_ai/Qwen/Qwen3-Coder-30B-A3B-Instruct",
         messages=messages,
-        api_key=os.getenv("together_api_key")
+        api_key=os.getenv("TOGETHERAI_API_KEY")
     )
 
 def gemini(messages):
     return completion(
         model="google/gemini-1.5-flash",
         messages=messages,
-        api_key=os.getenv("gemini_api_key")
+        api_key=os.getenv("GEMINI_API_KEY")
     )
 
 def groq(messages):
