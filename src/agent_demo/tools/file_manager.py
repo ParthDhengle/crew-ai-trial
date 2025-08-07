@@ -1,11 +1,12 @@
 # FILE: src/agent_demo/tools/file_manager.py
 import os
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 from typing import Optional
 
 class FileManagerTool(BaseTool):
-    name = "FileManager"
-    description = "Creates, updates, and manages files and directories for projects"
+    # Add type annotations for the fields we're overriding
+    name: str = "FileManager"
+    description: str = "Creates, updates, and manages files and directories for projects"
 
     def _run(self, action: str, path: str, content: Optional[str] = None) -> str:
         try:

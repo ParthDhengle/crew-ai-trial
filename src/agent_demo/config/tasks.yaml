@@ -1,29 +1,5 @@
+# FILE: src/agent_demo/config/tasks.yaml
 analyze_project:
   description: Analyze user request and determine project requirements
   expected_output: JSON configuration for dynamic crew
   agent: analyzer
-
-create_structure:
-  description: Create project folder structure and file list
-  expected_output: Complete directory structure for the project
-  agent: architect
-
-implement_code:
-  description: Generate all code files for the project
-  expected_output: Complete project codebase
-  agent: developer
-  context: [create_structure]
-  tools: [FileManager]
-
-debug_fixes:
-  description: Identify and resolve any errors in the generated code
-  expected_output: Error-free project code
-  agent: debugger
-  context: [implement_code]
-  tools: [FileManager]
-
-quality_assurance:
-  description: Verify the complete project works as expected
-  expected_output: Working project ready for deployment
-  agent: manager
-  context: [debug_fixes]
