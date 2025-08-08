@@ -1,3 +1,4 @@
+# Fixed crew.py with proper async task handling
 import os
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, task
@@ -81,7 +82,12 @@ class DynamicProjectCrew:
             description="""Analyze the following user request and determine project type, required agents, tasks, and technologies:
             {{input}}
             
-            IMPORTANT:
+            IMPORTANT CREWAI ASYNC RULES:
+            - Only ONE task can be async: true, and it must be the LAST task in the sequence
+            - All other tasks must be async: false
+            - Tasks will execute in the order they appear in the JSON
+            
+            TOOL RULES:
             - For tools, use only actual crewAI tool names (e.g., 'FileManager', 'CodeGenerator').
             - Do NOT use technology names (e.g., 'React.js', 'Node.js') as tools; list them in 'technologies'.
             - Suggest the best technologies for each agent/task based on the request.
@@ -106,13 +112,13 @@ class DynamicProjectCrew:
                         "expected_output": "string",
                         "agent": "agent_name",
                         "tools": ["FileManager", "CodeGenerator"],
-                        "async": bool,
+                        "async": false,  // ONLY the last task can be true
                         "context": ["task_names"],
                         "output_file": "string"
                     }
                 }
             }""",
-            expected_output="Valid JSON configuration with project type, agents, tasks, and technologies",
+            expected_output="Valid JSON configuration with project type, agents, tasks, and technologies following CrewAI async rules",
             agent=self.analyzer(),
             output_file="project_config.json"
         )
@@ -124,25 +130,23 @@ class DynamicProjectCrew:
             self.project_type = config.get("project_type", "unknown")
             print(f"Creating dynamic crew for project type: {self.project_type}")
             
+            # Create agents
             self.agent_configs = config.get("agents", {})
             for agent_name, agent_cfg in self.agent_configs.items():
                 valid_tools = self._get_valid_tools(agent_cfg.get("tools", []))
                 
                 # Assign models based on agent role with proper fallbacks
                 if "Developer" in agent_cfg["role"]:
-                    # Use coding-focused models for development tasks
                     model = self._get_model_with_fallback(
                         "openrouter/qwen/qwen3-coder:free",
                         ["groq/gemma2-9b-it", "gemini/gemini-1.5-flash"]
                     )
                 elif "Database" in agent_cfg["role"]:
-                    # Use analytical models for database tasks
                     model = self._get_model_with_fallback(
                         "gemini/gemini-1.5-flash",
                         ["groq/gemma2-9b-it", "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"]
                     )
                 else:
-                    # Default models for other tasks
                     model = self._get_model_with_fallback(
                         "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
                         ["groq/gemma2-9b-it", "gemini/gemini-1.5-flash"]
@@ -155,27 +159,40 @@ class DynamicProjectCrew:
                     tools=valid_tools,
                     verbose=True,
                     allow_delegation=agent_cfg.get("allow_delegation", True),
-                    llm=model  # Pass model string directly, not a function
+                    llm=model
                 )
                 setattr(self, agent_name.replace(" ", "_").lower(), agent)
                 self.agents.append(agent)
             
+            # Create tasks with proper async handling
             self.task_configs = config.get("tasks", {})
-            for task_name, task_cfg in self.task_configs.items():
+            task_names = list(self.task_configs.keys())
+            
+            # Fix async task configuration - only last task can be async
+            for i, (task_name, task_cfg) in enumerate(self.task_configs.items()):
                 agent_name = task_cfg["agent"]
                 target_agent = self._find_agent_by_name(agent_name)
+                
                 if target_agent:
                     valid_tools = self._get_valid_tools(task_cfg.get("tools", []))
+                    
+                    # Force all tasks except the last one to be synchronous
+                    is_async = (i == len(task_names) - 1) and task_cfg.get("async", False)
+                    
                     task = Task(
                         description=task_cfg["description"],
                         expected_output=task_cfg["expected_output"],
                         agent=target_agent,
                         tools=valid_tools,
-                        async_execution=task_cfg.get("async", False),
+                        async_execution=is_async,
                         context=self._get_task_context(task_cfg.get("context", [])),
                         output_file=task_cfg.get("output_file") if task_cfg.get("output_file") != "undefined" else None
                     )
                     self.tasks.append(task)
+                    
+                    # Log async status for debugging
+                    async_status = "ASYNC" if is_async else "SYNC"
+                    print(f"Task {i+1}/{len(task_names)}: {task_name} [{async_status}]")
                 else:
                     print(f"Warning: Agent '{agent_name}' not found for task '{task_name}'")
                 
@@ -246,10 +263,23 @@ class DynamicProjectCrew:
     
     def get_main_crew(self) -> Crew:
         """Create the main crew with dynamic agents and tasks"""
-        
         if not self.agents or not self.tasks:
             print("Warning: No agents or tasks created")
             return None
+        
+        # Validate async task count before creating crew
+        async_tasks = [task for task in self.tasks if task.async_execution]
+        print(f"Async tasks count: {len(async_tasks)}")
+        
+        if len(async_tasks) > 1:
+            print("⚠️ Warning: Multiple async tasks detected. Fixing...")
+            # Make only the last task async
+            for task in self.tasks[:-1]:
+                task.async_execution = False
+            
+            if self.tasks:
+                self.tasks[-1].async_execution = False  # For safety, make all sync for now
+                
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
