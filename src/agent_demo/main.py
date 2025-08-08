@@ -17,7 +17,7 @@ def get_available_model():
     models_with_keys = [
         ("openrouter/qwen/qwen3-coder:free", "OPENROUTER_API_KEY"),
         ("groq/gemma2-9b-it", "GROQ_API_KEY"),
-        ("google/gemini-1.5-flash", "GEMINI_API_KEY"),
+        ("gemini/gemini-1.5-flash", "GEMINI_API_KEY"),
         ("together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free", "TOGETHERAI_API_KEY")
     ]
     
@@ -31,7 +31,7 @@ def get_available_model():
     for model, key_name in models_with_keys:
         print(f"   - {key_name}")
     
-    return "google/gemini-1.5-flash"  # Default fallback to free model
+    return "gemini/gemini-1.5-flash"  # Default fallback to free model
 
 def run():
     """Main function to run the dynamic project crew"""

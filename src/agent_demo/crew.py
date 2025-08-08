@@ -37,7 +37,7 @@ class DynamicProjectCrew:
             return primary_model
         elif "together" in primary_model and os.getenv("TOGETHERAI_API_KEY"):
             return primary_model
-        elif "google" in primary_model and os.getenv("GEMINI_API_KEY"):
+        elif "gemini" in primary_model and os.getenv("GEMINI_API_KEY"):
             return primary_model
         elif "groq" in primary_model and os.getenv("GROQ_API_KEY"):
             return primary_model
@@ -50,7 +50,7 @@ class DynamicProjectCrew:
                 return fallback
             elif "together" in fallback and os.getenv("TOGETHERAI_API_KEY"):
                 return fallback
-            elif "google" in fallback and os.getenv("GEMINI_API_KEY"):
+            elif "gemini" in fallback and os.getenv("GEMINI_API_KEY"):
                 return fallback
             elif "groq" in fallback and os.getenv("GROQ_API_KEY"):
                 return fallback
@@ -64,7 +64,7 @@ class DynamicProjectCrew:
     def analyzer(self) -> Agent:
         model = self._get_model_with_fallback(
             "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
-            ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+            ["groq/gemma2-9b-it", "gemini/gemini-1.5-flash"]
         )
         return Agent(
             role="Project Type Analyzer",
@@ -133,19 +133,19 @@ class DynamicProjectCrew:
                     # Use coding-focused models for development tasks
                     model = self._get_model_with_fallback(
                         "openrouter/qwen/qwen3-coder:free",
-                        ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+                        ["groq/gemma2-9b-it", "gemini/gemini-1.5-flash"]
                     )
                 elif "Database" in agent_cfg["role"]:
                     # Use analytical models for database tasks
                     model = self._get_model_with_fallback(
-                        "google/gemini-1.5-flash",
+                        "gemini/gemini-1.5-flash",
                         ["groq/gemma2-9b-it", "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"]
                     )
                 else:
                     # Default models for other tasks
                     model = self._get_model_with_fallback(
                         "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
-                        ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+                        ["groq/gemma2-9b-it", "gemini/gemini-1.5-flash"]
                     )
                 
                 agent = Agent(
