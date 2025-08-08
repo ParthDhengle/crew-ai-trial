@@ -32,67 +32,6 @@ def get_available_model():
     
     return "gemini/gemini-1.5-flash"  # Default fallback to free model
 
-def create_simplified_project_config():
-    """Create a simplified project configuration that follows CrewAI async rules"""
-    return {
-        "project_type": "E-commerce Dashboard Web Application",
-        "agents": {
-            "project_setup_agent": {
-                "role": "Project Setup Specialist",
-                "goal": "Initialize project structure and setup development environment",
-                "backstory": "Expert in setting up project structures and development environments for web applications.",
-                "tools": ["FileManager", "ProjectStructure"],
-                "allow_delegation": True,
-                "technologies": ["Node.js", "React.js", "MongoDB"]
-            },
-            "backend_developer": {
-                "role": "Backend Developer",
-                "goal": "Build secure RESTful APIs and implement business logic",
-                "backstory": "Seasoned backend developer with expertise in creating robust server-side applications.",
-                "tools": ["FileManager", "CodeGenerator"],
-                "allow_delegation": True,
-                "technologies": ["Node.js", "Express.js", "MongoDB", "JWT"]
-            },
-            "frontend_developer": {
-                "role": "Frontend Developer", 
-                "goal": "Develop responsive user interface components",
-                "backstory": "Frontend specialist focused on creating modern, responsive web interfaces.",
-                "tools": ["FileManager", "CodeGenerator"],
-                "allow_delegation": True,
-                "technologies": ["React.js", "Tailwind CSS", "Chart.js"]
-            }
-        },
-        "tasks": {
-            "setup_project": {
-                "description": "Initialize project structure with proper folder organization for frontend and backend",
-                "expected_output": "Complete project structure with package.json files and basic configuration",
-                "agent": "project_setup_agent",
-                "tools": ["FileManager", "ProjectStructure"],
-                "async": False,
-                "context": [],
-                "output_file": "project_setup.md"
-            },
-            "create_backend_api": {
-                "description": "Create RESTful API endpoints for product management, orders, and user authentication",
-                "expected_output": "Fully functional REST API with authentication and CRUD operations",
-                "agent": "backend_developer",
-                "tools": ["FileManager", "CodeGenerator"],
-                "async": False,
-                "context": ["setup_project"],
-                "output_file": "backend_api.md"
-            },
-            "build_frontend": {
-                "description": "Implement responsive React components for the dashboard interface",
-                "expected_output": "Complete set of React components for the e-commerce dashboard",
-                "agent": "frontend_developer",
-                "tools": ["FileManager", "CodeGenerator"],
-                "async": False,  # Making all tasks synchronous for now
-                "context": ["create_backend_api"],
-                "output_file": "frontend_components.md"
-            }
-        }
-    }
-
 def run():
     """Main function to run the dynamic project crew"""
     user_request = """Build a fully responsive e-commerce dashboard web application that includes:
@@ -124,9 +63,8 @@ def run():
             print("✅ Project analysis completed")
         except Exception as analysis_error:
             print(f"⚠️ Analysis failed: {analysis_error}")
-            print("🔄 Using fallback simplified configuration...")
-            config_json = json.dumps(create_simplified_project_config())
-        
+           
+
         # Step 2: Create dynamic crew
         print("\n🔧 Step 2: Creating dynamic crew...")
         try:
@@ -143,7 +81,6 @@ def run():
         except Exception as crew_error:
             print(f"❌ Failed to create dynamic crew: {crew_error}")
             print("🔄 Creating minimal crew...")
-            create_minimal_crew(crew_instance)
         
         # Step 3: Execute main crew
         if crew_instance.agents and crew_instance.tasks:
@@ -172,73 +109,17 @@ def run():
         import traceback
         print(f"\n❌ Error occurred during execution: {str(e)}")
         traceback.print_exc()
-        print("\n🔍 Debugging information:")
-        print("- Check your API keys in .env file")
-        print("- Verify internet connectivity")
-        print("- Ensure CrewAI is properly installed")
 
-def create_minimal_crew(crew_instance):
-    """Create a minimal working crew as fallback"""
-    try:
-        from .tools.file_manager import FileManagerTool
-        
-        # Create minimal agent
-        agent = Agent(
-            role="Project Creator",
-            goal="Create basic project files",
-            backstory="Simple agent for creating project documentation",
-            tools=[FileManagerTool()],
-            verbose=True,
-            allow_delegation=False,
-            llm="groq/gemma2-9b-it"
-        )
-        crew_instance.agents = [agent]
-        
-        # Create minimal task
-        task = Task(
-            description="Create a basic project structure and README file",
-            expected_output="Project documentation and basic file structure",
-            agent=agent,
-            tools=[FileManagerTool()],
-            async_execution=False,
-            output_file="minimal_project.md"
-        )
-        crew_instance.tasks = [task]
-        
-        print("✅ Created minimal fallback crew")
-    except Exception as e:
-        print(f"❌ Failed to create minimal crew: {e}")
 
 def execute_analysis(crew_instance, user_request, model):
     """Execute the analysis crew with the specified model"""
     try:
         # Create analyzer with the available model
-        analyzer = Agent(
-            role="Project Type Analyzer",
-            goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
-            backstory="Expert in dissecting technical requirements and creating valid CrewAI configurations. Understands CrewAI async task limitations.",
-            verbose=True,
-            allow_delegation=False,
-            llm=model
-        )
+        analyzer =crew_instance.analyzer()
         
         # Create the analysis task with updated prompt
-        analysis_task = Task(
-            description=f"""Analyze this request and create a valid CrewAI configuration:
-            {user_request}
+        analysis_task = crew_instance.analyze_project()
             
-            CRITICAL CREWAI RULES:
-            1. Only ONE task can have "async": true, and it must be the LAST task
-            2. All other tasks must have "async": false
-            3. Tasks execute in the order they appear in the JSON
-            4. Use only these tools: ["FileManager", "CodeGenerator", "ProjectStructure", "Database"]
-            
-            Create a JSON with 3-4 agents and 3-5 tasks following these rules exactly.""",
-            expected_output="Valid JSON configuration following CrewAI async task rules",
-            agent=analyzer,
-            async_execution=False,
-            output_file="project_config.json"
-        )
         
         analysis_crew = Crew(
             agents=[analyzer],
