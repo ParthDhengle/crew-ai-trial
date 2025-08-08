@@ -4,49 +4,8 @@ from crewai.project import CrewBase, agent, task
 from typing import List, Dict, Any
 import json
 import re
-from litellm import completion
 from .tools.file_manager import FileManagerTool
 from .tools.web_tools import CodeGeneratorTool, ProjectStructureTool, DatabaseTool
-
-# Define LLM functions with correct provider prefixes and API keys from environment
-def deepseek_v3(messages):
-    return completion(
-        model="openrouter/deepseek/deepseek-chat-v3-0324:free",
-        messages=messages,
-        api_key=os.getenv("OPENROUTER_API_KEY")
-    )
-
-def qwen3(messages):
-    return completion(
-        model="together_ai/Qwen/Qwen3-Coder-30B-A3B-Instruct",
-        messages=messages,
-        api_key=os.getenv("TOGETHERAI_API_KEY")
-    )
-
-def gemini(messages):
-    return completion(
-        model="google/gemini-1.5-flash",
-        messages=messages,
-        api_key=os.getenv("GEMINI_API_KEY")
-    )
-
-def groq(messages):
-    return completion(
-        model="groq/gemma2-9b-it",
-        messages=messages,
-        api_key=os.getenv("GROQ_API_KEY")
-    )
-
-# Fallback wrapper to switch LLMs on rate limit errors
-def resilient_completion(primary_llm, fallback_llm, messages):
-    try:
-        return primary_llm(messages)
-    except Exception as e:
-        if "rate_limit_exceeded" in str(e).lower() or "token_limit" in str(e).lower():
-            print(f"Rate limit hit for {primary_llm.__name__}, switching to {fallback_llm.__name__}")
-            return fallback_llm(messages)
-        else:
-            raise e
 
 @CrewBase
 class DynamicProjectCrew:
@@ -71,15 +30,49 @@ class DynamicProjectCrew:
             'database': DatabaseTool,
         }
     
+    def _get_model_with_fallback(self, primary_model: str, fallback_models: List[str]) -> str:
+        """Get the best available model based on API key availability"""
+        # Check if primary model API key exists
+        if "openrouter" in primary_model and os.getenv("OPENROUTER_API_KEY"):
+            return primary_model
+        elif "together" in primary_model and os.getenv("TOGETHERAI_API_KEY"):
+            return primary_model
+        elif "google" in primary_model and os.getenv("GEMINI_API_KEY"):
+            return primary_model
+        elif "groq" in primary_model and os.getenv("GROQ_API_KEY"):
+            return primary_model
+        elif "openai" in primary_model and os.getenv("OPENAI_API_KEY"):
+            return primary_model
+        
+        # Try fallback models
+        for fallback in fallback_models:
+            if "openrouter" in fallback and os.getenv("OPENROUTER_API_KEY"):
+                return fallback
+            elif "together" in fallback and os.getenv("TOGETHERAI_API_KEY"):
+                return fallback
+            elif "google" in fallback and os.getenv("GEMINI_API_KEY"):
+                return fallback
+            elif "groq" in fallback and os.getenv("GROQ_API_KEY"):
+                return fallback
+            elif "openai" in fallback and os.getenv("OPENAI_API_KEY"):
+                return fallback
+        
+        # Default fallback
+        return "groq/gemma2-9b-it"
+    
     @agent
     def analyzer(self) -> Agent:
+        model = self._get_model_with_fallback(
+            "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+            ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+        )
         return Agent(
             role="Project Type Analyzer",
             goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
             backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
             verbose=True,
             allow_delegation=False,
-            llm="openrouter/deepseek/deepseek-chat-v3-0324:free"  # Use a specific model string
+            llm=model
         )
         
     @task
@@ -135,16 +128,25 @@ class DynamicProjectCrew:
             for agent_name, agent_cfg in self.agent_configs.items():
                 valid_tools = self._get_valid_tools(agent_cfg.get("tools", []))
                 
-                # Assign LLMs based on agent role
+                # Assign models based on agent role with proper fallbacks
                 if "Developer" in agent_cfg["role"]:
-                    # Use Qwen for development tasks with fallback to Gemini
-                    agent_llm = lambda messages: resilient_completion(qwen3, gemini, messages)
+                    # Use coding-focused models for development tasks
+                    model = self._get_model_with_fallback(
+                        "openrouter/qwen/qwen3-coder:free",
+                        ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+                    )
                 elif "Database" in agent_cfg["role"]:
-                    # Use Gemini for database tasks with fallback to Groq
-                    agent_llm = lambda messages: resilient_completion(gemini, groq, messages)
+                    # Use analytical models for database tasks
+                    model = self._get_model_with_fallback(
+                        "google/gemini-1.5-flash",
+                        ["groq/gemma2-9b-it", "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"]
+                    )
                 else:
-                    # Default to DeepSeek with fallback to Groq
-                    agent_llm = lambda messages: resilient_completion(deepseek_v3, groq, messages)
+                    # Default models for other tasks
+                    model = self._get_model_with_fallback(
+                        "together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+                        ["groq/gemma2-9b-it", "google/gemini-1.5-flash"]
+                    )
                 
                 agent = Agent(
                     role=agent_cfg["role"],
@@ -153,7 +155,7 @@ class DynamicProjectCrew:
                     tools=valid_tools,
                     verbose=True,
                     allow_delegation=agent_cfg.get("allow_delegation", True),
-                    llm=agent_llm
+                    llm=model  # Pass model string directly, not a function
                 )
                 setattr(self, agent_name.replace(" ", "_").lower(), agent)
                 self.agents.append(agent)

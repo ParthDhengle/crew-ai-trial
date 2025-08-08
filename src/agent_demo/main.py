@@ -1,6 +1,7 @@
 import sys
 import warnings
 import json
+import os
 from datetime import datetime
 from crewai import Crew, Process, Agent
 from agent_demo.crew import DynamicProjectCrew
@@ -10,6 +11,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
+
+def get_available_model():
+    """Get the first available model based on API keys"""
+    models_with_keys = [
+        ("openrouter/qwen/qwen3-coder:free", "OPENROUTER_API_KEY"),
+        ("groq/gemma2-9b-it", "GROQ_API_KEY"),
+        ("google/gemini-1.5-flash", "GEMINI_API_KEY"),
+        ("together_ai/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free", "TOGETHERAI_API_KEY")
+    ]
+    
+    for model, key_name in models_with_keys:
+        if os.getenv(key_name):
+            return model
+    
+    # If no API keys are found, print warning and use a default
+    print("⚠️  Warning: No API keys found in environment variables.")
+    print("Please set one of the following environment variables:")
+    for model, key_name in models_with_keys:
+        print(f"   - {key_name}")
+    
+    return "google/gemini-1.5-flash"  # Default fallback to free model
 
 def run():
     """Main function to run the dynamic project crew"""
@@ -27,17 +49,16 @@ def run():
     
     try:
         print("🚀 Starting Dynamic Project Crew Analysis...")
+        
+        # Check for API keys
+        available_model = get_available_model()
+        print(f"🔑 Using model: {available_model}")
+        
         crew_instance = DynamicProjectCrew()
         
-        # List of models to try in order
-        models = [
-            "openrouter/deepseek/deepseek-chat-v3-0324:free",
-            "groq/gemma2-9b-it"
-        ]
-        
-        # Step 1: Analyze the project with fallback logic
+        # Step 1: Analyze the project
         print("📋 Step 1: Analyzing project requirements...")
-        analysis_result = execute_with_fallback(crew_instance, user_request, models)
+        analysis_result = execute_analysis(crew_instance, user_request, available_model)
         
         config_json = analysis_result.output if hasattr(analysis_result, 'output') else str(analysis_result)
         print("✅ Project analysis completed")
@@ -82,33 +103,35 @@ def run():
         print("- Verify tool dependencies")
         print("- Ensure API keys are set in .env")
 
-def execute_with_fallback(crew_instance, user_request, models):
-    """Execute the analysis crew with fallback to different models on rate limit errors"""
-    for model in models:
-        try:
-            # Create a new analyzer agent with the current model
-            analyzer = Agent(
-                role="Project Type Analyzer",
-                goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
-                backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
-                verbose=True,
-                allow_delegation=False,
-                llm=model
-            )
-            analysis_crew = Crew(
-                agents=[analyzer],
-                tasks=[crew_instance.analyze_project()],
-                process=Process.sequential,
-                verbose=True
-            )
-            return analysis_crew.kickoff(inputs={"input": user_request})
-        except Exception as e:
-            if "rate_limit_exceeded" in str(e).lower() or "token_limit" in str(e).lower():
-                print(f"Rate limit hit for {model}, trying next model")
-                continue
-            else:
-                raise e
-    raise Exception("All models hit rate limits or failed")
+def execute_analysis(crew_instance, user_request, model):
+    """Execute the analysis crew with the specified model"""
+    try:
+        # Create analyzer with the available model
+        analyzer = Agent(
+            role="Project Type Analyzer",
+            goal="Analyze user requests to determine project type, required agents, tasks, and optimal technologies",
+            backstory="Expert in dissecting technical requirements, selecting appropriate technologies, and designing efficient development teams using crewAI tools.",
+            verbose=True,
+            allow_delegation=False,
+            llm=model
+        )
+        
+        # Create the analysis task
+        analysis_task = crew_instance.analyze_project()
+        analysis_task.agent = analyzer  # Assign the analyzer to the task
+        
+        analysis_crew = Crew(
+            agents=[analyzer],
+            tasks=[analysis_task],
+            process=Process.sequential,
+            verbose=True
+        )
+        
+        return analysis_crew.kickoff(inputs={"input": user_request})
+        
+    except Exception as e:
+        print(f"❌ Analysis failed with model {model}: {str(e)}")
+        raise e
 
 def save_execution_summary(crew_instance, result):
     """Save a summary of the execution"""
