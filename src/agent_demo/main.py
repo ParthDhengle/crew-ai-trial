@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 from agent_demo.crew import AiAgent
-
+import traceback
 
 def display_welcome():
     """Display welcome message and instructions."""
@@ -118,9 +118,9 @@ def run_single_query(user_query=None):
         return True
         
     except Exception as e:
-        print(f"❌ Error during execution: {str(e)}")
+        print("❌ Error during execution — full traceback below:")
+        traceback.print_exc()
         print("Please try again or contact support.")
-        return True
 
 
 def run_interactive():
