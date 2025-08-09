@@ -1,21 +1,52 @@
 analyze_and_plan:
   description: >
-    Given the user query, chat history, user preferences, and operations file:
-    - Match the query to the closest operation(s).
-    - If found, return a JSON execution plan.
-    - If not found, return a friendly unavailability message.
-  expected_output: >
-    EITHER:
+    Your task is to process the user's query and create an execution plan. Follow these steps:
+    
+    1. FIRST, read the user preferences file: {user_preferences_path}
+    2. THEN, read the operations file: {operations_file_path}
+    3. ANALYZE the user query: "{user_query}"
+    4. MATCH the query to available operations from the operations file
+    5. CONSIDER user preferences to personalize the response
+    
+    MATCHING RULES:
+    - Only use operations that exist in the operations file
+    - Never invent or create new operations
+    - If you need multiple operations, include them in sequence
+    - Use user preferences (name, location, interests) to fill parameters intelligently
+    
+    OUTPUT FORMAT:
+    - IF operations are found: Return valid JSON execution plan
+    - IF no operations match: Return the exact message "Sorry, I can't do that yet. This feature will be available soon."
+    
+    EXAMPLE SUCCESSFUL OUTPUT:
     {
       "operations": [
         {
-          "name": "<operation_name>",
-          "parameters": { "<key>": "<value>" },
-          "description": "Brief explanation"
+          "name": "send_email",
+          "parameters": {
+            "to": "colleague@company.com",
+            "subject": "Meeting Request",
+            "body": "Hi, I'd like to schedule a meeting..."
+          },
+          "description": "Sending email to schedule meeting"
         }
       ]
     }
-    OR:
+
+  expected_output: >
+    EITHER a valid JSON execution plan in the exact format:
+    {
+      "operations": [
+        {
+          "name": "<operation_name_from_operations_file>",
+          "parameters": { "<param1>": "<value1>", "<param2>": "<value2>" },
+          "description": "<brief_explanation>"
+        }
+      ]
+    }
+    
+    OR the exact unavailability message:
     "Sorry, I can't do that yet. This feature will be available soon."
+
   agent: analyzer
   output_file: execution_plan.json
