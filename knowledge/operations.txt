@@ -1,0 +1,74 @@
+# Communication
+send_email | parameters: to, subject, body | Sends an email to the specified recipient
+send_sms | parameters: to, message | Sends an SMS to a phone number
+make_call | parameters: to, message | Places a phone call and delivers a message
+send_whatsapp_message | parameters: to, message | Sends a WhatsApp message
+
+# File Management
+create_file | parameters: filename, content | Creates a file with given content
+read_file | parameters: filename | Reads and returns content of a file
+update_file | parameters: filename, new_content | Updates content of a file
+delete_file | parameters: filename | Deletes a specified file
+list_files | parameters: directory | Lists all files in a directory
+
+# Web & Search
+search_web | parameters: query | Searches the internet and returns top results
+download_file | parameters: url, save_path | Downloads a file from a URL
+open_website | parameters: url | Opens a website in the system browser
+get_weather | parameters: location | Fetches weather data for a location
+get_news | parameters: topic | Retrieves latest news articles
+
+# Calendar & Time
+create_event | parameters: title, date, time, location | Creates a calendar event
+list_events | parameters: date_range | Lists events in the given date range
+delete_event | parameters: event_id | Deletes a specific calendar event
+get_time | parameters: location | Returns current time for a location
+set_reminder | parameters: message, datetime | Sets a reminder
+
+# Task Management
+create_task | parameters: title, due_date, priority | Creates a new task
+update_task | parameters: task_id, updates | Updates an existing task
+delete_task | parameters: task_id | Deletes a task
+list_tasks | parameters: filter | Lists tasks with optional filter
+
+# Communication Platforms
+send_slack_message | parameters: channel, message | Sends a message to a Slack channel
+send_discord_message | parameters: channel, message | Sends a message to a Discord channel
+post_twitter | parameters: message | Posts a tweet
+post_linkedin | parameters: message | Posts a LinkedIn status update
+
+# Data Handling
+read_csv | parameters: filepath | Reads CSV and returns data
+write_csv | parameters: filepath, data | Writes data to CSV file
+filter_csv | parameters: filepath, condition | Filters CSV rows by condition
+generate_report | parameters: title, data | Generates a PDF report
+
+# Media
+play_music | parameters: song_name | Plays a song
+pause_music | parameters: none | Pauses music
+stop_music | parameters: none | Stops music
+play_video | parameters: video_name | Plays a video
+take_screenshot | parameters: save_path | Takes a screenshot
+
+# Utilities
+calculate | parameters: expression | Evaluates a math expression
+translate | parameters: text, target_language | Translates text to another language
+unit_convert | parameters: value, from_unit, to_unit | Converts units
+spell_check | parameters: text | Checks and corrects spelling
+summarize_text | parameters: text | Summarizes the given text
+generate_password | parameters: length | Generates a random password
+scan_qr_code | parameters: image_path | Scans a QR code from image
+
+# AI & Content Generation
+generate_text | parameters: prompt | Generates AI-written text
+generate_image | parameters: prompt, size | Generates an AI image
+generate_code | parameters: prompt, language | Generates code snippet
+analyze_sentiment | parameters: text | Analyzes sentiment of text
+chat_with_ai | parameters: message | Responds to user in chat format
+
+# System
+shutdown_system | parameters: none | Shuts down the system
+restart_system | parameters: none | Restarts the system
+check_system_status | parameters: none | Returns system health status
+list_running_processes | parameters: none | Lists active processes
+kill_process | parameters: process_id | Terminates a process

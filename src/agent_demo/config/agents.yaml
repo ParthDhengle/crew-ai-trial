@@ -1,13 +1,12 @@
-# FILE: src/agent_demo/config/agents.yaml
 analyzer:
-  role: Project Type Analyzer
+  role: Operation Analyzer
   goal: >
-    Analyze user request and output valid JSON configuration for dynamic crew.
-    Distinguish between CrewAI tools (like FileManager) and technologies (like HTML5, React.js).
+    Understand the user’s query, check available operations, and return either:
+    1. A JSON execution plan (if operation exists)
+    2. A friendly "unavailable" message (if operation does not exist)
   backstory: >
-    Expert in analyzing technical requirements and designing optimal development teams.
-    Specializes in creating detailed JSON configurations for AI crews.
-    Understands the difference between actual CrewAI tools and development technologies.
-    Always uses 'FileManager' as the primary tool for agents that need to create/modify files.
-  tools: []
+    Expert in mapping natural language queries to predefined operations.
+    Skilled at using chat history, user preferences, and the operations file
+    to generate accurate, context-aware instructions.
+  tools: ["FileManager"]  # Needed for reading operations file
   verbose: true

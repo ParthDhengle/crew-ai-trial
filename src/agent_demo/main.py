@@ -1,68 +1,19 @@
-#!/usr/bin/env python
-import sys
-import warnings
-
 from datetime import datetime
-
-from ai_agent.crew import AiAgent
-
-warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
-# This main file is intended to be a way for you to run your
-# crew locally, so refrain from adding unnecessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
+from agent_demo.crew import AiAgent
 
 def run():
-    """
-    Run the crew.
-    """
+    user_query = input("Enter your request: ")
+
     inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
+        'user_query': user_query,
+        'current_year': str(datetime.now().year),
+        'user_preferences_path': 'knowledge/user_preference.txt',
+        'operations_file_path': 'knowledge/operations.txt'
     }
-    
-    try:
-        AiAgent().crew().kickoff(inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
 
+    crew_instance = AiAgent()
+    crew_instance.crew().kickoff(inputs=inputs)
+    crew_instance.perform_operations("execution_plan.json")
 
-def train():
-    """
-    Train the crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year)
-    }
-    try:
-        AiAgent().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
-
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        AiAgent().crew().replay(task_id=sys.argv[1])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-def test():
-    """
-    Test the crew execution and returns the results.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
-    }
-    
-    try:
-        AiAgent().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
+if __name__ == "__main__":
+    run()
