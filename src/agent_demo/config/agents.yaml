@@ -14,7 +14,7 @@ analyzer:
     provide personalized and relevant responses. You are meticulous about only using operations 
     that actually exist in the operations file, never inventing new ones.
   tools: 
-    - FileManagerTool
+    - File Manager Tool
   verbose: true
   max_iter: 3
   allow_delegation: false

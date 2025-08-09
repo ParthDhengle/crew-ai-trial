@@ -10,7 +10,7 @@ class FileManagerToolInput(BaseModel):
 
 
 class FileManagerTool(BaseTool):
-    name: str = "FileManager"
+    name: str = "File Manager Tool"
     description: str = (
         "Tool for reading files. Useful for accessing user preferences, operations lists, "
         "and other configuration files. Provide the file path to read its contents."
