@@ -3,26 +3,33 @@ import json
 import os
 import traceback
 from datetime import datetime
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from typing import List
 from agent_demo.tools.file_manager_tool import FileManagerTool
-from agent_demo.tools.operations_tool import OperationsTool  # new
+from agent_demo.tools.operations_tool import OperationsTool
 
 @CrewBase
 class AiAgent():
     agents: List[Agent]
     tasks: List[Task]
 
+    def __init__(self):
+        # Configure Groq LLM
+        self.llm = LLM(
+            model="gemini/gemini-1.5-flash",  # or "groq/mixtral-8x7b-32768"
+            api_key=os.getenv("GEMINI_API_KEY")
+        )
+        super().__init__()
+
     @agent
     def analyzer(self) -> Agent:
-        # give the analyzer the FileManager tool (so it can read operations/user prefs)
         return Agent(
             config=self.agents_config['analyzer'],
             tools=[FileManagerTool()],
+            llm=self.llm,
             verbose=True
         )
-
     @task
     def analyze_and_plan(self) -> Task:
         return Task(config=self.tasks_config['analyze_and_plan'])
