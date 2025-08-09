@@ -36,7 +36,8 @@ text- For Windows or other platforms, see the [official UV installation guide](h
 
 After installation, verify UV:
 uv --version
-text### Step 2: Set Up the Project
+
+### Step 2: Set Up the Project
 
 Clone or download the project repository, then navigate to the project directory:
 cd parthdhengle-crew-ai-trial
@@ -66,7 +67,7 @@ If these files are missing, the project will error out—ensure they exist.
 
 ## Running the Project
 
-UV integrates with the scripts defined in `pyproject.toml` (e.g., `run_crew`, `train`, etc.). Activate your virtual environment first.
+UV integrates with the scripts defined in `pyproject.toml` (e.g., `crewai run`, `train`, etc.). Activate your virtual environment first.
 
 ### Interactive Mode
 Run the assistant in an interactive CLI loop:
@@ -199,3 +200,4 @@ Fork the repo, make changes, and submit a PR. Ensure UV is used for dependency m
 ## License
 
 MIT (assumed; add a LICENSE file if needed).
+
