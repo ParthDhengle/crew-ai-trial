@@ -17,8 +17,8 @@ class AiAgent():
     def __init__(self):
         # Configure Groq LLM
         self.llm = LLM(
-            model="gemini/gemini-1.5-flash",  # or "groq/mixtral-8x7b-32768"
-            api_key=os.getenv("GEMINI_API_KEY")
+            model="groq/gemma2-9b-it",  # or "groq/mixtral-8x7b-32768"
+            api_key=os.getenv("GROQ_API_KEY")
         )
         super().__init__()
 
