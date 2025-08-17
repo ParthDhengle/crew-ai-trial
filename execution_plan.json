@@ -1,9 +1,0 @@
-{
-  "operations": [
-    {
-      "name": "open_website",
-      "parameters": { "url": "https://www.amazon.com" },
-      "description": "Opening Amazon website"
-    }
-  ]
-}

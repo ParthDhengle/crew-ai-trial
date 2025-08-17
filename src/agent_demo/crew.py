@@ -46,20 +46,53 @@ class AiAgent():
             with open(json_file_path, 'r', encoding='utf-8') as f:
                 content = f.read().strip()
 
-            # handle the pre-defined unavailable message or non-json
+            # Handle the pre-defined unavailable message or non-json
             if content.startswith('"Sorry,') or content == '"Sorry, I can\'t do that yet. This feature will be available soon."':
                 print(content.strip('"'))
                 return
 
+            # Fix common JSON formatting issues
+            content = content.strip()
+            
+            # Remove markdown code blocks if present
+            if content.startswith('```json') and content.endswith('```'):
+                content = content[7:-3].strip()
+            elif content.startswith('```') and content.endswith('```'):
+                content = content[3:-3].strip()
+            
+            # If the content starts with "operations": [...], wrap it in braces
+            if content.startswith('"operations":'):
+                content = '{' + content + '}'
+            
             try:
                 plan = json.loads(content)
-            except json.JSONDecodeError:
-                print("❌ Execution plan is not valid JSON. Here's the raw content:")
+            except json.JSONDecodeError as e:
+                print("❌ Execution plan is not valid JSON. Attempting to fix...")
+                print(f"JSON Error: {e}")
+                print("Raw content:")
                 print(content)
-                return
+                
+                # Try to extract just the operations array if it's malformed
+                try:
+                    # Look for operations array pattern
+                    import re
+                    operations_match = re.search(r'"operations":\s*(\[.*\])', content, re.DOTALL)
+                    if operations_match:
+                        operations_json = operations_match.group(1)
+                        plan = {"operations": json.loads(operations_json)}
+                        print("✅ Successfully extracted operations from malformed JSON")
+                    else:
+                        print("❌ Could not extract operations from malformed JSON")
+                        return
+                except Exception as fix_error:
+                    print(f"❌ Failed to fix JSON: {fix_error}")
+                    return
 
             if not isinstance(plan, dict) or 'operations' not in plan:
                 print("❌ Invalid execution plan format (missing 'operations')")
+                print(f"Plan structure: {type(plan)}")
+                if isinstance(plan, dict):
+                    print(f"Available keys: {list(plan.keys())}")
                 return
 
             operations = plan.get('operations', [])
@@ -87,7 +120,6 @@ class AiAgent():
         except Exception as e:
             print("❌ Error executing operations:")
             traceback.print_exc()
-
     @crew
     def crew(self) -> Crew:
         return Crew(

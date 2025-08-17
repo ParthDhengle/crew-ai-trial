@@ -1,3 +1,6 @@
+#windows directory
+open_application | parameters: app_name | Opens an application on the desktop
+
 # Communication
 send_email | parameters: to, subject, body | Sends an email to the specified recipient
 send_sms | parameters: to, message | Sends an SMS to a phone number
