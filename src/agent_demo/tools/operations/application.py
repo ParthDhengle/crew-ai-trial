@@ -384,7 +384,7 @@ def open_web(query):
         return
     webbrowser.open(f"https://www.bing.com/search?q={q.replace(' ','+')}")
 
-def main():
+def open_application():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--rebuild", action="store_true", help="force reindex")
@@ -461,5 +461,3 @@ def main():
         except ValueError:
             print("Unrecognized input — try again.")
 
-if __name__ == "__main__":
-    main()
