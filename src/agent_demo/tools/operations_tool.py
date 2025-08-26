@@ -5,6 +5,9 @@ from typing import List, Dict, Any
 
 # Map operation name -> module filename under agent_demo.tools.operations
 OP_MODULE_MAP = {
+    #application
+    "open_application": "application",
+    
     # Communication
     "send_email": "communication",
     "send_sms": "communication",

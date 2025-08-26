@@ -296,38 +296,6 @@ def find_matches(apps, query, topn=TOP_N, min_score=MIN_DISPLAY_SCORE):
             break
     return out
 
-# ---------- Robust prompt (consumes keystrokes on Windows) ----------
-def ask_yes_no(prompt, default=False):
-    if not sys.stdin or not sys.stdin.isatty():
-        print(f"(non-interactive) auto-answer: {'Y' if default else 'N'}")
-        return default
-    if os.name == "nt":
-        try:
-            import msvcrt
-            sys.stdout.write(prompt)
-            sys.stdout.flush()
-            ch = msvcrt.getwch()  # read single wide char
-            # drain rest of line
-            try:
-                while msvcrt.kbhit():
-                    c = msvcrt.getwch()
-                    if c in ('\r','\n'):
-                        break
-            except Exception:
-                pass
-            sys.stdout.write('\n')
-            return ch.lower() in ('y','\x79','1')
-        except Exception:
-            pass
-    # fallback
-    try:
-        ans = input(prompt).strip().lower()
-        if not ans:
-            return default
-        return ans in ('y','yes','1')
-    except Exception:
-        return default
-
 # ---------- Launch ----------
 def launch_entry(entry):
     typ = entry.get("type")
@@ -335,7 +303,6 @@ def launch_entry(entry):
         if typ == "UWP":
             cmd = entry.get("launch_command")
             if not cmd:
-                print("No launch command available for this UWP entry.")
                 return False
             subprocess.Popen(cmd, shell=True)
             return True
@@ -344,30 +311,26 @@ def launch_entry(entry):
             if p and os.path.exists(p):
                 os.startfile(p)
                 return True
-            print("Shortcut missing.")
             return False
         # traditional or path exe or alias
         p = entry.get("path")
         if not p:
-            print("No path to execute.")
             return False
         # attempt direct subprocess launch (no shell) to avoid capturing terminal
         try:
             subprocess.Popen([p], shell=False)
             return True
-        except Exception as e:
+        except Exception:
             # Some apps require shell, try via os.startfile as fallback
             try:
                 os.startfile(p)
                 return True
             except Exception:
-                print("Failed to launch:", e)
                 return False
-    except Exception as e:
-        print("Launch error:", e)
+    except Exception:
         return False
 
-# ---------- Main interactive flow ----------
+# ---------- Main function with app_name parameter ----------
 def load_aliases():
     a = read_json(ALIASES_FILE)
     if isinstance(a, dict):
@@ -384,14 +347,70 @@ def open_web(query):
         return
     webbrowser.open(f"https://www.bing.com/search?q={q.replace(' ','+')}")
 
-def open_application():
+def open_application(app_name):
+    """
+    Open an application by name.
+    
+    Args:
+        app_name (str): Name of the application to open
+        
+    Returns:
+        tuple: (success: bool, message: str)
+    """
+    if not app_name or not app_name.strip():
+        return (False, "No app name provided")
+    
+    query = app_name.strip()
+    
+    # Build app index
+    apps = build_index(force=False)
+    aliases = load_aliases()
+    
+    # Check aliases first
+    ak = query.lower()
+    if ak in aliases:
+        target = aliases[ak]
+        ent = {"name": ak, "path": target, "type": "Alias"}
+        if launch_entry(ent):
+            return (True, f"Successfully launched {ak} via alias")
+        else:
+            return (False, f"Failed to launch alias {ak}")
+    
+    # Find matches
+    matches = find_matches(apps, query, topn=TOP_N)
+    if not matches:
+        # No local match found, open web search as fallback
+        open_web(query)
+        return (True, f"No local app found for '{query}', opened web search")
+    
+    # Get the best match
+    top_app, top_score = matches[0]
+    
+    # Auto-launch if score is high enough
+    if top_score >= AUTO_LAUNCH_THRESHOLD:
+        if launch_entry(top_app):
+            return (True, f"Successfully launched {top_app.get('name')} (score {top_score:.2f})")
+        else:
+            open_web(query)
+            return (False, f"Failed to launch {top_app.get('name')}, opened web search instead")
+    else:
+        # Launch the best match even if score is not high enough for auto-launch
+        if launch_entry(top_app):
+            return (True, f"Successfully launched {top_app.get('name')} (score {top_score:.2f})")
+        else:
+            open_web(query)
+            return (False, f"Failed to launch {top_app.get('name')}, opened web search instead")
+
+
+# ---------- Interactive mode (for standalone usage) ----------
+def interactive_mode():
+    """Original interactive mode for standalone usage."""
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--rebuild", action="store_true", help="force reindex")
     args = parser.parse_args()
 
     apps = build_index(force=args.rebuild)
-
     aliases = load_aliases()
     print(f"Indexed {len(apps)} apps. Type app name to open (q to quit, r rebuild).")
 
@@ -410,54 +429,11 @@ def open_application():
             apps = build_index(force=True)
             print(f"Rebuilt index. {len(apps)} apps.")
             continue
-        # alias resolve
-        ak = query.lower()
-        if ak in aliases:
-            target = aliases[ak]
-            ent = {"name": ak, "path": target, "type": "Alias"}
-            print(f"Alias found — launching {target}")
-            ok = launch_entry(ent)
-            if not ok:
-                print("Alias launch failed. Opening web search.")
-                open_web(query)
-            continue
-        matches = find_matches(apps, query, topn=TOP_N)
-        if not matches:
-            print("No local match found. Opening web search.")
-            open_web(query)
-            continue
-        # show matches
-        print(f"\nTop matches for '{query}':")
-        for i, (app, sc) in enumerate(matches, start=1):
-            print(f"  {i}. {app.get('name')} [{app.get('type')}] (score {sc:.2f})")
-        top_app, top_score = matches[0]
-        if top_score >= AUTO_LAUNCH_THRESHOLD:
-            print(f"Auto-launching top match: {top_app.get('name')} (score {top_score:.2f})")
-            launched = launch_entry(top_app)
-            if not launched:
-                print("Launch failed; opening web search.")
-                open_web(query)
-            continue
-        # ask user
-        choice = input(f"\nEnter number to launch (1-{len(matches)}), Enter to launch best, or 'w' to web search: ").strip()
-        if choice == "":
-            print(f"Launching {top_app.get('name')}")
-            if not launch_entry(top_app):
-                print("Launch failed; opening web.")
-                open_web(query)
-            continue
-        if choice.lower() in ("w","web"):
-            open_web(query); continue
-        try:
-            idx = int(choice)
-            if 1 <= idx <= len(matches):
-                sel = matches[idx-1][0]
-                print(f"Launching {sel.get('name')}")
-                if not launch_entry(sel):
-                    print("Launch failed; opening web.")
-                    open_web(query)
-            else:
-                print("Invalid selection.")
-        except ValueError:
-            print("Unrecognized input — try again.")
+        
+        # Use the new open_application function
+        success, message = open_application(query)
+        print(message)
 
+
+if __name__ == "__main__":
+    interactive_mode()

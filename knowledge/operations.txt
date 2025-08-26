@@ -2,10 +2,10 @@
 open_application | parameters: app_name | Opens an application on the desktop
 
 # Communication
-send_email | parameters: to, subject, body | Sends an email to the specified recipient
-send_sms | parameters: to, message | Sends an SMS to a phone number
+send_email | parameters: to, subject | Sends an email to the specified recipient
+send_sms | parameters: to | Sends an SMS to a phone number
 make_call | parameters: to, message | Places a phone call and delivers a message
-send_whatsapp_message | parameters: to, message | Sends a WhatsApp message
+
 
 # File Management
 create_file | parameters: filename, content | Creates a file with given content
@@ -54,12 +54,8 @@ play_video | parameters: video_name | Plays a video
 take_screenshot | parameters: save_path | Takes a screenshot
 
 # Utilities
-calculate | parameters: expression | Evaluates a math expression
 translate | parameters: text, target_language | Translates text to another language
-unit_convert | parameters: value, from_unit, to_unit | Converts units
-spell_check | parameters: text | Checks and corrects spelling
 summarize_text | parameters: text | Summarizes the given text
-generate_password | parameters: length | Generates a random password
 scan_qr_code | parameters: image_path | Scans a QR code from image
 
 # AI & Content Generation

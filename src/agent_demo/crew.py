@@ -15,21 +15,45 @@ class AiAgent():
     tasks: List[Task]
 
     def __init__(self):
-        # Configure Groq LLM
-        self.llm = LLM(
-            model="groq/gemma2-9b-it",  # or "groq/mixtral-8x7b-32768"
-            api_key=os.getenv("GROQ_API_KEY")
-        )
+        # Configure Groq LLM - check if API key exists
+        groq_key = os.getenv("GROQ_API_KEY")
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        
+        if groq_key:
+            self.llm = LLM(
+                model="groq/gemma2-9b-it",
+                api_key=groq_key
+            )
+        elif gemini_key:
+            self.llm = LLM(
+                model="gemini/gemini-pro",
+                api_key=gemini_key
+            )
+        else:
+            print("Warning: No API key found. Using default LLM.")
+            self.llm = None
+        
         super().__init__()
 
     @agent
     def analyzer(self) -> Agent:
-        return Agent(
-            config=self.agents_config['analyzer'],
-            tools=[FileManagerTool()],
-            llm=self.llm,
-            verbose=True
-        )
+        agent_config = self.agents_config['analyzer'].copy()
+        
+        # Create agent with or without LLM
+        if self.llm:
+            return Agent(
+                config=agent_config,
+                tools=[FileManagerTool()],
+                llm=self.llm,
+                verbose=True
+            )
+        else:
+            return Agent(
+                config=agent_config,
+                tools=[FileManagerTool()],
+                verbose=True
+            )
+
     @task
     def analyze_and_plan(self) -> Task:
         return Task(config=self.tasks_config['analyze_and_plan'])
@@ -120,6 +144,7 @@ class AiAgent():
         except Exception as e:
             print("❌ Error executing operations:")
             traceback.print_exc()
+
     @crew
     def crew(self) -> Crew:
         return Crew(

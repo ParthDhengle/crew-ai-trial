@@ -4,3 +4,9 @@ __pycache__/
 testapi.py
 .venv
 execution_plan.json
+token.json
+agent.log
+agent_execution.log
+client_secret.json
+app_index.json
+aliases.json
