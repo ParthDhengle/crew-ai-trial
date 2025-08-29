@@ -4,6 +4,8 @@ import os
 from urllib.parse import urlparse
 import json
 from typing import List, Dict, Optional
+from bs4 import BeautifulSoup
+from crewai import Agent, Crew, Process, Task, LLM
 
 # Global session for reusing connections
 session = requests.Session()
@@ -321,54 +323,64 @@ def _get_news_free(topic: str) -> List[Dict]:
         }]
 
 
-# Example usage and testing
+def browse_url(url, max_chars=3000):
+    try:
+        # Step 1: Fetch webpage with headers
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/115.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        # Step 2: Parse & clean HTML
+        soup = BeautifulSoup(response.text, "html.parser")
+        for tag in soup(["script", "style", "noscript"]):
+            tag.extract()
+
+        text = " ".join(soup.get_text(separator=" ", strip=True).split())
+        raw_text = text[:max_chars]
+
+        if not raw_text:
+            return "❌ No readable text found on the page."
+
+        # Step 3: Pick available LLM
+        llm = None
+        if os.getenv("GROQ_API_KEY"):
+            llm = LLM(model="groq/llama3-8b-8192", api_key=os.getenv("GROQ_API_KEY"))
+        elif os.getenv("OPENAI_API_KEY"):
+            llm = LLM(model="openai/gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"))
+        elif os.getenv("GOOGLE_API_KEY"):
+            llm = LLM(model="gemini/gemini-1.5-flash", api_key=os.getenv("GOOGLE_API_KEY"))
+        elif os.getenv("ANTHROPIC_API_KEY"):
+            llm = LLM(model="anthropic/claude-3-haiku-20240307", api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+        if not llm:
+            return "❌ No valid LLM API key found."
+
+        # Step 4: Prompt
+        prompt = f"""
+Summarize the following webpage content:
+
+----
+{raw_text}
+----
+
+Guidelines:
+- Keep it concise (5-7 sentences max).
+- Highlight only useful info.
+- Ignore ads, nav, junk.
+- Output only the summary text.
+"""
+        # Step 5: Call LLM (use correct method)
+        summary = llm.call(prompt).strip()
+
+        return summary
+
+    except Exception as e:
+        return f"❌ Error fetching {url}: {e}" 
 def main():
-    """Example usage of all functions"""
-    print("=== Web Functions Demo ===\n")
-    
-    # 1. Search Web
-    print("1. Searching web...")
-    search_results = search_web("Python programming", num_results=3)
-    for i, result in enumerate(search_results, 1):
-        if 'error' not in result:
-            print(f"   {i}. {result.get('title', 'No title')}")
-            print(f"      URL: {result.get('url', 'No URL')}")
-            print(f"      Snippet: {result.get('snippet', 'No snippet')[:100]}...")
-        else:
-            print(f"   Error: {result['error']}")
-    print()
-    
-    # 2. Download File
-    print("2. Downloading file...")
-    download_result = download_file(
-        "https://httpbin.org/json", 
-        "sample_download.json"
-    )
-    print(f"   Download result: {download_result}")
-    print()
-    
-    # 3. Open Website
-    print("3. Opening website...")
-    open_result = open_website("https://www.python.org")
-    print(f"   Open result: {open_result}")
-    print()
-    
-    # 4. Get Weather
-    print("4. Getting weather...")
-    weather_result = get_weather("London")
-    print(f"   Weather result: {weather_result}")
-    print()
-    
-    # 5. Get News
-    print("5. Getting news...")
-    news_results = get_news("technology")
-    for i, article in enumerate(news_results[:3], 1):
-        if 'error' not in article:
-            print(f"   {i}. {article.get('title', 'No title')}")
-            print(f"      Source: {article.get('source', 'Unknown')}")
-        else:
-            print(f"   Error: {article['error']}")
-
-
+    print(browse_url("https://en.wikipedia.org/wiki/Artificial_intelligence"))
 if __name__ == "__main__":
     main()
