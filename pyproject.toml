@@ -23,6 +23,7 @@ train = "agent_demo.main:train"
 replay = "agent_demo.main:replay"
 test = "agent_demo.main:test"
 desktop_ui = "agent_demo.desktop_app:main"
+ui = "agent_demo.main:run_ui"  # New: Launches Electron UI
 
 [build-system]
 requires = ["hatchling"]
