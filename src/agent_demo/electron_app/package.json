@@ -1,0 +1,15 @@
+{
+  "name": "ai-assistant-electron",
+  "version": "1.0.0",
+  "description": "Electron UI for AI Agent",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Parth Dhengle",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^37.4.0"
+  }
+}

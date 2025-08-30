@@ -11,7 +11,6 @@ retrieveMails | parameters: from_email, limit=3 | Retrieves last N emails from a
 searchMail | parameters: keyword, limit=5 | Searches emails by keyword in subject, body, or sender
 send_sms | parameters: to, message | Sends an SMS to a phone number
 make_call | parameters: to, message | Places a phone call and delivers a message
-send_whatsapp_message | parameters: to, message | Sends a WhatsApp message to a contact
 
 #File Management
 create_file | parameters: filename, content | Creates a file with given content

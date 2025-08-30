@@ -11,3 +11,4 @@ client_secret.json
 app_index.json
 aliases.json
 models--openai--whisper-medium
+node_modules/
