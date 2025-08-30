@@ -3,6 +3,8 @@ import sys
 from datetime import datetime
 from agent_demo.crew import AiAgent
 import traceback
+import multiprocessing
+import subprocess
 
 def display_welcome():
     """Display welcome message and instructions."""
@@ -21,7 +23,6 @@ def display_welcome():
     print("=" * 60)
     print()
 
-
 def display_help():
     """Display help information."""
     print("\n📖 HELP - Example Commands:")
@@ -37,7 +38,6 @@ def display_help():
     print("-" * 40)
     print()
 
-
 def get_user_input():
     """Get user input with proper handling."""
     try:
@@ -46,7 +46,6 @@ def get_user_input():
     except (EOFError, KeyboardInterrupt):
         print("\n👋 Goodbye!")
         return "quit"
-
 
 def validate_environment():
     """Check if required files exist."""
@@ -68,7 +67,6 @@ def validate_environment():
         return False
     
     return True
-
 
 def run_single_query(user_query=None):
     """Run a single query execution."""
@@ -122,7 +120,6 @@ def run_single_query(user_query=None):
         traceback.print_exc()
         print("Please try again or contact support.")
 
-
 def run_interactive():
     """Run in interactive mode."""
     display_welcome()
@@ -134,32 +131,38 @@ def run_interactive():
     except KeyboardInterrupt:
         print("\n👋 Goodbye!")
 
+def run_backend():
+    subprocess.run(["uv", "run", "uvicorn", "src.agent_demo.server:app", "--host", "127.0.0.1", "--port", "8000"])
 
 def run():
-    """Main entry point - supports both interactive and single-query modes."""
+    """Main entry point - supports both interactive, single-query, and UI modes."""
     # Check if we're running with command line arguments
     if len(sys.argv) > 1:
-        # Single query mode
-        query = ' '.join(sys.argv[1:])
-        if query.startswith('"') and query.endswith('"'):
-            query = query[1:-1]  # Remove quotes if present
-        run_single_query(query)
+        if sys.argv[1] == "--with-ui":
+            p = multiprocessing.Process(target=run_backend)
+            p.start()
+            from . import desktop_app  # Use relative import
+            desktop_app.main()
+            p.terminate()
+        else:
+            # Single query mode
+            query = ' '.join(sys.argv[1:])
+            if query.startswith('"') and query.endswith('"'):
+                query = query[1:-1]  # Remove quotes if present
+            run_single_query(query)
     else:
         # Interactive mode
         run_interactive()
-
 
 def train():
     """Training function - placeholder for future ML training capabilities."""
     print("🎓 Training mode not implemented yet.")
     print("This feature will allow you to train the assistant on your specific use cases.")
 
-
 def replay():
     """Replay function - replay previous execution plans."""
     print("🔄 Replay mode not implemented yet.")
     print("This feature will allow you to replay previous successful operations.")
-
 
 def test():
     """Test function - run predefined test scenarios."""
@@ -183,7 +186,6 @@ def test():
         print("-" * 40)
     
     print("✅ All tests completed!")
-
 
 if __name__ == "__main__":
     run()
