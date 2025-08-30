@@ -11,6 +11,9 @@ dependencies = [
     "requests>=2.32.4",
     "uiautomation>=2.0.29",
     "uvicorn>=0.35.0",
+    "pyperclip>=1.8.2",
+    "keyboard>=0.13.5",
+    "psutil>=5.9.0",
 ]
 
 [project.scripts]
@@ -19,6 +22,7 @@ run_crew = "agent_demo.main:run"
 train = "agent_demo.main:train"
 replay = "agent_demo.main:replay"
 test = "agent_demo.main:test"
+desktop_ui = "agent_demo.desktop_app:main"
 
 [build-system]
 requires = ["hatchling"]
