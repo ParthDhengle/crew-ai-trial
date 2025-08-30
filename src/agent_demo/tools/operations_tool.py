@@ -76,6 +76,16 @@ OP_MODULE_MAP = {
     "check_system_status": "system",
     "list_running_processes": "system",
     "kill_process": "system",
+    "search_web": "web_search",
+    "download_file": "web_search",
+    "open_website": "web_search",
+    "get_weather": "web_search",
+    "get_news": "web_search",
+
+    # Knowledge
+    "retrieve_knowledge": "knowledge_retrieval",  
+
+
 }
 
 class OperationsTool:

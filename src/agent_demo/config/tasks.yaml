@@ -7,12 +7,14 @@ analyze_and_plan:
     3. ANALYZE the user query: "{user_query}"
     4. MATCH the query to available operations from the operations file
     5. CONSIDER user preferences to personalize the response
+    6. IF the query is informational (e.g., starts with "what is", "explain", "define"), use the retrieve_knowledge operation with the query as the parameter
     
     MATCHING RULES:
     - Only use operations that exist in the operations file
     - Never invent or create new operations
     - If you need multiple operations, include them in sequence
     - Use user preferences (name, location, interests) to fill parameters intelligently
+    - For informational queries, personalize the query if the user has relevant interests (e.g., for a user interested in AI Agents, append "with a focus on AI agents" to AI-related queries)
     
     OUTPUT FORMAT:
     - IF operations are found: Return valid JSON execution plan
@@ -29,6 +31,13 @@ analyze_and_plan:
             "body": "Hi, I'd like to schedule a meeting..."
           },
           "description": "Sending email to schedule meeting"
+        },
+        {
+          "name": "retrieve_knowledge",
+          "parameters": {
+            "query": "what is AI with a focus on AI agents"
+          },
+          "description": "Retrieving information for: what is AI with a focus on AI agents"
         }
       ]
     }

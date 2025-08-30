@@ -5,12 +5,17 @@ description = "agent_demo using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "crewai[tools]>=0.152.0,<1.0.0",
+    "crewai[tools]>=0.67.1,<1.0.0",  # Update to latest
     "fastapi>=0.116.1",
     "pyside6>=6.9.2",
     "requests>=2.32.4",
     "uiautomation>=2.0.29",
     "uvicorn>=0.35.0",
+    "pyperclip>=1.8.2",
+    "keyboard>=0.13.5",
+    "psutil>=5.9.0",
+    "python-dotenv>=1.0.0",
+    "typing_extensions>=4.12.2",
 ]
 
 [project.scripts]
@@ -19,6 +24,8 @@ run_crew = "agent_demo.main:run"
 train = "agent_demo.main:train"
 replay = "agent_demo.main:replay"
 test = "agent_demo.main:test"
+desktop_ui = "agent_demo.desktop_app:main"
+ui = "agent_demo.main:run_ui"
 
 [build-system]
 requires = ["hatchling"]

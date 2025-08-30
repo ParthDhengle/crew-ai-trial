@@ -112,3 +112,6 @@ debug_code | parameters: code_snippet, language | Analyzes and suggests fixes fo
 recognize_speech | parameters: duration | Listens and recognizes speech for a duration, returns text
 synthesize_speech | parameters: text | Converts text to speech and plays it
 set_voice_volume | parameters: level | Sets the system voice output volume
+
+#Knowledge
+knowledge_retrieval | parameters: query | Retrieves an explanation or information about a topic using a knowledge base or web search

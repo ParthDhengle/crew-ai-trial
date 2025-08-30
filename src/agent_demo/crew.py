@@ -58,17 +58,67 @@ class AiAgent():
     def analyze_and_plan(self) -> Task:
         return Task(config=self.tasks_config['analyze_and_plan'])
 
-    def perform_operations(self, json_file_path):
+    def preprocess_query(self, query: str) -> dict:
         """
-        Read the execution plan and perform all operations in sequence using OperationsTool.
+        Preprocess the user query to generate an execution plan.
+        Returns a JSON execution plan or a fallback message.
+        """
+        # Read user preferences
+        preferences = {}
+        try:
+            with open("knowledge/user_preference.txt", "r") as f:
+                for line in f:
+                    if ":" in line:
+                        key, value = line.split(":", 1)
+                        preferences[key.strip()] = value.strip()
+        except Exception as e:
+            print(f"Warning: Could not read preferences: {e}")
+
+        # Read operations
+        operations = []
+        try:
+            with open("knowledge/operations.txt", "r") as f:
+                for line in f:
+                    if "|" in line and not line.startswith("#"):
+                        parts = line.split("|")
+                        operations.append(parts[0].strip())
+        except Exception as e:
+            print(f"Warning: Could not read operations: {e}")
+
+        # Match query to operations
+        query_lower = query.lower()
+        if any(keyword in query_lower for keyword in ["what is", "explain", "define"]):
+            # Personalize based on preferences
+            personalized_query = query
+            if preferences.get("User is interested in") == "AI Agents" and "ai" in query_lower:
+                personalized_query = f"{query} with a focus on AI agents"
+            
+            if "retrieve_knowledge" in operations:
+                return {
+                    "operations": [
+                        {
+                            "name": "retrieve_knowledge",
+                            "parameters": {"query": personalized_query},
+                            "description": f"Retrieving information for: {personalized_query}"
+                        }
+                    ]
+                }
+
+        # Fallback for unmatched queries
+        return {"message": "Sorry, I can't do that yet. This feature will be available soon."}
+
+    def perform_operations(self, input_data):
+        """
+        Process input (query or JSON file path) and perform operations.
         """
         try:
-            if not os.path.exists(json_file_path):
-                print(f"❌ Execution plan file not found: {json_file_path}")
-                return
-
-            with open(json_file_path, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
+            # Check if input is a JSON file path
+            if isinstance(input_data, str) and os.path.exists(input_data):
+                with open(input_data, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+            else:
+                # Assume input is a query and preprocess it
+                content = json.dumps(self.preprocess_query(input_data))
 
             # Handle the pre-defined unavailable message or non-json
             if content.startswith('"Sorry,') or content == '"Sorry, I can\'t do that yet. This feature will be available soon."':
@@ -98,7 +148,6 @@ class AiAgent():
                 
                 # Try to extract just the operations array if it's malformed
                 try:
-                    # Look for operations array pattern
                     import re
                     operations_match = re.search(r'"operations":\s*(\[.*\])', content, re.DOTALL)
                     if operations_match:
@@ -128,7 +177,6 @@ class AiAgent():
 
             # Use the centralized OperationsTool to execute all operations
             ops_tool = OperationsTool()
-            # The tool accepts a list; call its _run() directly (you're running local code)
             raw_result = ops_tool._run(operations)
 
             # Pretty print results (each line per op)
