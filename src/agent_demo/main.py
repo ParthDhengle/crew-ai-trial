@@ -94,7 +94,6 @@ def test():
             break
         print("-" * 40)
     
-    print("✅ All tests completed!")
 
 if __name__ == "__main__":
     run()
