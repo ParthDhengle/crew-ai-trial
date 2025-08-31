@@ -12,3 +12,5 @@ app_index.json
 aliases.json
 models--openai--whisper-medium
 node_modules/
+lock.json
+uv.lock
