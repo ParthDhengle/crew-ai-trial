@@ -15,24 +15,11 @@ class AiAgent():
     tasks: List[Task]
 
     def __init__(self):
-        # Configure Groq LLM - check if API key exists
-        groq_key = os.getenv("GROQ_API_KEY")
-        gemini_key = os.getenv("GEMINI_API_KEY")
-        
-        if groq_key:
-            self.llm = LLM(
-                model="groq/gemma2-9b-it",
-                api_key=groq_key
-            )
-        elif gemini_key:
-            self.llm = LLM(
-                model="gemini/gemini-pro",
-                api_key=gemini_key
-            )
-        else:
-            print("Warning: No API key found. Using default LLM.")
-            self.llm = None
-        
+        self.llm = LLM(
+            model="ollama/mistral:7b",
+            base_url="http://localhost:11434",
+            api_key="ollama"  # Dummy key for compatibility
+        )
         super().__init__()
 
     @agent

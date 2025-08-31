@@ -1,3 +1,4 @@
+// src/agent_demo/electron_app/main.js (modified)
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
@@ -29,7 +30,13 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     // Parse args from second instance
-    const selectedText = commandLine.find(arg => arg.startsWith('--selected-text='))?.split('=')[1] || '';
+    const argFound = commandLine.find(arg => arg.startsWith('--selected-text-encoded='));
+    let selectedText = '';
+    if (argFound) {
+      const idx = argFound.indexOf('=');
+      const encoded = argFound.substring(idx + 1);
+      selectedText = Buffer.from(encoded, 'base64').toString('utf-8');
+    }
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
@@ -39,7 +46,13 @@ if (!gotTheLock) {
 
   app.whenReady().then(() => {
     // Parse initial args
-    const selectedText = process.argv.find(arg => arg.startsWith('--selected-text='))?.split('=')[1] || '';
+    const argFound = process.argv.find(arg => arg.startsWith('--selected-text-encoded='));
+    let selectedText = '';
+    if (argFound) {
+      const idx = argFound.indexOf('=');
+      const encoded = argFound.substring(idx + 1);
+      selectedText = Buffer.from(encoded, 'base64').toString('utf-8');
+    }
     mainWindow = createWindow(selectedText);
   });
 
