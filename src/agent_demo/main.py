@@ -8,6 +8,7 @@ from datetime import datetime
 from agent_demo.crew import AiAgent
 from agent_demo.server import app
 import uvicorn
+import signal
 
 def run_single_query(user_query):
     """Run a single query execution (kept for CLI args, but can be removed if pure UI)."""
@@ -46,22 +47,45 @@ def run_single_query(user_query):
         print("Please try again or contact support.")
 
 def run_ui():
-    """Launch the UI: Start FastAPI server in background, then Electron."""
+    """Launch everything: Server in background, Electron UI, and text selection listener."""
     def start_server():
+        print("Starting backend server...")
         uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
 
+    # Start server in thread
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
     
-    time.sleep(3)  # Give server time to start
-    
+    time.sleep(3)  # Wait for server to start
+
+    # Launch Electron UI
     electron_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'electron_app'))
-    subprocess.Popen(['npm', 'start'], cwd=electron_dir, shell=True)
-    
-    server_thread.join()  # Keep the process alive
+    print("Launching Electron UI...")
+    electron_proc = subprocess.Popen(['npm', 'start'], cwd=electron_dir, shell=True)
+
+    # Launch text selection listener (MVP popup)
+    listener_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'desktop_app.py'))
+    print("Launching text selection listener...")
+    listener_proc = subprocess.Popen([sys.executable, listener_path], shell=True)
+
+    # Graceful shutdown handling
+    def shutdown(sig, frame):
+        print("Shutting down...")
+        electron_proc.terminate()
+        listener_proc.terminate()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+
+    # Keep main process alive
+    try:
+        electron_proc.wait()  # Wait for Electron to exit
+    except KeyboardInterrupt:
+        shutdown(None, None)
 
 def run():
-    """Main entry point - defaults to UI, or single-query if args provided."""
+    """Main entry point - defaults to UI (with listener), or single-query if args provided."""
     if len(sys.argv) > 1:
         query = ' '.join(sys.argv[1:])
         if query.startswith('"') and query.endswith('"'):

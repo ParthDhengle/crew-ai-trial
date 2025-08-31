@@ -1,111 +1,116 @@
-import sys
-import time
-import requests
+import tkinter as tk
 import threading
-import subprocess
-import os
+import time
+from pynput import mouse
+import pyautogui
+import win32clipboard
+import win32gui
+import sys
 import signal
-import psutil
-from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QWidget, QLabel, QVBoxLayout
-from PySide6.QtGui import QIcon, QCursor
-from PySide6.QtCore import Qt, QTimer, QPoint
-import uiautomation as auto
-from agent_demo.server import app
-import uvicorn
+import os
+import subprocess
 
-class PopupButton(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent, Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.label = QLabel("Ask AI", self)
-        self.label.setStyleSheet("background: #fff; border: 1px solid #ccc; padding: 5px; border-radius: 5px;")
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.label)
-        self.setLayout(layout)
-        self.label.mousePressEvent = self.on_click
+# Global variables
+popup = None
+start_x = 0
+start_y = 0
+original_hwnd = None
+listener = None  # Declare listener as global for signal handler access
+root = tk.Tk()
+root.withdraw()  # Hide the main root window
 
-    def show_at(self, pos):
-        self.move(pos)
-        self.show()
+def signal_handler(sig, frame):
+    global popup, listener, root
+    print("Caught Ctrl+C, shutting down...")
+    if popup:
+        popup.destroy()
+    if listener:
+        listener.stop()
+    root.destroy()
+    sys.exit(0)
 
-    def on_click(self, event):
-        self.hide()
-        selected_text = get_selected_text()
-        if selected_text:
-            launch_electron_with_text(selected_text)
+# Set up signal handler for Ctrl+C (SIGINT)
+signal.signal(signal.SIGINT, signal_handler)
 
-def get_selected_text():
+def show_popup(x, y):
+    global popup, original_hwnd
+    if popup:
+        popup.destroy()
+
+    # Capture the current foreground window (where the selection likely happened)
+    original_hwnd = win32gui.GetForegroundWindow()
+
+    popup = tk.Toplevel(root)
+    popup.overrideredirect(True)  # Remove window borders
+    popup.attributes('-topmost', True)  # Always on top
+
+    btn = tk.Button(popup, text="Ask AI", command=on_click)
+    btn.pack()
+
+    # Position the popup near the mouse cursor with a slight offset
+    popup.geometry(f"+{x + 20}+{y + 20}")
+
+    # Automatically hide the popup after 5 seconds if not clicked
+    popup.after(5000, lambda: popup.destroy() if popup else None)
+
+def on_click():
+    global popup, original_hwnd
+    if original_hwnd is None:
+        print("No original window captured.")
+        return
+
+    # Destroy the popup first to remove it from view
+    popup.destroy()
+    popup = None
+
+    # Restore focus to the original window
+    win32gui.SetForegroundWindow(original_hwnd)
+    time.sleep(0.1)  # Brief delay to ensure focus is set
+
+    # Simulate Ctrl+C to copy selected text to clipboard
+    pyautogui.hotkey('ctrl', 'c')
+    time.sleep(0.1)  # Brief delay to ensure copy operation completes
+
+    # Read from clipboard
+    win32clipboard.OpenClipboard()
     try:
-        control = auto.GetFocusedControl()
-        if control and hasattr(control, 'GetSelectedText'):
-            return control.GetSelectedText()
-        return ""
+        text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
     except:
-        return ""
+        text = "No text selected or unable to copy"
+    finally:
+        win32clipboard.CloseClipboard()
 
-def get_selection_pos():
-    try:
-        control = auto.GetFocusedControl()
-        if control:
-            rect = control.BoundingRectangle
-            return QPoint(rect.right, rect.top - 30)  # Adjust position
-    except:
-        return QCursor.pos()
+    # If no valid text, skip
+    if text == "No text selected or unable to copy":
+        return
 
-def is_server_running(port=8000):
-    for conn in psutil.net_connections():
-        if conn.laddr.port == port and conn.status == 'LISTEN':
-            return True
-    return False
+    # Prepend "Explain this " to the selected text
+    query = f"Explain this {text}"
 
-def start_server():
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
-
-def launch_electron_with_text(text):
+    # Path to Electron app directory (assuming desktop_app.py is in the same dir as main.py)
     electron_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'electron_app'))
-    text = text.replace('"', '\\"')  # Escape quotes for cmd
-    subprocess.Popen(['npm', 'start', '--', f'--selected-text="{text}"'], cwd=electron_dir, shell=True)
 
-def main():
-    app = QApplication(sys.argv)
-    tray = QSystemTrayIcon(QIcon())  # Add icon path if needed, e.g., QIcon('icon.png')
-    tray.setVisible(True)
-    menu = QMenu()
-    exit_action = menu.addAction("Exit")
-    exit_action.triggered.connect(app.quit)
-    tray.setContextMenu(menu)
+    # "Launch" Electron with the query as arg (single instance will forward to existing window)
+    subprocess.Popen(['npm', 'start', '--', f'--selected-text={query}'], cwd=electron_dir, shell=True)
 
-    popup = PopupButton()
-    prev_text = ""
+def on_mouse_click(x, y, button, pressed):
+    global start_x, start_y
+    if button == mouse.Button.left:
+        if pressed:
+            start_x, start_y = x, y
+        else:
+            # Calculate drag distance
+            dx = abs(x - start_x)
+            dy = abs(y - start_y)
+            # If drag detected (threshold to avoid false positives on simple clicks)
+            if dx > 10 or dy > 10:
+                show_popup(int(x), int(y))
 
-    # Start server if not running
-    if not is_server_running():
-        server_thread = threading.Thread(target=start_server, daemon=True)
-        server_thread.start()
+# Start the mouse listener in a separate thread
+listener = mouse.Listener(on_click=on_mouse_click)
+thread = threading.Thread(target=listener.start)
+thread.daemon = True  # Allow thread to exit when main program exits
+thread.start()
 
-    def poll_selection():
-        nonlocal prev_text
-        text = get_selected_text().strip()
-        if text and text != prev_text:
-            pos = get_selection_pos()
-            popup.show_at(pos)
-            prev_text = text
-        elif not text and popup.isVisible():
-            popup.hide()
-            prev_text = ""
-
-    timer = QTimer()
-    timer.timeout.connect(poll_selection)
-    timer.start(200)  # Poll every 200ms
-
-    # Graceful shutdown
-    def signal_handler(sig, frame):
-        print("Shutting down listener...")
-        sys.exit(0)
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()
+# Run the Tkinter main loop to handle GUI events
+root.mainloop()
