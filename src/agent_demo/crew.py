@@ -7,6 +7,7 @@ from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from typing import List
 from agent_demo.tools.file_manager_tool import FileManagerTool
+from agent_demo.tools.operations.knowledge_retrieval import KnowledgeRetrievalTool
 from agent_demo.tools.operations_tool import OperationsTool
 
 @CrewBase
@@ -39,18 +40,22 @@ class AiAgent():
     def analyzer(self) -> Agent:
         agent_config = self.agents_config['analyzer'].copy()
         
+        # Debug: Print tools
+        tools = [FileManagerTool(), KnowledgeRetrievalTool()]
+        print(f"Tools for analyzer: {[tool.__class__.__name__ for tool in tools]}")
+        
         # Create agent with or without LLM
         if self.llm:
             return Agent(
                 config=agent_config,
-                tools=[FileManagerTool()],
+                tools=tools,
                 llm=self.llm,
                 verbose=True
             )
         else:
             return Agent(
                 config=agent_config,
-                tools=[FileManagerTool()],
+                tools=tools,
                 verbose=True
             )
 
@@ -63,10 +68,15 @@ class AiAgent():
         Preprocess the user query to generate an execution plan.
         Returns a JSON execution plan or a fallback message.
         """
+        # Calculate absolute paths
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Points to crew-ai-trial/
+        user_pref_path = os.path.join(root_dir, "knowledge", "user_preference.txt")
+        ops_path = os.path.join(root_dir, "knowledge", "operations.txt")
+
         # Read user preferences
         preferences = {}
         try:
-            with open("knowledge/user_preference.txt", "r") as f:
+            with open(user_pref_path, "r") as f:
                 for line in f:
                     if ":" in line:
                         key, value = line.split(":", 1)
@@ -77,7 +87,7 @@ class AiAgent():
         # Read operations
         operations = []
         try:
-            with open("knowledge/operations.txt", "r") as f:
+            with open(ops_path, "r") as f:
                 for line in f:
                     if "|" in line and not line.startswith("#"):
                         parts = line.split("|")
@@ -125,19 +135,19 @@ class AiAgent():
                 print(content.strip('"'))
                 return
 
-            # Fix common JSON formatting issues
+        # Fix common JSON formatting issues
             content = content.strip()
-            
-            # Remove markdown code blocks if present
+        
+        # Remove markdown code blocks if present
             if content.startswith('```json') and content.endswith('```'):
                 content = content[7:-3].strip()
             elif content.startswith('```') and content.endswith('```'):
                 content = content[3:-3].strip()
-            
-            # If the content starts with "operations": [...], wrap it in braces
+        
+        # If the content starts with "operations": [...], wrap it in braces
             if content.startswith('"operations":'):
                 content = '{' + content + '}'
-            
+        
             try:
                 plan = json.loads(content)
             except json.JSONDecodeError as e:
@@ -145,8 +155,8 @@ class AiAgent():
                 print(f"JSON Error: {e}")
                 print("Raw content:")
                 print(content)
-                
-                # Try to extract just the operations array if it's malformed
+            
+            # Try to extract just the operations array if it's malformed
                 try:
                     import re
                     operations_match = re.search(r'"operations":\s*(\[.*\])', content, re.DOTALL)
@@ -155,8 +165,9 @@ class AiAgent():
                         plan = {"operations": json.loads(operations_json)}
                         print("✅ Successfully extracted operations from malformed JSON")
                     else:
-                        print("❌ Could not extract operations from malformed JSON")
-                        return
+                        # Fallback to preprocess_query if the content is not a valid JSON
+                        print("❌ Could not extract operations from malformed JSON, falling back to query preprocessing")
+                        plan = self.preprocess_query(input_data)
                 except Exception as fix_error:
                     print(f"❌ Failed to fix JSON: {fix_error}")
                     return

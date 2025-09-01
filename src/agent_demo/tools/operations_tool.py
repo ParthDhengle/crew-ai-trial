@@ -1,11 +1,22 @@
 # src/agent_demo/tools/operations_tool.py
+from pydantic import BaseModel, Field
+try:
+    from crewai_tools import Tool
+except ImportError:
+    class Tool:
+        name: str
+        description: str
+        def _run(self, *args, **kwargs):
+            raise NotImplementedError("Subclasses must implement _run")
+
 import importlib
 import traceback
 from typing import List, Dict, Any
+from .operations.knowledge_retrieval import KnowledgeRetrievalTool
 
 # Map operation name -> module filename under agent_demo.tools.operations
 OP_MODULE_MAP = {
-    #application
+    # Application
     "open_application": "application",
     
     # Communication
@@ -76,20 +87,20 @@ OP_MODULE_MAP = {
     "check_system_status": "system",
     "list_running_processes": "system",
     "kill_process": "system",
-    "search_web": "web_search",
-    "download_file": "web_search",
-    "open_website": "web_search",
-    "get_weather": "web_search",
-    "get_news": "web_search",
 
     # Knowledge
-    "retrieve_knowledge": "knowledge_retrieval",  
-
-
+    "retrieve_knowledge": "knowledge_retrieval",
 }
 
-class OperationsTool:
-    """Central dispatcher: accepts a list of operation dicts and executes them sequentially."""
+class OperationsToolSchema(BaseModel):
+    operations: List[Dict[str, Any]] = Field(
+        ..., description="List of operations to execute, each with name, parameters, and optional description."
+    )
+
+class OperationsTool(Tool):
+    name = "OperationsTool"
+    description = "Executes a list of operations defined in the execution plan."
+    args_schema = OperationsToolSchema
 
     def __init__(self, operations_pkg="agent_demo.tools.operations"):
         self.operations_pkg = operations_pkg
@@ -105,22 +116,26 @@ class OperationsTool:
     def _call_handler(self, module, op_name: str, params: Dict[str, Any]):
         """
         Handler resolution policy:
-        1. If module has a function named exactly op_name, call it.
-        2. Else if module has 'handle_operation' generic function, call that with (op_name, params).
-        3. Else return a not-implemented message.
+        1. For retrieve_knowledge, use KnowledgeRetrievalTool directly.
+        2. If module has a function named exactly op_name, call it.
+        3. Else if module has 'handle_operation' generic function, call that with (op_name, params).
+        4. Else return a not-implemented message.
         """
         try:
+            if op_name == "retrieve_knowledge":
+                tool = KnowledgeRetrievalTool()
+                return True, tool._run(**params)
             if hasattr(module, op_name):
                 fn = getattr(module, op_name)
-                return fn(**(params or {}))
+                return True, fn(**(params or {}))
             if hasattr(module, "handle_operation"):
-                return module.handle_operation(op_name, params or {})
-            return (False, f"Handler {op_name} not implemented in module {module.__name__}")
+                return True, module.handle_operation(op_name, params or {})
+            return False, f"Handler {op_name} not implemented in module {module.__name__}"
         except TypeError as e:
-            return (False, f"Parameter mismatch calling {op_name}: {e}")
+            return False, f"Parameter mismatch calling {op_name}: {e}"
         except Exception as e:
             tb = traceback.format_exc()
-            return (False, f"Exception running {op_name}: {e}\n{tb}")
+            return False, f"Exception running {op_name}: {e}\n{tb}"
 
     def _run(self, operations: List[Dict[str, Any]]) -> str:
         """
@@ -138,12 +153,15 @@ class OperationsTool:
                 lines.append(f"❌ {name}: Unknown operation (no module mapping).")
                 continue
 
-            module = self._load_module(module_name)
-            if not module:
-                lines.append(f"❌ {name}: Module '{module_name}' not found or failed to import.")
-                continue
-
-            res = self._call_handler(module, name, params)
+            # Special handling for retrieve_knowledge
+            if name == "retrieve_knowledge":
+                res = self._call_handler(None, name, params)
+            else:
+                module = self._load_module(module_name)
+                if not module:
+                    lines.append(f"❌ {name}: Module '{module_name}' not found or failed to import.")
+                    continue
+                res = self._call_handler(module, name, params)
 
             # Standardize response
             if isinstance(res, tuple) and len(res) >= 1 and isinstance(res[0], bool):
@@ -159,7 +177,7 @@ class OperationsTool:
                 else:
                     lines.append(f"❌ {name}: {res.get('message', 'Failed')}")
             else:
-                # assume truthy -> success, falsy -> failure
+                # Assume truthy -> success, falsy -> failure
                 if res:
                     lines.append(f"✅ {name}: {res}")
                 else:

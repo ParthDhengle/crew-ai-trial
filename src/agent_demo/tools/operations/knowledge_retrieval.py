@@ -1,4 +1,5 @@
-from crewai_tools import BaseTool
+from pydantic import BaseModel, Field
+from crewai.tools import BaseTool  # Correct import from crewai
 import requests
 import os
 from dotenv import load_dotenv
@@ -6,12 +7,17 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+# Define schema for tool arguments
+class KnowledgeRetrievalToolSchema(BaseModel):
+    query: str = Field(..., description="The topic or question to retrieve information for.")
+
 class KnowledgeRetrievalTool(BaseTool):
     name: str = "KnowledgeRetrievalTool"
     description: str = (
         "Retrieves explanations or information about a given topic "
         "using a knowledge base or web search."
     )
+    args_schema = KnowledgeRetrievalToolSchema
 
     def _run(self, query: str) -> str:
         """
@@ -26,7 +32,8 @@ class KnowledgeRetrievalTool(BaseTool):
             api_url = os.getenv("CUSTOM_SEARCH_API_URL")
 
             if not api_key or not api_url:
-                return "API key or URL is missing. Please check your .env file."
+                # Mock response for testing
+                return f"Mock response: Information about '{query}' would be retrieved here."
 
             response = requests.get(
                 api_url,
@@ -43,7 +50,12 @@ class KnowledgeRetrievalTool(BaseTool):
         except Exception as e:
             return f"Error retrieving information: {str(e)}"
     
-    
-    def retrieve_knowledge(query: str) -> str:
-        # TODO: replace with real logic
-        return f"Knowledge retrieval placeholder for query: {query}"
+    def retrieve_knowledge(self, query: str) -> str:
+        """
+        Wrapper method to retrieve knowledge.
+        Args:
+            query: The topic or question to retrieve information for.
+        Returns:
+            A string containing the retrieved information.
+        """
+        return self._run(query)

@@ -1,5 +1,7 @@
 import os
 import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import traceback
 import threading
 import subprocess
@@ -18,11 +20,15 @@ def run_single_query(user_query):
     print(f"\n🔍 Processing: '{user_query}'")
     print("⏳ Analyzing your request...\n")
     
+    # Construct absolute paths relative to main.py
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Points to src/
+    root_dir = os.path.dirname(base_dir)  # Points to crew-ai-trial/
+    
     inputs = {
         'user_query': user_query,
         'current_year': str(datetime.now().year),
-        'user_preferences_path': 'knowledge/user_preference.txt',
-        'operations_file_path': 'knowledge/operations.txt'
+        'user_preferences_path': os.path.join(root_dir, 'knowledge', 'user_preference.txt'),
+        'operations_file_path': os.path.join(root_dir, 'knowledge', 'operations.txt')
     }
 
     try:
@@ -44,6 +50,7 @@ def run_single_query(user_query):
         print("❌ Error during execution — full traceback below:")
         traceback.print_exc()
         print("Please try again or contact support.")
+        return False
 
 def run_ui():
     """Launch the UI: Start FastAPI server in background, then Electron."""
@@ -93,7 +100,6 @@ def test():
             print("❌ Test failed")
             break
         print("-" * 40)
-    
 
 if __name__ == "__main__":
     run()
