@@ -16,7 +16,6 @@ class AiAgent():
     tasks: List[Task]
 
     def __init__(self):
-        # Configure Groq LLM - check if API key exists
         groq_key = os.getenv("GROQ_API_KEY")
         gemini_key = os.getenv("GEMINI_API_KEY")
         
@@ -40,11 +39,9 @@ class AiAgent():
     def analyzer(self) -> Agent:
         agent_config = self.agents_config['analyzer'].copy()
         
-        # Debug: Print tools
         tools = [FileManagerTool(), KnowledgeRetrievalTool()]
         print(f"Tools for analyzer: {[tool.__class__.__name__ for tool in tools]}")
         
-        # Create agent with or without LLM
         if self.llm:
             return Agent(
                 config=agent_config,
@@ -69,7 +66,7 @@ class AiAgent():
         Returns a JSON execution plan or a fallback message.
         """
         # Calculate absolute paths
-        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Points to crew-ai-trial/
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Points to crew-ai-trial/
         user_pref_path = os.path.join(root_dir, "knowledge", "user_preference.txt")
         ops_path = os.path.join(root_dir, "knowledge", "operations.txt")
 
@@ -98,7 +95,6 @@ class AiAgent():
         # Match query to operations
         query_lower = query.lower()
         if any(keyword in query_lower for keyword in ["what is", "explain", "define"]):
-            # Personalize based on preferences
             personalized_query = query
             if preferences.get("User is interested in") == "AI Agents" and "ai" in query_lower:
                 personalized_query = f"{query} with a focus on AI agents"
@@ -110,6 +106,18 @@ class AiAgent():
                             "name": "retrieve_knowledge",
                             "parameters": {"query": personalized_query},
                             "description": f"Retrieving information for: {personalized_query}"
+                        }
+                    ]
+                }
+        # Handle file content requests
+        elif "output the content of the file" in query_lower and "operations.txt" in query_lower:
+            if "file_management" in operations:
+                return {
+                    "operations": [
+                        {
+                            "name": "file_management",
+                            "parameters": {"file_path": ops_path, "action": "read"},
+                            "description": f"Reading content of operations.txt"
                         }
                     ]
                 }
@@ -135,16 +143,16 @@ class AiAgent():
                 print(content.strip('"'))
                 return
 
-        # Fix common JSON formatting issues
+            # Fix common JSON formatting issues
             content = content.strip()
         
-        # Remove markdown code blocks if present
+            # Remove markdown code blocks if present
             if content.startswith('```json') and content.endswith('```'):
                 content = content[7:-3].strip()
             elif content.startswith('```') and content.endswith('```'):
                 content = content[3:-3].strip()
         
-        # If the content starts with "operations": [...], wrap it in braces
+            # If the content starts with "operations": [...], wrap it in braces
             if content.startswith('"operations":'):
                 content = '{' + content + '}'
         
@@ -153,10 +161,9 @@ class AiAgent():
             except json.JSONDecodeError as e:
                 print("❌ Execution plan is not valid JSON. Attempting to fix...")
                 print(f"JSON Error: {e}")
-                print("Raw content:")
-                print(content)
+                print(f"Raw content: {content}")
             
-            # Try to extract just the operations array if it's malformed
+                # Try to extract just the operations array if it's malformed
                 try:
                     import re
                     operations_match = re.search(r'"operations":\s*(\[.*\])', content, re.DOTALL)
