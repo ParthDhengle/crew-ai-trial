@@ -1,61 +1,36 @@
 analyze_and_plan:
   description: >
     Your task is to process the user's query and create an execution plan. Follow these steps:
-    
+
     1. FIRST, read the user preferences file: {user_preferences_path}
     2. THEN, read the operations file: {operations_file_path}
     3. ANALYZE the user query: "{user_query}"
     4. MATCH the query to available operations from the operations file
-    5. CONSIDER user preferences to personalize the response
-    6. IF the query is informational (e.g., starts with "what is", "explain", "define"), use the retrieve_knowledge operation with the query as the parameter
-    
+    5. CONSIDER user preferences to personalize the response (e.g., use user's name, location, interests to fill parameters or adjust queries)
+    6. IF the query is informational (e.g., starts with "what is", "explain", "define"), use the knowledge_retrieval operation with the query as the parameter, personalized if relevant (e.g., append "with a focus on {user interests}" if matching)
+
     MATCHING RULES:
-    - Only use operations that exist in the operations file
-    - Never invent or create new operations
-    - If you need multiple operations, include them in sequence
-    - Use user preferences (name, location, interests) to fill parameters intelligently
-    - For informational queries, personalize the query if the user has relevant interests (e.g., for a user interested in AI Agents, append "with a focus on AI agents" to AI-related queries)
-    
-    OUTPUT FORMAT:
-    - IF operations are found: Return valid JSON execution plan
-    - IF no operations match: Return the exact message "Sorry, I can't do that yet. This feature will be available soon."
-    
-    EXAMPLE SUCCESSFUL OUTPUT:
-    {
-      "operations": [
-        {
-          "name": "send_email",
-          "parameters": {
-            "to": "colleague@company.com",
-            "subject": "Meeting Request",
-            "body": "Hi, I'd like to schedule a meeting..."
-          },
-          "description": "Sending email to schedule meeting"
-        },
-        {
-          "name": "retrieve_knowledge",
-          "parameters": {
-            "query": "what is AI with a focus on AI agents"
-          },
-          "description": "Retrieving information for: what is AI with a focus on AI agents"
-        }
-      ]
-    }
+    - Only use operations that exist EXACTLY as named in the operations file. Never invent, modify, or create new operations or parameter names.
+    - If multiple operations are needed, include them in sequence in the list.
+    - Infer and fill all required parameters from the query and preferences. Do not omit required parameters.
+    - For parameters, use the exact names and formats shown in operations file.
+    - If no matching operations are found for the query, output ONLY the fallback JSON with the message.
+    - Always ensure the output is valid, parseable JSON without any extra text, wrappers, or markdown (no ```json blocks).
+    - Validate your plan: the JSON must be well-formed, with strings properly escaped.
+
+    EXAMPLES:
+    - Query: "Create a file called notes.txt with content: Hello World"
+      Output: {"operations": [{"name": "create_file", "parameters": {"filename": "notes.txt", "content": "Hello World"}, "description": "Creating notes file"}]}
+    - Query: "What is AI?"
+      (Assuming user interests: AI Agents) Output: {"operations": [{"name": "knowledge_retrieval", "parameters": {"query": "What is AI? with a focus on AI agents"}, "description": "Retrieving AI info personalized for user"}]}
+    - Query: "Get weather"
+      (Assuming user location: San Francisco, California) Output: {"operations": [{"name": "get_weather", "parameters": {"location": "San Francisco, California"}, "description": "Fetching weather for user's location"}]}
+    - Query: "Do something unsupported"
+      Output: {"message": "Sorry, I can't do that yet. This feature will be available soon."}
 
   expected_output: >
-    EITHER a valid JSON execution plan in the exact format:
-    {
-      "operations": [
-        {
-          "name": "<operation_name_from_operations_file>",
-          "parameters": { "<param1>": "<value1>", "<param2>": "<value2>" },
-          "description": "<brief_explanation>"
-        }
-      ]
-    }
-    
-    OR the exact unavailability message:
-    "Sorry, I can't do that yet. This feature will be available soon."
-
+    ALWAYS output valid JSON in one of these exact formats (nothing else):
+    - For plans with operations: {"operations": [{"name": "<exact_operation_name>", "parameters": {"<exact_param1>": "<value1>", ...}, "description": "<brief_explanation>"}]}
+    - For no matching operations: {"message": "Sorry, I can't do that yet. This feature will be available soon."}
   agent: analyzer
   output_file: execution_plan.json

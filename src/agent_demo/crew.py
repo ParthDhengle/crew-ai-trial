@@ -8,24 +8,21 @@ from crewai.project import CrewBase, agent, crew, task
 from typing import List
 from agent_demo.tools.file_manager_tool import FileManagerTool
 from agent_demo.tools.operations_tool import OperationsTool
-
 @CrewBase
 class AiAgent():
     agents: List[Agent]
     tasks: List[Task]
-
     def __init__(self):
         self.llm = LLM(
-            model="ollama/mistral:7b",
+            model="ollama/llama3.1:8b-instruct-q5_0",
             base_url="http://localhost:11434",
-            api_key="ollama"  # Dummy key for compatibility
+            api_key="ollama" # Dummy key for compatibility
         )
         super().__init__()
-
     @agent
     def analyzer(self) -> Agent:
         agent_config = self.agents_config['analyzer'].copy()
-        
+      
         # Create agent with or without LLM
         if self.llm:
             return Agent(
@@ -40,11 +37,9 @@ class AiAgent():
                 tools=[FileManagerTool()],
                 verbose=True
             )
-
     @task
     def analyze_and_plan(self) -> Task:
         return Task(config=self.tasks_config['analyze_and_plan'])
-
     def preprocess_query(self, query: str) -> dict:
         """
         Preprocess the user query to generate an execution plan.
@@ -60,7 +55,6 @@ class AiAgent():
                         preferences[key.strip()] = value.strip()
         except Exception as e:
             print(f"Warning: Could not read preferences: {e}")
-
         # Read operations
         operations = []
         try:
@@ -71,29 +65,26 @@ class AiAgent():
                         operations.append(parts[0].strip())
         except Exception as e:
             print(f"Warning: Could not read operations: {e}")
-
         # Match query to operations
         query_lower = query.lower()
         if any(keyword in query_lower for keyword in ["what is", "explain", "define"]):
             # Personalize based on preferences
             personalized_query = query
-            if preferences.get("User is interested in") == "AI Agents" and "ai" in query_lower:
+            if preferences.get("User interests") == "AI Agents" and "ai" in query_lower:
                 personalized_query = f"{query} with a focus on AI agents"
-            
-            if "retrieve_knowledge" in operations:
+          
+            if "knowledge_retrieval" in operations:
                 return {
                     "operations": [
                         {
-                            "name": "retrieve_knowledge",
+                            "name": "knowledge_retrieval",
                             "parameters": {"query": personalized_query},
                             "description": f"Retrieving information for: {personalized_query}"
                         }
                     ]
                 }
-
         # Fallback for unmatched queries
         return {"message": "Sorry, I can't do that yet. This feature will be available soon."}
-
     def perform_operations(self, input_data):
         """
         Process input (query or JSON file path) and perform operations.
@@ -106,25 +97,23 @@ class AiAgent():
             else:
                 # Assume input is a query and preprocess it
                 content = json.dumps(self.preprocess_query(input_data))
-
             # Handle the pre-defined unavailable message or non-json
             if content.startswith('"Sorry,') or content == '"Sorry, I can\'t do that yet. This feature will be available soon."':
                 print(content.strip('"'))
                 return
-
             # Fix common JSON formatting issues
             content = content.strip()
-            
+          
             # Remove markdown code blocks if present
-            if content.startswith('```json') and content.endswith('```'):
-                content = content[7:-3].strip()
+            if content.startswith('```json\n'):
+                content = content[8:-3].strip()
             elif content.startswith('```') and content.endswith('```'):
                 content = content[3:-3].strip()
-            
+          
             # If the content starts with "operations": [...], wrap it in braces
             if content.startswith('"operations":'):
                 content = '{' + content + '}'
-            
+          
             try:
                 plan = json.loads(content)
             except json.JSONDecodeError as e:
@@ -132,7 +121,7 @@ class AiAgent():
                 print(f"JSON Error: {e}")
                 print("Raw content:")
                 print(content)
-                
+              
                 # Try to extract just the operations array if it's malformed
                 try:
                     import re
@@ -147,39 +136,32 @@ class AiAgent():
                 except Exception as fix_error:
                     print(f"❌ Failed to fix JSON: {fix_error}")
                     return
-
-            if not isinstance(plan, dict) or 'operations' not in plan:
-                print("❌ Invalid execution plan format (missing 'operations')")
+            if not isinstance(plan, dict):
+                print("❌ Invalid execution plan format")
                 print(f"Plan structure: {type(plan)}")
-                if isinstance(plan, dict):
-                    print(f"Available keys: {list(plan.keys())}")
                 return
-
+            if 'message' in plan:
+                print(plan['message'])
+                return
             operations = plan.get('operations', [])
             if not operations:
                 print("ℹ️ No operations to execute")
                 return
-
             print(f"🚀 Executing {len(operations)} operation(s) using OperationsTool...\n")
-
             # Use the centralized OperationsTool to execute all operations
             ops_tool = OperationsTool()
             raw_result = ops_tool._run(operations)
-
             # Pretty print results (each line per op)
             for line in raw_result.splitlines():
-                print("   " + line)
-
+                print(" " + line)
             # Quick summary
             success_count = len([l for l in raw_result.splitlines() if l.startswith("✅")])
             fail_count = len([l for l in raw_result.splitlines() if l.startswith("❌")])
             print("\n🎉 Execution completed!")
             print(f"📋 Summary: {success_count} successful, {fail_count} failed")
-
         except Exception as e:
             print("❌ Error executing operations:")
             traceback.print_exc()
-
     @crew
     def crew(self) -> Crew:
         return Crew(
