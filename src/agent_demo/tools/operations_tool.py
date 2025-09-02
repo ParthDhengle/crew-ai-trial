@@ -1,19 +1,17 @@
 # Modified: src/agent_demo/tools/operations_tool.py
-# Changes: 
+# Changes:
 # - Added 'update_user_preference' to OP_MODULE_MAP (mapped to 'preferences', but handled specially)
 # - Added update_user_preference method to the class
 # - In _run loop, special case for update_user_preference to call the method directly
-
 import importlib
 import traceback
 import os
 from typing import List, Dict, Any
-
 # Map operation name -> module filename under agent_demo.tools.operations
 OP_MODULE_MAP = {
     #application
     "open_application": "application",
-    
+   
     # Communication
     "send_email": "communication",
     "send_reply_email": "communication",
@@ -23,47 +21,40 @@ OP_MODULE_MAP = {
     "send_sms": "communication",
     "make_call": "communication",
     "send_whatsapp_message": "communication",
-
     # File Management
     "create_file": "file_management",
     "read_file": "file_management",
     "update_file": "file_management",
     "delete_file": "file_management",
     "list_files": "file_management",
-
     # Web & Search
     "search_web": "web_search",
     "download_file": "web_search",
     "open_website": "web_search",
     "get_weather": "web_search",
     "get_news": "web_search",
-
     # Calendar & Time
     "create_event": "calendarAndTime",
     "list_events": "calendarAndTime",
     "delete_event": "calendarAndTime",
     "get_time": "calendarAndTime",
     "set_reminder": "calendarAndTime",
-
     # Task Management
     "create_task": "task_management",
     "update_task": "task_management",
     "delete_task": "task_management",
     "list_tasks": "task_management",
-
     # Data handling
     "read_csv": "file_management",
     "write_csv": "file_management",
     "filter_csv": "file_management",
     "generate_report": "file_management",
-
     # Media
     "play_music": "media",
     "pause_music": "media",
     "stop_music": "media",
     "play_video": "media",
     "take_screenshot": "media",
-
     # Utilities
     "calculate": "utilities",
     "translate": "utilities",
@@ -72,14 +63,12 @@ OP_MODULE_MAP = {
     "summarize_text": "utilities",
     "generate_password": "utilities",
     "scan_qr_code": "utilities",
-
     # AI
     "generate_text": "ai_generation",
     "generate_image": "ai_generation",
     "generate_code": "ai_generation",
     "analyze_sentiment": "ai_generation",
     "chat_with_ai": "ai_generation",
-
     # System
     "shutdown_system": "system",
     "restart_system": "system",
@@ -91,21 +80,16 @@ OP_MODULE_MAP = {
     "open_website": "web_search",
     "get_weather": "web_search",
     "get_news": "web_search",
-
     # Knowledge
-    "retrieve_knowledge": "knowledge_retrieval",  
-
+    "retrieve_knowledge": "knowledge_retrieval",
     # Preferences
     "update_user_preference": "preferences",
 }
-
 class OperationsTool:
     """Central dispatcher: accepts a list of operation dicts and executes them sequentially."""
-
     def __init__(self, operations_pkg="agent_demo.tools.operations"):
         self.operations_pkg = operations_pkg
         self.prefs_path = "knowledge/user_preference.txt"
-
     def update_user_preference(self, key: str, value: str):
         """Update or add a key-value pair in user_preference.txt."""
         prefs = {}
@@ -115,23 +99,23 @@ class OperationsTool:
                     if ":" in line:
                         k, v = line.split(":", 1)
                         prefs[k.strip()] = v.strip()
-        
+       
         prefs[key] = value
-        
+       
         with open(self.prefs_path, "w") as f:
             for k, v in prefs.items():
                 f.write(f"{k}: {v}\n")
-        
+       
         return (True, f"Updated {key} to {value}")
-
     def _load_module(self, module_name: str):
         """Dynamically import a module from agent_demo.tools.operations"""
         full = f"{self.operations_pkg}.{module_name}"
         try:
             return importlib.import_module(full)
-        except Exception:
+        except Exception as e:
+            print(f"Failed to import module {full}: {str(e)}")
+            traceback.print_exc()
             return None
-
     def _call_handler(self, module, op_name: str, params: Dict[str, Any]):
         """
         Handler resolution policy:
@@ -151,7 +135,6 @@ class OperationsTool:
         except Exception as e:
             tb = traceback.format_exc()
             return (False, f"Exception running {op_name}: {e}\n{tb}")
-
     def _run(self, operations: List[Dict[str, Any]]) -> str:
         """
         operations: list of dicts: { "name": "create_file", "parameters": {...}, "description": "..." }
@@ -162,7 +145,7 @@ class OperationsTool:
             name = op.get("name")
             params = op.get("parameters", {}) or {}
             desc = op.get("description", "")
-            
+           
             if name == "update_user_preference":
                 res = self.update_user_preference(**params)
             else:
@@ -170,14 +153,11 @@ class OperationsTool:
                 if not module_name:
                     lines.append(f"❌ {name}: Unknown operation (no module mapping).")
                     continue
-
                 module = self._load_module(module_name)
                 if not module:
                     lines.append(f"❌ {name}: Module '{module_name}' not found or failed to import.")
                     continue
-
                 res = self._call_handler(module, name, params)
-
             # Standardize response
             if isinstance(res, tuple) and len(res) >= 1 and isinstance(res[0], bool):
                 ok = res[0]
@@ -197,5 +177,4 @@ class OperationsTool:
                     lines.append(f"✅ {name}: {res}")
                 else:
                     lines.append(f"✅ {name}: {desc or 'Completed'}")
-
         return "\n".join(lines)

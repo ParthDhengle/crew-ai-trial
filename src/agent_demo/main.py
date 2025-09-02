@@ -1,14 +1,13 @@
-# Modified: src/agent_demo/main.py
-# Changes: 
-# - Modified validate_environment to check if user_preference.txt exists and has content (size > 0)
-# - Added collect_preferences() function to ask the questions and store in key:value format
-# - Call collect_preferences if empty in run_interactive and run_single_query
-
 import os
 import sys
 from datetime import datetime
 from agent_demo.crew import AiAgent
 import traceback
+import warnings
+from pydantic import __version__ as pydantic_version
+if pydantic_version.startswith('2'):  # Only apply if Pydantic v2
+    from pydantic import PydanticDeprecatedSince20
+    warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
 
 def display_welcome():
     """Display welcome message and instructions."""
