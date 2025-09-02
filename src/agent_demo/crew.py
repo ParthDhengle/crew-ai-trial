@@ -14,6 +14,8 @@ from typing import List
 from agent_demo.tools.file_manager_tool import FileManagerTool
 from agent_demo.tools.operations_tool import OperationsTool
 from agent_demo.tools.rag_tool import RagTool  # New import
+import json5
+import re
 
 @CrewBase
 class AiAgent():
@@ -120,64 +122,40 @@ class AiAgent():
         return {"message": "Sorry, I can't do that yet. This feature will be available soon."}
 
     def perform_operations(self, input_data):
-        """
-        Process input (query or JSON file path) and perform operations.
-        """
         try:
-            # Check if input is a JSON file path
             if isinstance(input_data, str) and os.path.exists(input_data):
                 with open(input_data, 'r', encoding='utf-8') as f:
                     content = f.read().strip()
             else:
-                # Assume input is a query and preprocess it
                 content = json.dumps(self.preprocess_query(input_data))
 
-            # Handle the pre-defined unavailable message or non-json
             if content.startswith('"Sorry,') or content == '"Sorry, I can\'t do that yet. This feature will be available soon."':
                 print(content.strip('"'))
                 return
 
-            # Fix common JSON formatting issues
-            content = content.strip()
+            # Enhanced cleaning:
+            # 1. Remove markdown/code blocks
+            content = re.sub(r'```(?:json)?\s*|\s*```', '', content).strip()
             
-            # Remove markdown code blocks if present
-            if content.startswith('```json') and content.endswith('```'):
-                content = content[7:-3].strip()
-            elif content.startswith('```') and content.endswith('```'):
-                content = content[3:-3].strip()
+            # 2. Remove trailing commas (common LLM error)
+            content = re.sub(r',\s*([}\]])', r'\1', content)  # Remove trailing , before } or ]
             
-            # If the content starts with "operations": [...], wrap it in braces
-            if content.startswith('"operations":'):
-                content = '{' + content + '}'
-            
+            # 3. Handle duplicates: Extract first valid JSON object if multiples
+            match = re.search(r'\{.*?\}', content, re.DOTALL)
+            if match:
+                content = match.group(0)
+
+            # Parse with json5 (lenient: allows trailing commas, comments, etc.)
             try:
-                plan = json.loads(content)
-            except json.JSONDecodeError as e:
-                print("❌ Execution plan is not valid JSON. Attempting to fix...")
-                print(f"JSON Error: {e}")
-                print("Raw content:")
+                plan = json5.loads(content)
+            except Exception as e:
+                print(f"❌ Lenient JSON parse failed: {e}")
+                print("Raw content after cleaning:")
                 print(content)
-                
-                # Try to extract just the operations array if it's malformed
-                try:
-                    import re
-                    operations_match = re.search(r'"operations":\s*(\[.*\])', content, re.DOTALL)
-                    if operations_match:
-                        operations_json = operations_match.group(1)
-                        plan = {"operations": json.loads(operations_json)}
-                        print("✅ Successfully extracted operations from malformed JSON")
-                    else:
-                        print("❌ Could not extract operations from malformed JSON")
-                        return
-                except Exception as fix_error:
-                    print(f"❌ Failed to fix JSON: {fix_error}")
-                    return
+                return
 
             if not isinstance(plan, dict) or 'operations' not in plan:
                 print("❌ Invalid execution plan format (missing 'operations')")
-                print(f"Plan structure: {type(plan)}")
-                if isinstance(plan, dict):
-                    print(f"Available keys: {list(plan.keys())}")
                 return
 
             operations = plan.get('operations', [])
@@ -187,15 +165,12 @@ class AiAgent():
 
             print(f"🚀 Executing {len(operations)} operation(s) using OperationsTool...\n")
 
-            # Use the centralized OperationsTool to execute all operations
             ops_tool = OperationsTool()
             raw_result = ops_tool._run(operations)
 
-            # Pretty print results (each line per op)
             for line in raw_result.splitlines():
                 print("   " + line)
 
-            # Quick summary
             success_count = len([l for l in raw_result.splitlines() if l.startswith("✅")])
             fail_count = len([l for l in raw_result.splitlines() if l.startswith("❌")])
             print("\n🎉 Execution completed!")

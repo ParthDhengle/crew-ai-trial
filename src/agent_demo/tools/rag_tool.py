@@ -1,10 +1,14 @@
-# New File: src/agent_demo/tools/rag_tool.py
+# Modified: src/agent_demo/tools/rag_tool.py
+# Changes:
+# - Updated imports to use langchain_community to fix deprecations
+# - Annotated vectorstore as ClassVar[Optional[FAISS]] to fix Pydantic error
+# - Added imports for ClassVar and Optional
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
-from typing import Type
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from typing import Type, ClassVar, Optional
 import os
 
 class RagToolInput(BaseModel):
@@ -20,7 +24,7 @@ class RagTool(BaseTool):
         "Returns a string with the top-k matching operations (format: 'name | parameters: ... | description')."
     )
     args_schema: Type[BaseModel] = RagToolInput
-    vectorstore = None  # Class-level cache
+    vectorstore: ClassVar[Optional[FAISS]] = None  # Class-level cache with annotation
 
     def __init__(self):
         super().__init__()

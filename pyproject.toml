@@ -22,6 +22,9 @@ dependencies = [
     "langchain>=0.3.4",  # For RAG and embeddings
     "faiss-cpu>=1.9.0",  # Vector store (CPU version for simplicity)
     "sentence-transformers>=3.2.1",  # For semantic embeddings
+    "google-api-python-client>=2.149.0",  # For Google APIs if needed
+    "google-auth>=2.35.0",
+    "google-auth-oauthlib>=1.2.1",
 ]
 
 [project.scripts]
