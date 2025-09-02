@@ -1,36 +1,83 @@
+# Modified: src/agent_demo/config/tasks.yaml
+# Changes:
+# - Updated step 2 to use RagOperationsSearch tool with the user_query as input
+# - Added note on personalization and info queries
+# - Kept personal info detection rules concise
+
 analyze_and_plan:
   description: >
     Your task is to process the user's query and create an execution plan. Follow these steps:
 
-    1. FIRST, read the user preferences file: {user_preferences_path}
-    2. THEN, read the operations file: {operations_file_path}
+    1. FIRST, read the user preferences file: {user_preferences_path} using FileManager tool.
+    2. THEN, use the RagOperationsSearch tool with the user_query to get the most relevant operations (top 5-10 based on semantic intent). Do NOT read the full operations.txt file—always use the tool for efficiency.
     3. ANALYZE the user query: "{user_query}"
-    4. MATCH the query to available operations from the operations file
-    5. CONSIDER user preferences to personalize the response (e.g., use user's name, location, interests to fill parameters or adjust queries)
-    6. IF the query is informational (e.g., starts with "what is", "explain", "define"), use the knowledge_retrieval operation with the query as the parameter, personalized if relevant (e.g., append "with a focus on {user interests}" if matching)
+    4. DETECT any personal information in the query (e.g., name, role, location, preferences) and prepare update_user_preference operations for each
+    5. MATCH the remaining query intent to the retrieved relevant operations
+    6. CONSIDER user preferences to personalize the response
+    7. IF the query is informational (e.g., starts with "what is", "explain", "define"), use the retrieve_knowledge operation with the query as the parameter
+
+    PERSONAL INFO DETECTION RULES:
+    - Look for patterns like "My name is X", "I am a Y", "I live in Z", "I prefer W", "My goal is V"
+    - Extract as key-value: e.g., "My name is Parth" -> key="Name", value="Parth"
+    - "I am an engineer" -> key="Role", value="Professional (Engineer/Developer)"
+    - Update only if new or different from current preferences
+    - Include updates FIRST in the operations list
+    - Examples: If query is "My name is Parth and get weather", include update_user_preference then get_weather
 
     MATCHING RULES:
-    - Only use operations that exist EXACTLY as named in the operations file. Never invent, modify, or create new operations or parameter names.
-    - If multiple operations are needed, include them in sequence in the list.
-    - Infer and fill all required parameters from the query and preferences. Do not omit required parameters.
-    - For parameters, use the exact names and formats shown in operations file.
-    - If no matching operations are found for the query, output ONLY the fallback JSON with the message.
-    - Always ensure the output is valid, parseable JSON without any extra text, wrappers, or markdown (no ```json blocks).
-    - Validate your plan: the JSON must be well-formed, with strings properly escaped.
+    - Only use operations from the retrieved relevant list—never invent new ones
+    - If you need multiple operations, include them in sequence
+    - Use user preferences (name, location, interests) to fill parameters intelligently
+    - For informational queries, personalize the query if the user has relevant interests (e.g., for a user interested in AI Agents, append "with a focus on AI agents" to AI-related queries)
 
-    EXAMPLES:
-    - Query: "Create a file called notes.txt with content: Hello World"
-      Output: {"operations": [{"name": "create_file", "parameters": {"filename": "notes.txt", "content": "Hello World"}, "description": "Creating notes file"}]}
-    - Query: "What is AI?"
-      (Assuming user interests: AI Agents) Output: {"operations": [{"name": "knowledge_retrieval", "parameters": {"query": "What is AI? with a focus on AI agents"}, "description": "Retrieving AI info personalized for user"}]}
-    - Query: "Get weather"
-      (Assuming user location: San Francisco, California) Output: {"operations": [{"name": "get_weather", "parameters": {"location": "San Francisco, California"}, "description": "Fetching weather for user's location"}]}
-    - Query: "Do something unsupported"
-      Output: {"message": "Sorry, I can't do that yet. This feature will be available soon."}
+    OUTPUT FORMAT:
+    - IF operations are found: Return valid JSON execution plan
+    - IF no operations match: Return the exact message "Sorry, I can't do that yet. This feature will be available soon."
+
+    EXAMPLE SUCCESSFUL OUTPUT:
+    {
+      "operations": [
+        {
+          "name": "update_user_preference",
+          "parameters": {
+            "key": "Name",
+            "value": "Parth"
+          },
+          "description": "Updating user name"
+        },
+        {
+          "name": "send_email",
+          "parameters": {
+            "to": "colleague@company.com",
+            "subject": "Meeting Request",
+            "body": "Hi, I'd like to schedule a meeting..."
+          },
+          "description": "Sending email to schedule meeting"
+        },
+        {
+          "name": "retrieve_knowledge",
+          "parameters": {
+            "query": "what is AI with a focus on AI agents"
+          },
+          "description": "Retrieving information for: what is AI with a focus on AI agents"
+        }
+      ]
+    }
 
   expected_output: >
-    ALWAYS output valid JSON in one of these exact formats (nothing else):
-    - For plans with operations: {"operations": [{"name": "<exact_operation_name>", "parameters": {"<exact_param1>": "<value1>", ...}, "description": "<brief_explanation>"}]}
-    - For no matching operations: {"message": "Sorry, I can't do that yet. This feature will be available soon."}
+    EITHER a valid JSON execution plan in the exact format:
+    {
+      "operations": [
+        {
+          "name": "<operation_name_from_retrieved_ops>",
+          "parameters": { "<param1>": "<value1>", "<param2>": "<value2>" },
+          "description": "<brief_explanation>"
+        }
+      ]
+    }
+
+    OR the exact unavailability message:
+    "Sorry, I can't do that yet. This feature will be available soon."
+
   agent: analyzer
   output_file: execution_plan.json

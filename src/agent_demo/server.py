@@ -14,19 +14,19 @@ class QueryRequest(BaseModel):
 async def process_query(request: QueryRequest):
     if not request.query:
         raise HTTPException(400, "No query provided")
+
     inputs = {
         'user_query': request.query,
         'current_year': str(datetime.now().year),
         'user_preferences_path': 'knowledge/user_preference.txt',
         'operations_file_path': 'knowledge/operations.txt'
     }
+
     try:
         crew_instance = AiAgent()
         crew_instance.crew().kickoff(inputs=inputs)
-        crew_instance.perform_operations("execution_plan.json")
-        with open("execution_plan.json", 'r') as f:
-            plan = f.read()
-        return {"result": plan}
+        output = crew_instance.perform_operations("execution_plan.json")
+        return {"result": output}
     except Exception as e:
         raise HTTPException(500, str(e))
 

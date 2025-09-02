@@ -1,6 +1,12 @@
-# src/agent_demo/tools/operations_tool.py
+# Modified: src/agent_demo/tools/operations_tool.py
+# Changes: 
+# - Added 'update_user_preference' to OP_MODULE_MAP (mapped to 'preferences', but handled specially)
+# - Added update_user_preference method to the class
+# - In _run loop, special case for update_user_preference to call the method directly
+
 import importlib
 import traceback
+import os
 from typing import List, Dict, Any
 
 # Map operation name -> module filename under agent_demo.tools.operations
@@ -85,7 +91,8 @@ OP_MODULE_MAP = {
     # Knowledge
     "retrieve_knowledge": "knowledge_retrieval",  
 
-
+    # Preferences
+    "update_user_preference": "preferences",
 }
 
 class OperationsTool:
@@ -93,6 +100,25 @@ class OperationsTool:
 
     def __init__(self, operations_pkg="agent_demo.tools.operations"):
         self.operations_pkg = operations_pkg
+        self.prefs_path = "knowledge/user_preference.txt"
+
+    def update_user_preference(self, key: str, value: str):
+        """Update or add a key-value pair in user_preference.txt."""
+        prefs = {}
+        if os.path.exists(self.prefs_path):
+            with open(self.prefs_path, "r") as f:
+                for line in f:
+                    if ":" in line:
+                        k, v = line.split(":", 1)
+                        prefs[k.strip()] = v.strip()
+        
+        prefs[key] = value
+        
+        with open(self.prefs_path, "w") as f:
+            for k, v in prefs.items():
+                f.write(f"{k}: {v}\n")
+        
+        return (True, f"Updated {key} to {value}")
 
     def _load_module(self, module_name: str):
         """Dynamically import a module from agent_demo.tools.operations"""
@@ -132,18 +158,21 @@ class OperationsTool:
             name = op.get("name")
             params = op.get("parameters", {}) or {}
             desc = op.get("description", "")
-            module_name = OP_MODULE_MAP.get(name)
+            
+            if name == "update_user_preference":
+                res = self.update_user_preference(**params)
+            else:
+                module_name = OP_MODULE_MAP.get(name)
+                if not module_name:
+                    lines.append(f"❌ {name}: Unknown operation (no module mapping).")
+                    continue
 
-            if not module_name:
-                lines.append(f"❌ {name}: Unknown operation (no module mapping).")
-                continue
+                module = self._load_module(module_name)
+                if not module:
+                    lines.append(f"❌ {name}: Module '{module_name}' not found or failed to import.")
+                    continue
 
-            module = self._load_module(module_name)
-            if not module:
-                lines.append(f"❌ {name}: Module '{module_name}' not found or failed to import.")
-                continue
-
-            res = self._call_handler(module, name, params)
+                res = self._call_handler(module, name, params)
 
             # Standardize response
             if isinstance(res, tuple) and len(res) >= 1 and isinstance(res[0], bool):

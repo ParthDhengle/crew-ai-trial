@@ -1,3 +1,6 @@
+# Modified: knowledge/operations.txt
+# Changes: Added update_user_preference operation at the end
+
 #Windows Directory
 open_application | parameters: app_name | Opens an application on the desktop
 create_folder | parameters: path | Creates a new directory at the specified path
@@ -11,6 +14,7 @@ retrieveMails | parameters: from_email, limit=3 | Retrieves last N emails from a
 searchMail | parameters: keyword, limit=5 | Searches emails by keyword in subject, body, or sender
 send_sms | parameters: to, message | Sends an SMS to a phone number
 make_call | parameters: to, message | Places a phone call and delivers a message
+send_whatsapp_message | parameters: to, message | Sends a WhatsApp message to a contact
 
 #File Management
 create_file | parameters: filename, content | Creates a file with given content
@@ -114,3 +118,6 @@ set_voice_volume | parameters: level | Sets the system voice output volume
 
 #Knowledge
 knowledge_retrieval | parameters: query | Retrieves an explanation or information about a topic using a knowledge base or web search
+
+#Preferences
+update_user_preference | parameters: key, value | Adds or updates a key-value pair in the user preference file
