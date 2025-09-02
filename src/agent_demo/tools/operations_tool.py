@@ -16,6 +16,10 @@ OP_MODULE_MAP = {
     
     # Communication
     "send_email": "communication",
+    "send_reply_email": "communication",
+    "writeMail": "communication",
+    "retrieveMails": "communication",
+    "searchMail": "communication",
     "send_sms": "communication",
     "make_call": "communication",
     "send_whatsapp_message": "communication",

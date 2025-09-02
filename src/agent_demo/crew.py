@@ -128,23 +128,21 @@ class AiAgent():
                     content = f.read().strip()
             else:
                 content = json.dumps(self.preprocess_query(input_data))
-
             if content.startswith('"Sorry,') or content == '"Sorry, I can\'t do that yet. This feature will be available soon."':
                 print(content.strip('"'))
                 return
-
             # Enhanced cleaning:
             # 1. Remove markdown/code blocks
             content = re.sub(r'```(?:json)?\s*|\s*```', '', content).strip()
-            
+        
             # 2. Remove trailing commas (common LLM error)
             content = re.sub(r',\s*([}\]])', r'\1', content)  # Remove trailing , before } or ]
+        
+            # REMOVE this block - it's causing the truncation
+            # match = re.search(r'\{.*?\}', content, re.DOTALL)
+            # if match:
+            #     content = match.group(0)
             
-            # 3. Handle duplicates: Extract first valid JSON object if multiples
-            match = re.search(r'\{.*?\}', content, re.DOTALL)
-            if match:
-                content = match.group(0)
-
             # Parse with json5 (lenient: allows trailing commas, comments, etc.)
             try:
                 plan = json5.loads(content)
@@ -153,33 +151,26 @@ class AiAgent():
                 print("Raw content after cleaning:")
                 print(content)
                 return
-
             if not isinstance(plan, dict) or 'operations' not in plan:
                 print("❌ Invalid execution plan format (missing 'operations')")
                 return
-
             operations = plan.get('operations', [])
             if not operations:
                 print("ℹ️ No operations to execute")
                 return
-
             print(f"🚀 Executing {len(operations)} operation(s) using OperationsTool...\n")
-
             ops_tool = OperationsTool()
             raw_result = ops_tool._run(operations)
-
             for line in raw_result.splitlines():
-                print("   " + line)
-
+                print(" " + line)
             success_count = len([l for l in raw_result.splitlines() if l.startswith("✅")])
             fail_count = len([l for l in raw_result.splitlines() if l.startswith("❌")])
             print("\n🎉 Execution completed!")
             print(f"📋 Summary: {success_count} successful, {fail_count} failed")
-
         except Exception as e:
             print("❌ Error executing operations:")
             traceback.print_exc()
-
+            
     @crew
     def crew(self) -> Crew:
         return Crew(

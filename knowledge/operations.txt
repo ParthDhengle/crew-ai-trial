@@ -9,7 +9,6 @@ delete_folder | parameters: path | Deletes a directory (and its contents if non-
 #Communication
 send_email | parameters: to, subject, info=None | Sends an AI-generated email to the specified recipient with optional context
 send_reply_email | parameters: to, subject, retrieve_from_email=None, limit=3 | Convenience function to send contextual reply emails based on recent emails from sender
-writeMail | parameters: to, subject, body | Sends an email using Gmail API with provided body
 retrieveMails | parameters: from_email, limit=3 | Retrieves last N emails from a specific sender
 searchMail | parameters: keyword, limit=5 | Searches emails by keyword in subject, body, or sender
 send_sms | parameters: to, message | Sends an SMS to a phone number
