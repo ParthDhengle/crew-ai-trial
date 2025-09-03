@@ -1,4 +1,4 @@
-Name: John Doe
+Name: Parth
 Role: AI Engineer
 Location: San Francisco, California
 Top Motivation: AI Agents
