@@ -93,42 +93,56 @@ class AiAgent():
             'operations_file_path': os.path.join(PROJECT_ROOT, 'knowledge', 'operations.txt')
         }
 
+        # Summarize history
         summary_task = self.summarize_history()
-        summary = summary_task.execute(inputs)
+        summary_agent = self.summarizer()
+        summary = summary_agent.execute_task(summary_task.description, context=json.dumps(inputs))
         inputs['summarized_history'] = summary
 
+        # Classify query
         classify_task = self.classify_query()
-        classification_raw = classify_task.execute(inputs)
+        classify_agent = self.classifier()
+        classification_raw = classify_agent.execute_task(classify_task.description, context=json.dumps(inputs))
         classification = json5.loads(re.sub(r'```json|```', '', classification_raw).strip())
 
         if classification['mode'] == 'direct':
+            # Generate direct response
             response_task = self.generate_direct_response()
-            response = response_task.execute(inputs)
+            response_agent = self.direct_responder()
+            response = response_agent.execute_task(response_task.description, context=json.dumps(inputs))
             final_response = response
         else:
+            # Analyze and plan
             plan_task = self.analyze_and_plan()
-            plan_raw = plan_task.execute(inputs)
+            plan_agent = self.analyzer_planner()
+            plan_raw = plan_agent.execute_task(plan_task.description, context=json.dumps(inputs))
             plan = json5.loads(re.sub(r'```json|```', '', plan_raw).strip())
 
+            # Refine plan
             refine_inputs = {**inputs, 'plan': json.dumps(plan)}
             refine_task = self.refine_plan()
-            refined_raw = refine_task.execute(refine_inputs)
+            refine_agent = self.refiner()
+            refined_raw = refine_agent.execute_task(refine_task.description, context=json.dumps(refine_inputs))
             refined_plan = json5.loads(re.sub(r'```json|```', '', refined_raw).strip())
 
             if 'error' in refined_plan:
                 final_response = refined_plan['error']
             else:
+                # Execute operations (custom, no change)
                 op_results = self.perform_operations(refined_plan)
+
+                # Synthesize response
                 synth_inputs = {**inputs, 'op_results': op_results}
                 synth_task = self.synthesize_response()
-                final_response = synth_task.execute(synth_inputs)
+                synth_agent = self.synthesizer()
+                final_response = synth_agent.execute_task(synth_task.description, context=json.dumps(synth_inputs))
 
+        # Save history (no change)
         history.append({"role": "user", "content": user_query})
         history.append({"role": "assistant", "content": final_response})
         ChatHistory.save_history(history)
 
         return final_response
-
     def perform_operations(self, plan: dict) -> str:
         operations = plan.get('operations', [])
         ops_tool = OperationsTool()
