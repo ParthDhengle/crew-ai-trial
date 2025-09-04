@@ -1,6 +1,3 @@
-# Modified: src/agent_demo/config/agents.yaml
-# Changes: Added instructions to detect personal info and use update_user_preference operation
-
 analyzer:
   role: Operation Analyzer and Planner
   goal: >

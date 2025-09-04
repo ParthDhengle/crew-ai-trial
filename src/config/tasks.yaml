@@ -34,36 +34,6 @@ analyze_and_plan:
     - IF operations are found: Return valid JSON execution plan
     - IF no operations match: Return the exact message "Sorry, I can't do that yet. This feature will be available soon."
 
-    EXAMPLE SUCCESSFUL OUTPUT:
-    {
-      "operations": [
-        {
-          "name": "update_user_preference",
-          "parameters": {
-            "key": "Name",
-            "value": "Parth"
-          },
-          "description": "Updating user name"
-        },
-        {
-          "name": "send_email",
-          "parameters": {
-            "to": "colleague@company.com",
-            "subject": "Meeting Request",
-            "body": "Hi, I'd like to schedule a meeting..."
-          },
-          "description": "Sending email to schedule meeting"
-        },
-        {
-          "name": "retrieve_knowledge",
-          "parameters": {
-            "query": "what is AI with a focus on AI agents"
-          },
-          "description": "Retrieving information for: what is AI with a focus on AI agents"
-        }
-      ]
-    }
-
   expected_output: >
     EITHER a valid JSON execution plan in the exact format:
     {

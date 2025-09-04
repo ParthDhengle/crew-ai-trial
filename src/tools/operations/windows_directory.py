@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-open_app.py — Find & open apps across Start Menu, Desktop, PATH, registry and UWP.
-Usage: python open_app.py
-Flags: --rebuild  (force index rebuild)
+windows_directory.py — Windows directory and application operations.
+Contains functions for opening applications and managing directories.
 """
 
 import os
+import shutil
+from pathlib import Path
+import subprocess
 import sys
 import json
 import time
-import subprocess
-import re
 import webbrowser
 from difflib import SequenceMatcher
-from pathlib import Path
+import re
 
 # ---------- Config ----------
 CACHE_FILE = "app_index.json"
@@ -45,10 +45,6 @@ def write_json(p, data):
 
 def is_windows():
     return os.name == "nt"
-
-if not is_windows():
-    print("This script only runs on Windows.")
-    sys.exit(1)
 
 # ---------- Indexing ----------
 def index_start_and_desktop_shortcuts():
@@ -89,6 +85,7 @@ def index_path_executables():
                     continue
                 full = os.path.join(d, fn)
                 name = os.path.splitext(fn)[0].replace("_", " ").replace("-", " ").title()
+
                 key = ("path", name.lower(), os.path.dirname(full).lower())
                 if key in seen:
                     continue
@@ -330,7 +327,7 @@ def launch_entry(entry):
     except Exception:
         return False
 
-# ---------- Main function with app_name parameter ----------
+# ---------- Main Functions ----------
 def load_aliases():
     a = read_json(ALIASES_FILE)
     if isinstance(a, dict):
@@ -357,6 +354,9 @@ def open_application(app_name):
     Returns:
         tuple: (success: bool, message: str)
     """
+    if not is_windows():
+        return (False, "This operation only runs on Windows.")
+
     if not app_name or not app_name.strip():
         return (False, "No app name provided")
     
@@ -401,39 +401,55 @@ def open_application(app_name):
             open_web(query)
             return (False, f"Failed to launch {top_app.get('name')}, opened web search instead")
 
-
-# ---------- Interactive mode (for standalone usage) ----------
-def interactive_mode():
-    """Original interactive mode for standalone usage."""
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--rebuild", action="store_true", help="force reindex")
-    args = parser.parse_args()
-
-    apps = build_index(force=args.rebuild)
-    aliases = load_aliases()
-    print(f"Indexed {len(apps)} apps. Type app name to open (q to quit, r rebuild).")
-
-    while True:
-        try:
-            query = input("\nOpen> ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\nbye")
-            break
-        if not query:
-            continue
-        if query.lower() in ("q","quit","exit"):
-            break
-        if query.lower() in ("r","rebuild"):
-            print("Rebuilding index...")
-            apps = build_index(force=True)
-            print(f"Rebuilt index. {len(apps)} apps.")
-            continue
+def create_folder(path):
+    """
+    Create a new directory at the specified path.
+    
+    Args:
+        path (str): Path where the new directory will be created
         
-        # Use the new open_application function
-        success, message = open_application(query)
-        print(message)
+    Returns:
+        tuple: (success: bool, message: str)
+    """
+    if not is_windows():
+        return (False, "This operation only runs on Windows.")
 
+    if not path or not path.strip():
+        return (False, "No path provided")
+    
+    try:
+        path = os.path.expandvars(path.strip())
+        os.makedirs(path, exist_ok=True)
+        return (True, f"Successfully created directory at {path}")
+    except PermissionError:
+        return (False, f"Permission denied: Unable to create directory at {path}")
+    except OSError as e:
+        return (False, f"Failed to create directory at {path}: {str(e)}")
 
-if __name__ == "__main__":
-    interactive_mode()
+def delete_folder(path):
+    """
+    Delete a directory and its contents at the specified path.
+    
+    Args:
+        path (str): Path to the directory to delete
+        
+    Returns:
+        tuple: (success: bool, message: str)
+    """
+    if not is_windows():
+        return (False, "This operation only runs on Windows.")
+
+    if not path or not path.strip():
+        return (False, "No path provided")
+    
+    try:
+        path = os.path.expandvars(path.strip())
+        if not os.path.exists(path):
+            return (False, f"Directory does not exist at {path}")
+        shutil.rmtree(path, ignore_errors=True)
+        return (True, f"Successfully deleted directory at {path}")
+    except PermissionError:
+        return (False, f"Permission denied: Unable to delete directory at {path}")
+    except OSError as e:
+        return (False, f"Failed to delete directory at {path}: {str(e)}")
+    

@@ -3,13 +3,15 @@
 # - Updated imports to use langchain_community to fix deprecations
 # - Annotated vectorstore as ClassVar[Optional[FAISS]] to fix Pydantic error
 # - Added imports for ClassVar and Optional
-
+# - Added PROJECT_ROOT to use absolute path for ops_path to fix FileNotFoundError
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from typing import Type, ClassVar, Optional
 import os
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 class RagToolInput(BaseModel):
     """Input schema for RagTool."""
@@ -24,29 +26,29 @@ class RagTool(BaseTool):
         "Returns a string with the top-k matching operations (format: 'name | parameters: ... | description')."
     )
     args_schema: Type[BaseModel] = RagToolInput
-    vectorstore: ClassVar[Optional[FAISS]] = None  # Class-level cache with annotation
+    vectorstore: ClassVar[Optional[FAISS]] = None # Class-level cache with annotation
 
     def __init__(self):
         super().__init__()
         if not RagTool.vectorstore:
             # Load and embed operations once
-            ops_path = "knowledge/operations.txt"
+            ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.txt")
             if not os.path.exists(ops_path):
                 raise FileNotFoundError(f"Operations file not found: {ops_path}")
-            
+           
             with open(ops_path, "r", encoding="utf-8") as f:
                 # Extract non-comment, non-empty ops lines
                 ops = [line.strip() for line in f if line.strip() and not line.startswith("#") and "|" in line]
-            
+           
             if not ops:
                 raise ValueError("No operations found in operations.txt")
-            
+           
             # Use lightweight, fast embedding model (all-MiniLM-L6-v2: ~80MB, good for short texts)
             embedder = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2",
-                model_kwargs={"device": "cpu"}  # CPU for portability
+                model_kwargs={"device": "cpu"} # CPU for portability
             )
-            
+           
             # Create vectorstore (FAISS: efficient for small-medium datasets)
             RagTool.vectorstore = FAISS.from_texts(ops, embedder)
             print(f"✅ RAG vectorstore initialized with {len(ops)} operations.")
