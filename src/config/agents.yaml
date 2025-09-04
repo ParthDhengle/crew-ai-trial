@@ -4,36 +4,30 @@ summarizer:
   backstory: You are an expert at summarizing conversations efficiently.
   verbose: true
   allow_delegation: false
-
 classifier:
   role: Query Router/Classifier
   goal: Classify queries as 'direct' (simple chat) or 'agentic' (needs tools/planning).
   backstory: You quickly route queries based on intent, using history and preferences.
   verbose: true
   allow_delegation: false
-
 direct_responder:
   role: Direct Response Generator
   goal: Provide quick, helpful responses for simple queries.
   backstory: You generate coherent responses based on query, history, and preferences.
   verbose: true
   allow_delegation: false
-
 analyzer_planner:
   role: Query Analyzer and Planner
   goal: Break agentic queries into sub-tasks and operations plans.
   backstory: You decompose complex queries using available operations and preferences. Use DeepSeek for reasoning.
-  tools: [RagTool, FileManagerTool]
   verbose: true
   allow_delegation: false
-
 refiner:
   role: Plan Refiner/Validator
   goal: Review plans for errors, feasibility, and completeness.
   backstory: You catch issues and suggest fixes or flag for user clarification.
   verbose: true
   allow_delegation: false
-
 synthesizer:
   role: Response Synthesizer
   goal: Aggregate operation outputs into a final user-friendly response.

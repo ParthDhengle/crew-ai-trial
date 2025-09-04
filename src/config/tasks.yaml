@@ -1,29 +1,24 @@
 summarize_history:
-  description: Summarize the chat history if long. Input: full_history.
-  expected_output: A concise summary string (~100-300 tokens).
+  description: "Summarize the chat history if long. Input: full_history."
+  expected_output: "A concise summary string (~100-300 tokens)."
   agent: summarizer
-
 classify_query:
-  description: Classify query as direct or agentic using user_query, summarized_history, user_preferences_path. Output JSON: {'mode': 'direct' or 'agentic', 'reason': '...'}.
-  expected_output: JSON string.
+  description: "Classify query as direct or agentic using user_query, summarized_history, user_preferences_path. Output JSON: {'mode': 'direct' or 'agentic', 'reason': '...'}."
+  expected_output: "JSON string."
   agent: classifier
-
 generate_direct_response:
-  description: Generate response for direct queries using user_query, summarized_history, user_preferences_path.
-  expected_output: Final response string.
+  description: "Generate response for direct queries using user_query, summarized_history, user_preferences_path."
+  expected_output: "Final response string."
   agent: direct_responder
-
 analyze_and_plan:
-  description: Analyze agentic query using user_query, summarized_history, user_preferences_path, operations_file_path. Use RagOperationsSearch for ops. Output JSON: {'subtasks': [...], 'operations': [{'name': '...', 'params': {...}}], 'potential_issues': '...'}.
-  expected_output: JSON plan string.
+  description: "Analyze agentic query using user_query, summarized_history, user_preferences_path, operations_file_path. Use RagOperationsSearch for ops. Output JSON: {'subtasks': [...], 'operations': [{'name': '...', 'params': {...}}], 'potential_issues': '...'}."
+  expected_output: "JSON plan string."
   agent: analyzer_planner
-
 refine_plan:
-  description: Review plan for errors using plan, operations_file_path. Output refined JSON or {'error': 'Need clarification'}.
-  expected_output: Refined JSON string.
+  description: "Review plan for errors using plan, operations_file_path. Output refined JSON or {'error': 'Need clarification'}."
+  expected_output: "Refined JSON string."
   agent: refiner
-
 synthesize_response:
-  description: Synthesize using user_query, summarized_history, user_preferences_path, op_results.
-  expected_output: Final response string.
+  description: "Synthesize using user_query, summarized_history, user_preferences_path, op_results."
+  expected_output: "Final response string."
   agent: synthesizer

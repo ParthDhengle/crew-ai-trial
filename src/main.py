@@ -6,8 +6,18 @@ import traceback
 import warnings
 from pydantic import __version__ as pydantic_version
 
+def find_project_root(marker_file='pyproject.toml') -> str:
+    """Find the project root by searching upwards for the marker file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):  # Stop at system root
+        if os.path.exists(os.path.join(current_dir, marker_file)):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+
+
 # Correct PROJECT_ROOT: From src/main.py, dirname=src, '..' gets to project root
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+PROJECT_ROOT = find_project_root()
 
 if pydantic_version.startswith('2'):  # Only apply if Pydantic v2
     from pydantic import PydanticDeprecatedSince20

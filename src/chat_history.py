@@ -2,8 +2,17 @@ import os
 import json
 import google.generativeai as genai
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-HISTORY_FILE = os.path.join(PROJECT_ROOT, 'knowledge', 'chat_history.json')
+def find_project_root(marker_file='pyproject.toml') -> str:
+    """Find the project root by searching upwards for the marker file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):  # Stop at system root
+        if os.path.exists(os.path.join(current_dir, marker_file)):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+
+project_root = find_project_root()
+HISTORY_FILE = os.path.join(project_root, 'knowledge', 'chat_history.json')
 
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
