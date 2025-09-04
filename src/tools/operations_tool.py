@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
 from .operations.windows_directory import open_application, create_folder, delete_folder
 from .operations.communication import (send_email, send_reply_email, retrieveMails, searchMail, 
-                                     send_sms, make_call, send_whatsapp_message)
+                                     make_call)
 from .operations.file_management import (create_file, read_file, update_file, delete_file, 
                                        list_files, copy_file, move_file, search_files)
 from .operations.web_and_search import (search_web, download_file, open_website, 
@@ -45,7 +45,7 @@ class OperationsTool:
             "open_application": open_application, "create_folder": create_folder, "delete_folder": delete_folder,
             # Communication
             "send_email": send_email, "send_reply_email": send_reply_email, "retrieveMails": retrieveMails,
-            "searchMail": searchMail, "send_sms": send_sms, "make_call": make_call, "send_whatsapp_message": send_whatsapp_message,
+            "searchMail": searchMail,  "make_call": make_call,
             # File Management
             "create_file": create_file, "read_file": read_file, "update_file": update_file, "delete_file": delete_file,
             "list_files": list_files, "copy_file": copy_file, "move_file": move_file, "search_files": search_files,

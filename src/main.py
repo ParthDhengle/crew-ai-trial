@@ -1,13 +1,13 @@
 import os
 import sys
 from datetime import datetime
-from agent_demo.crew import AiAgent
+from crew import AiAgent
 import traceback
 import warnings
 from pydantic import __version__ as pydantic_version
 
-# Define PROJECT_ROOT to handle paths correctly relative to the project root
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+# Correct PROJECT_ROOT: From src/main.py, dirname=src, '..' gets to project root
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 if pydantic_version.startswith('2'):  # Only apply if Pydantic v2
     from pydantic import PydanticDeprecatedSince20
@@ -45,112 +45,106 @@ def display_help():
     print("-" * 40)
     print()
 
-def get_user_input():
+def get_user_input(prompt="💬 What can I help you with? "):
     """Get user input with proper handling."""
     try:
-        user_query = input("💬 What can I help you with? ").strip()
-        return user_query
+        return input(prompt).strip()
     except (EOFError, KeyboardInterrupt):
         print("\n👋 Goodbye!")
         return "quit"
 
-def collect_preferences():
-    """Collect user preferences if the file is empty."""
-    print("\n🛠️ It looks like your preferences aren't set up yet. Let's personalize your experience!")
-    print("Answer the following questions to help the agent understand you better.\n")
-    # 1. Basic Identity
-    name = input("1. What’s your name or nickname? ").strip()
-    roles = ["Student", "Professional (Engineer/Developer)", "Creative/Designer", "Manager/Entrepreneur", "Other"]
-    print("\nWhat’s your role?")
-    for i, role in enumerate(roles, 1):
-        print(f"{i}. {role}")
-    role_choice = int(input("Choose a number: ")) - 1
-    role = roles[role_choice]
-    if role == "Other":
-        role = input("Please specify your role: ").strip()
-    # Timezone/Location (ask, as detection requires external tools)
-    location = input("\nWhat’s your timezone/location? (e.g., San Francisco, UTC-8): ").strip() or "San Francisco"
-    # 2. Daily Rhythm & Energy
-    productive_times = ["Morning", "Afternoon", "Evening", "Late Night"]
-    print("\nWhen do you usually feel most productive?")
-    for i, time in enumerate(productive_times, 1):
-        print(f"{i}. {time}")
-    productive_choice = int(input("Choose a number: ")) - 1
-    productive_time = productive_times[productive_choice]
-    reminder_types = ["Gentle notification", "Phone call / Voice prompt", "Email / Message"]
-    print("\nHow do you want the agent to remind you?")
-    for i, reminder in enumerate(reminder_types, 1):
-        print(f"{i}. {reminder}")
-    reminder_choice = int(input("Choose a number: ")) - 1
-    reminder_type = reminder_types[reminder_choice]
-    # 3. Work & Task Preferences
-    task_types = ["Learning / Study", "Coding / Development", "Writing / Content Creation", "Management / Planning", "Personal Growth / Health"]
-    print("\nWhat’s your top priority type of task?")
-    for i, task in enumerate(task_types, 1):
-        print(f"{i}. {task}")
-    task_choice = int(input("Choose a number: ")) - 1
-    top_task = task_types[task_choice]
-    missed_task_handlings = ["Auto-reschedule to next free slot", "Ask me before moving", "Skip if missed"]
-    print("\nHow do you want missed tasks handled?")
-    for i, handling in enumerate(missed_task_handlings, 1):
-        print(f"{i}. {handling}")
-    missed_choice = int(input("Choose a number: ")) - 1
-    missed_task = missed_task_handlings[missed_choice]
-    # 4. Motivation & Support
-    motivations = ["Checking things off a list", "Friendly competition / Leaderboards", "Music + Encouragement", "Supportive reminders (like a friend)"]
-    print("\nWhat motivates you most?")
-    for i, motivation in enumerate(motivations, 1):
-        print(f"{i}. {motivation}")
-    motivation_choice = int(input("Choose a number: ")) - 1
-    top_motivation = motivations[motivation_choice]
-    tones = ["Calm & Professional", "Friendly & Casual", "Motivational & Pushy", "Fun & Humorous"]
-    print("\nHow do you prefer the AI tone?")
-    for i, tone in enumerate(tones, 1):
-        print(f"{i}. {tone}")
-    tone_choice = int(input("Choose a number: ")) - 1
-    ai_tone = tones[tone_choice]
-    # 5. Well-being & Breaks
-    break_reminders = ["Every 25 min (Pomodoro style)", "Every 1 hour", "Every 2 hours", "Never remind me"]
-    print("\nHow often should I remind you to take breaks?")
-    for i, break_opt in enumerate(break_reminders, 1):
-        print(f"{i}. {break_opt}")
-    break_choice = int(input("Choose a number: ")) - 1
-    break_reminder = break_reminders[break_choice]
-    mood_checks = ["Yes, ask me once a day", "Only if I look unproductive", "No, skip this"]
-    print("\nDo you want me to check on your mood/energy daily?")
-    for i, mood in enumerate(mood_checks, 1):
-        print(f"{i}. {mood}")
-    mood_choice = int(input("Choose a number: ")) - 1
-    mood_check = mood_checks[mood_choice]
-    # 6. Long-Term Goals (Optional)
-    set_goals = input("\nWould you like to set a long-term goal? (yes/no): ").strip().lower()
-    current_focus = ""
-    if set_goals == "yes":
-        focuses = ["Finish studies", "Grow career skills", "Build side projects", "Explore & learn", "Health & balance"]
-        print("\nWhat’s your current focus?")
-        for i, focus in enumerate(focuses, 1):
-            print(f"{i}. {focus}")
-        focus_choice = int(input("Choose a number: ")) - 1
-        current_focus = focuses[focus_choice]
-    # Ensure knowledge directory exists before writing
-    prefs_path = os.path.join(PROJECT_ROOT, "knowledge", "user_preference.txt")
-    os.makedirs(os.path.dirname(prefs_path), exist_ok=True)
-    # Store in file
-    with open(prefs_path, "w") as f:
-        f.write(f"Name: {name}\n")
-        f.write(f"Role: {role}\n")
-        f.write(f"Location: {location}\n")
-        f.write(f"Productive Time: {productive_time}\n")
-        f.write(f"Reminder Type: {reminder_type}\n")
-        f.write(f"Top Task Type: {top_task}\n")
-        f.write(f"Missed Task Handling: {missed_task}\n")
-        f.write(f"Top Motivation: {top_motivation}\n")
-        f.write(f"AI Tone: {ai_tone}\n")
-        f.write(f"Break Reminder: {break_reminder}\n")
-        f.write(f"Mood Check: {mood_check}\n")
-        if current_focus:
-            f.write(f"Current Focus: {current_focus}\n")
-    print("\n✅ Preferences saved! You can update them anytime by telling me new info (e.g., 'My location is New York').")
+def parse_preferences(prefs_path):
+    """Parse user_preference.txt into a dict, ignoring invalid lines."""
+    prefs = {}
+    if os.path.exists(prefs_path):
+        try:
+            with open(prefs_path, "r") as f:
+                for line in f:
+                    if ":" in line:
+                        key, value = line.split(":", 1)
+                        prefs[key.strip()] = value.strip()
+        except Exception as e:
+            warnings.warn(f"Error parsing preferences: {e}")
+    return prefs
+
+def collect_preferences(prefs_path):
+    """Collect missing user preferences interactively, updating the file."""
+    print("\n🛠️ Personalizing your experience! Filling in missing preferences.")
+
+    # Define all keys and their choice options (None for free text)
+    pref_definitions = {
+        "Name": None,  # Free text
+        "Role": ["Student", "Professional (Engineer/Developer)", "Creative/Designer", "Manager/Entrepreneur", "Other"],
+        "Location": None,
+        "Productive Time": ["Morning", "Afternoon", "Evening", "Late Night"],
+        "Reminder Type": ["Gentle notification", "Phone call / Voice prompt", "Email / Message"],
+        "Top Task Type": ["Learning / Study", "Coding / Development", "Writing / Content Creation", "Management / Planning", "Personal Growth / Health"],
+        "Missed Task Handling": ["Auto-reschedule to next free slot", "Ask me before moving", "Skip if missed"],
+        "Top Motivation": ["Checking things off a list", "Friendly competition / Leaderboards", "Music + Encouragement", "Supportive reminders (like a friend)"],
+        "AI Tone": ["Calm & Professional", "Friendly & Casual", "Motivational & Pushy", "Fun & Humorous"],
+        "Break Reminder": ["Every 25 min (Pomodoro style)", "Every 1 hour", "Every 2 hours", "Never remind me"],
+        "Mood Check": ["Yes, ask me once a day", "Only if I look unproductive", "No, skip this"],
+        "Current Focus": ["Finish studies", "Grow career skills", "Build side projects", "Explore & learn", "Health & balance"]  # Optional
+    }
+
+    existing_prefs = parse_preferences(prefs_path)
+    updated_prefs = existing_prefs.copy()
+
+    for key, options in pref_definitions.items():
+        if key not in existing_prefs or not existing_prefs[key]:
+            if options:
+                print(f"\n{key}?")
+                for i, opt in enumerate(options, 1):
+                    print(f"{i}. {opt}")
+                while True:
+                    try:
+                        choice = int(get_user_input("Choose a number: "))
+                        if 1 <= choice <= len(options):
+                            value = options[choice - 1]
+                            if value == "Other":
+                                value = get_user_input("Please specify: ").strip()
+                            updated_prefs[key] = value
+                            break
+                        else:
+                            print("Invalid choice. Try again.")
+                    except ValueError:
+                        print("Please enter a number.")
+            else:
+                value = get_user_input(f"{key}? ").strip()
+                if value:
+                    updated_prefs[key] = value
+
+    # Optional Current Focus
+    if "Current Focus" not in updated_prefs or not updated_prefs["Current Focus"]:
+        set_goals = get_user_input("\nWould you like to set a long-term goal? (yes/no): ").strip().lower()
+        if set_goals == "yes":
+            options = pref_definitions["Current Focus"]
+            print("\nWhat’s your current focus?")
+            for i, opt in enumerate(options, 1):
+                print(f"{i}. {opt}")
+            while True:
+                try:
+                    choice = int(get_user_input("Choose a number: "))
+                    if 1 <= choice <= len(options):
+                        updated_prefs["Current Focus"] = options[choice - 1]
+                        break
+                    else:
+                        print("Invalid choice. Try again.")
+                except ValueError:
+                    print("Please enter a number.")
+
+    # Write back only if changes
+    if updated_prefs != existing_prefs:
+        try:
+            os.makedirs(os.path.dirname(prefs_path), exist_ok=True)
+            with open(prefs_path, "w") as f:
+                for k, v in updated_prefs.items():
+                    f.write(f"{k}: {v}\n")
+            print("\n✅ Preferences updated! You can change them anytime by telling me new info.")
+        except Exception as e:
+            warnings.warn(f"Error saving preferences: {e}")
+    else:
+        print("\n✅ All preferences already set. No changes needed.")
 
 def validate_environment():
     """Check if required files exist and have content."""
@@ -159,23 +153,16 @@ def validate_environment():
         os.path.join(PROJECT_ROOT, 'knowledge', 'operations.txt')
     ]
 
-    missing_or_empty = []
     for file_path in required_files:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
-            missing_or_empty.append(file_path)
-        elif 'operations.txt' in file_path and os.stat(file_path).st_size == 0:
-            missing_or_empty.append(file_path)
-
-    if os.path.join(PROJECT_ROOT, 'knowledge', 'user_preference.txt') in missing_or_empty:
-        collect_preferences()
-        missing_or_empty = [f for f in missing_or_empty if 'user_preference.txt' not in f]
-
-    if missing_or_empty:
-        print("❌ Missing or empty required files:")
-        for file_path in missing_or_empty:
-            print(f" • {file_path}")
-        print("\nPlease ensure all knowledge files are present and not empty.")
-        return False
+            if 'user_preference.txt' in file_path:
+                collect_preferences(file_path)  # Will create/populate
+            else:
+                print(f"❌ Missing or empty: {file_path}")
+                return False
+        elif 'user_preference.txt' in file_path:
+            # Even if exists, check for completeness
+            collect_preferences(file_path)  # Will fill missing if any
 
     return True
 
@@ -185,54 +172,30 @@ def run_single_query(user_query=None):
         return False
     if not user_query:
         user_query = get_user_input()
-
     if user_query.lower() in ['quit', 'exit', 'q']:
         return False
-
     if user_query.lower() in ['help', 'h']:
         display_help()
         return True
-
     if not user_query:
         print("❌ Please provide a valid query.")
         return True
     print(f"\n🔍 Processing: '{user_query}'")
-    print("⏳ Analyzing your request...\n")
-
-    # Prepare inputs for the crew
-    inputs = {
-        'user_query': user_query,
-        'current_year': str(datetime.now().year),
-        'user_preferences_path': os.path.join(PROJECT_ROOT, 'knowledge', 'user_preference.txt'),
-        'operations_file_path': os.path.join(PROJECT_ROOT, 'knowledge', 'operations.txt')
-    }
     try:
-        # Create and run the crew
         crew_instance = AiAgent()
-        result = crew_instance.crew().kickoff(inputs=inputs)
-
-        print("\n" + "="*50)
-        print("📋 ANALYSIS COMPLETE")
-        print("="*50)
-
-        # Execute the operations
-        crew_instance.perform_operations("execution_plan.json")
-
-        print("="*50)
-        print()
-
+        final_response = crew_instance.run_workflow(user_query)
+        print(final_response)
         return True
-
     except Exception as e:
-        print("❌ Error during execution — full traceback below:")
+        print(f"❌ Error during execution: {e}")
         traceback.print_exc()
         print("Please try again or contact support.")
+        return True
 
 def run_interactive():
     """Run in interactive mode."""
     display_welcome()
-    validate_environment()  # Ensure preferences are collected at start
-
+    validate_environment()  # Ensure preferences are set/filled
     try:
         while True:
             if not run_single_query():
@@ -242,40 +205,31 @@ def run_interactive():
 
 def run():
     """Main entry point - supports both interactive and single-query modes."""
-    # Check if we're running with command line arguments
     if len(sys.argv) > 1:
         # Single query mode
-        query = ' '.join(sys.argv[1:])
-        if query.startswith('"') and query.endswith('"'):
-            query = query[1:-1]  # Remove quotes if present
+        query = ' '.join(sys.argv[1:]).strip('"')
         run_single_query(query)
     else:
         # Interactive mode
         run_interactive()
 
 def train():
-    """Training function - placeholder for future ML training capabilities."""
     print("🎓 Training mode not implemented yet.")
     print("This feature will allow you to train the assistant on your specific use cases.")
 
 def replay():
-    """Replay function - replay previous execution plans."""
     print("🔄 Replay mode not implemented yet.")
     print("This feature will allow you to replay previous successful operations.")
 
 def test():
-    """Test function - run predefined test scenarios."""
     print("🧪 Running test scenarios...")
-
     test_queries = [
         "Calculate 10 + 15",
         "Get current time",
         "Generate a password",
         "Check system status"
     ]
-
     print(f"Running {len(test_queries)} test queries:\n")
-
     for i, query in enumerate(test_queries, 1):
         print(f"Test {i}: {query}")
         success = run_single_query(query)
@@ -283,7 +237,6 @@ def test():
             print("❌ Test failed")
             break
         print("-" * 40)
-
     print("✅ All tests completed!")
 
 if __name__ == "__main__":
