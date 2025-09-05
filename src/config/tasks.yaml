@@ -1,10 +1,11 @@
+# src/config/tasks.yaml
 summarize_history:
   description: "Summarize this chat history concisely (100-300 tokens), focusing on key topics, user intents, and recent exchanges:\n{full_history}"
   expected_output: "A concise summary string (~100-300 tokens)."
   agent: summarizer
 
 classify_query:
-  description: "Classify if this query needs a direct response or agentic handling (tools/reasoning). Output JSON: {'mode': 'direct' or 'agentic'}. \nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}"
+  description: "Classify if this query needs a direct response or agentic handling (tools/reasoning). Output JSON: {{\"mode\": \"direct\" or \"agentic\"}}. \nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}"
   expected_output: "JSON string."
   agent: classifier
 
@@ -13,13 +14,18 @@ generate_direct_response:
   expected_output: "Final response string."
   agent: direct_responder
 
-analyze_and_plan:
-  description: "Analyze the query: Break into sub-tasks, identify needed operations/tools, flag ambiguities/errors. Output JSON: {'subtasks': [...], 'operations': [{'name': '...', 'params': {...}}], 'potential_issues': '...'}.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nAvailable operations (from {operations_file_path}): {available_operations}"
+analyze1:
+  description: "Analyze the query: Extract structured intents, break into sub-tasks, suggest possible operations based on names, flag ambiguities/errors. Output JSON: {{\"intents\": [...], \"subtasks\": [...], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nAvailable operation names: {op_names}"
+  expected_output: "JSON with intents, subtasks, and issues."
+  agent: analyzer1
+
+analyze2:
+  description: "Using the intents, sub-tasks, and retrieved operations, produce a final execution plan. Output JSON: {{\"operations\": [{{\"name\": \"...\", \"params\": {{...}}}}], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nIntents: {intents}\nSub-tasks: {subtasks}\nRetrieved operations: {retrieved_ops}"
   expected_output: "JSON plan string."
-  agent: analyzer_planner
+  agent: analyzer2
 
 refine_plan:
-  description: "Review this plan for errors, feasibility, and completeness. Fix issues or flag if unresolvable. Output refined JSON plan or {'error': 'Need user clarification'}.\nPlan: {plan}\nAvailable operations (from {operations_file_path}): {available_operations}"
+  description: "Review this plan for errors, feasibility, and completeness. Ensure it covers all intents and sub-tasks, prune irrelevant operations, add dependencies if needed. Fix issues or flag if unresolvable. Output refined JSON plan or {{\"error\": \"Need user clarification\"}}.\nPlan: {plan}\nAvailable operations (from {operations_file_path}): {available_operations}\nIntents: {intents}\nSub-tasks: {subtasks}"
   expected_output: "Refined JSON string."
   agent: refiner
 
