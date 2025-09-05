@@ -10,15 +10,7 @@ from tools.rag_tool import RagTool
 from chat_history import ChatHistory
 import json5
 import re
-
-def find_project_root(marker_file='pyproject.toml') -> str:
-    """Find the project root by searching upwards for the marker file."""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    while current_dir != os.path.dirname(current_dir):  # Stop at system root
-        if os.path.exists(os.path.join(current_dir, marker_file)):
-            return current_dir
-        current_dir = os.path.dirname(current_dir)
-    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+from common_functions.Find_project_root import find_project_root
 
 PROJECT_ROOT = find_project_root()
 
@@ -93,36 +85,67 @@ class AiAgent():
             'operations_file_path': os.path.join(PROJECT_ROOT, 'knowledge', 'operations.txt')
         }
 
+        # Read user preferences and operations once (using FileManagerTool or open)
+        file_tool = FileManagerTool()
+        user_preferences = file_tool._run(inputs['user_preferences_path']).split('Content of ', 1)[-1]  # Extract content
+        available_operations = file_tool._run(inputs['operations_file_path']).split('Content of ', 1)[-1]
+
         # Summarize history
         summary_task = self.summarize_history()
+        summary_task.description = summary_task.description.format(full_history=inputs['full_history'])
         summary_agent = self.summarizer()
-        summary = summary_agent.execute_task(summary_task.description, context=json.dumps(inputs))
+        summary = summary_agent.execute_task(summary_task)
         inputs['summarized_history'] = summary
 
         # Classify query
         classify_task = self.classify_query()
+        classify_task.description = classify_task.description.format(
+            user_query=inputs['user_query'],
+            summarized_history=inputs['summarized_history'],
+            user_preferences_path=inputs['user_preferences_path'],
+            user_preferences=user_preferences
+        )
         classify_agent = self.classifier()
-        classification_raw = classify_agent.execute_task(classify_task.description, context=json.dumps(inputs))
+        classification_raw = classify_agent.execute_task(classify_task)
         classification = json5.loads(re.sub(r'```json|```', '', classification_raw).strip())
 
         if classification['mode'] == 'direct':
             # Generate direct response
             response_task = self.generate_direct_response()
+            response_task.description = response_task.description.format(
+                user_query=inputs['user_query'],
+                summarized_history=inputs['summarized_history'],
+                user_preferences_path=inputs['user_preferences_path'],
+                user_preferences=user_preferences
+            )
             response_agent = self.direct_responder()
-            response = response_agent.execute_task(response_task.description, context=json.dumps(inputs))
+            response = response_agent.execute_task(response_task)
             final_response = response
         else:
             # Analyze and plan
             plan_task = self.analyze_and_plan()
+            plan_task.description = plan_task.description.format(
+                user_query=inputs['user_query'],
+                summarized_history=inputs['summarized_history'],
+                user_preferences_path=inputs['user_preferences_path'],
+                user_preferences=user_preferences,
+                operations_file_path=inputs['operations_file_path'],
+                available_operations=available_operations
+            )
             plan_agent = self.analyzer_planner()
-            plan_raw = plan_agent.execute_task(plan_task.description, context=json.dumps(inputs))
+            plan_raw = plan_agent.execute_task(plan_task)
             plan = json5.loads(re.sub(r'```json|```', '', plan_raw).strip())
 
             # Refine plan
             refine_inputs = {**inputs, 'plan': json.dumps(plan)}
             refine_task = self.refine_plan()
+            refine_task.description = refine_task.description.format(
+                plan=json.dumps(plan),
+                operations_file_path=inputs['operations_file_path'],
+                available_operations=available_operations
+            )
             refine_agent = self.refiner()
-            refined_raw = refine_agent.execute_task(refine_task.description, context=json.dumps(refine_inputs))
+            refined_raw = refine_agent.execute_task(refine_task)
             refined_plan = json5.loads(re.sub(r'```json|```', '', refined_raw).strip())
 
             if 'error' in refined_plan:
@@ -130,19 +153,25 @@ class AiAgent():
             else:
                 # Execute operations (custom, no change)
                 op_results = self.perform_operations(refined_plan)
-
                 # Synthesize response
                 synth_inputs = {**inputs, 'op_results': op_results}
                 synth_task = self.synthesize_response()
+                synth_task.description = synth_task.description.format(
+                    user_query=inputs['user_query'],
+                    summarized_history=inputs['summarized_history'],
+                    user_preferences_path=inputs['user_preferences_path'],
+                    user_preferences=user_preferences,
+                    op_results=op_results
+                )
                 synth_agent = self.synthesizer()
-                final_response = synth_agent.execute_task(synth_task.description, context=json.dumps(synth_inputs))
+                final_response = synth_agent.execute_task(synth_task)
 
         # Save history (no change)
         history.append({"role": "user", "content": user_query})
         history.append({"role": "assistant", "content": final_response})
         ChatHistory.save_history(history)
-
         return final_response
+
     def perform_operations(self, plan: dict) -> str:
         operations = plan.get('operations', [])
         ops_tool = OperationsTool()

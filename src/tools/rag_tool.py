@@ -1,24 +1,11 @@
-# Modified: src/agent_demo/tools/rag_tool.py
-# Changes:
-# - Updated imports to use langchain_community to fix deprecations
-# - Annotated vectorstore as ClassVar[Optional[FAISS]] to fix Pydantic error
-# - Added imports for ClassVar and Optional
-# - Replaced PROJECT_ROOT with find_project_root() for consistent root detection
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from typing import Type, ClassVar, Optional
 import os
-
-def find_project_root(marker_file='pyproject.toml') -> str:
-    """Find the project root by searching upwards for the marker file."""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    while current_dir != os.path.dirname(current_dir):  # Stop at system root
-        if os.path.exists(os.path.join(current_dir, marker_file)):
-            return current_dir
-        current_dir = os.path.dirname(current_dir)
-    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+from langchain_huggingface import HuggingFaceEmbeddings
+from common_functions.Find_project_root import find_project_root
 
 class RagToolInput(BaseModel):
     """Input schema for RagTool."""

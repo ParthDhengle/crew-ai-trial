@@ -14,3 +14,4 @@ models--openai--whisper-medium
 node_modules/
 lock.json
 uv.lock
+test

@@ -1,7 +1,7 @@
 # src/agent_demo/tools/operations_tool.py
 import os
 from typing import List, Dict, Any
-
+import json
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
 from .operations.windows_directory import open_application, create_folder, delete_folder
 from .operations.communication import (send_email, send_reply_email, retrieveMails, searchMail, 
@@ -29,15 +29,7 @@ from .operations.development_tools import (git_clone, git_commit, git_push, git_
                                          build_project, deploy_project, debug_code)
 from .operations.knowledge import knowledge_retrieval
 from .operations.preferences import update_user_preference
-
-def find_project_root(marker_file='pyproject.toml') -> str:
-    """Find the project root by searching upwards for the marker file."""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    while current_dir != os.path.dirname(current_dir):  # Stop at system root
-        if os.path.exists(os.path.join(current_dir, marker_file)):
-            return current_dir
-        current_dir = os.path.dirname(current_dir)
-    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+from common_functions.Find_project_root import find_project_root
 
 PROJECT_ROOT =find_project_root()
 
@@ -92,83 +84,242 @@ class OperationsTool:
             "update_user_preference": update_user_preference,
         }
 
-    def _parse_operations(self):
+    def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
         """Parse operations.txt to get dynamic parameter definitions."""
-        ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.txt")
         param_defs = {}
-        with open(ops_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#") and "|" in line:
+        try:
+            ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.txt")
+            with open(ops_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "|" not in line:
+                        continue
+                    
                     parts = [p.strip() for p in line.split("|")]
+                    if len(parts) < 2:
+                        continue
+                        
                     name = parts[0]
-                    if len(parts) > 1:
-                        params_str = parts[1][11:].strip() if parts[1].startswith("parameters:") else ""
-                        if params_str.lower() == "none":
-                            required, optional = [], []
-                        else:
-                            params = [p.strip() for p in params_str.split(",") if p.strip()]
-                            required = [p for p in params if '=' not in p]
-                            optional = [p.split('=')[0].strip() for p in params if '=' in p]
-                        param_defs[name] = {"required": required, "optional": optional}
+                    params_str = parts[1]
+                    
+                    if params_str.startswith("parameters:"):
+                        params_str = params_str[11:].strip()
+                    
+                    if params_str.lower() == "none":
+                        required, optional = [], []
+                    else:
+                        params = [p.strip() for p in params_str.split(",") if p.strip()]
+                        required = [p for p in params if '=' not in p]
+                        optional = [p.split('=')[0].strip() for p in params if '=' in p]
+                    
+                    param_defs[name] = {"required": required, "optional": optional}
+        except Exception as e:
+            print(f"Error parsing operations.txt: {e}")
+            return {}
+        
         return param_defs
 
-    def _validate_and_map_params(self, operation_name: str, provided_params: dict) -> tuple:
-        """Validate parameters against operations.txt definitions and map them correctly."""
+    def _validate_params(self, operation_name: str, provided_params: dict) -> tuple[bool, str, List[str]]:
+        """Validate parameters and return success status, message, and missing parameters."""
         if operation_name not in self.param_definitions:
-            return False, f"Unknown operation: {operation_name}"
+            return False, f"Unknown operation: {operation_name}", []
         
         definition = self.param_definitions[operation_name]
         required_params = definition["required"]
-        all_valid_params = required_params + definition["optional"]
+        optional_params = definition["optional"]
+        all_valid_params = required_params + optional_params
         
+        # Check for invalid parameters
         invalid_params = [p for p in provided_params if p not in all_valid_params]
         if invalid_params:
-            return False, f"Invalid parameters for {operation_name}: {invalid_params}. Valid: {all_valid_params}"
-            
+            return False, f"Invalid parameters for {operation_name}: {invalid_params}. Valid: {all_valid_params}", []
+        
+        # Check for missing required parameters
         missing_params = [p for p in required_params if p not in provided_params]
         if missing_params:
-            return False, f"Missing required parameters for {operation_name}: {missing_params}"
+            return False, f"Missing required parameters for {operation_name}: {missing_params}", missing_params
         
-        # Friendly mapping for common LLM mistakes
-        corrected_params = provided_params.copy()
+        return True, "Valid parameters", []
+
+    def _apply_parameter_corrections(self, operation_name: str, params: dict) -> dict:
+        """Apply friendly parameter name corrections for common LLM mistakes."""
+        corrected_params = params.copy()
+        
+        # Email operations: map body/message to info
         if operation_name in ["send_email", "send_reply_email"]:
             if 'body' in corrected_params and 'info' not in corrected_params:
                 corrected_params['info'] = corrected_params.pop('body')
             elif 'message' in corrected_params and 'info' not in corrected_params:
                 corrected_params['info'] = corrected_params.pop('message')
+        
+        return corrected_params
 
-        return True, corrected_params
+    def _extract_parameters_from_response(self, user_response: str, missing_params: Dict[str, List[str]]) -> Dict[str, dict]:
+        """Extract parameters from user's natural language response using AI."""
+        try:
+            extract_prompt = f"""Extract parameter values from this user response: "{user_response}"
+
+Missing parameters:
+"""
+            for op_name, params in missing_params.items():
+                extract_prompt += f"- {op_name}: {', '.join(params)}\n"
+            
+            extract_prompt += """
+Return ONLY a valid JSON object where keys are operation names and values contain the extracted parameters.
+If you cannot extract a parameter value, omit it from the JSON.
+Example: {"send_email": {"to": "user@example.com", "subject": "Meeting"}}"""
+
+            # Use generate_text operation to extract parameters
+            if "generate_text" in self.operation_map:
+                success, generated = self.operation_map["generate_text"](prompt=extract_prompt)
+                if not success:
+                    return {}
+                
+                # Try to parse the JSON
+                extracted = json.loads(generated.strip())
+                return extracted if isinstance(extracted, dict) else {}
+            
+        except Exception as e:
+            print(f"Error extracting parameters: {e}")
+        
+        return {}
+
+    def ask_parameters(self, missing_params: Dict[str, List[str]], max_attempts: int = 3) -> Dict[str, dict]:
+        """Ask user for missing parameters and extract them from natural language response."""
+        collected_params = {}
+        remaining_params = missing_params.copy()
+        
+        for attempt in range(max_attempts):
+            if not remaining_params:
+                break
+            
+            # Create user-friendly question
+            question = "\nI need some additional information to proceed:\n"
+            for op_name, params in remaining_params.items():
+                question += f"• For {op_name}: {', '.join(params)}\n"
+            question += "\nPlease provide these details: "
+            
+            try:
+                user_response = input(question)
+                if not user_response.strip():
+                    continue
+                
+                # Extract parameters from response
+                extracted = self._extract_parameters_from_response(user_response, remaining_params)
+                
+                # Update collected parameters
+                for op_name, new_params in extracted.items():
+                    if op_name not in collected_params:
+                        collected_params[op_name] = {}
+                    collected_params[op_name].update(new_params)
+                
+                # Update remaining parameters
+                new_remaining = {}
+                for op_name, params in remaining_params.items():
+                    still_missing = []
+                    for param in params:
+                        if op_name not in collected_params or param not in collected_params[op_name]:
+                            still_missing.append(param)
+                    if still_missing:
+                        new_remaining[op_name] = still_missing
+                
+                remaining_params = new_remaining
+                
+                if not remaining_params:
+                    print("✅ All parameters collected successfully!")
+                    break
+                    
+            except KeyboardInterrupt:
+                print("\n❌ Parameter collection cancelled by user")
+                break
+            except Exception as e:
+                print(f"❌ Error collecting parameters: {e}")
+                continue
+        
+        return collected_params
 
     def _run(self, operations: List[Dict[str, Any]]) -> str:
-        """
-        Executes a list of operations by looking them up in the operation_map.
-        Returns a multi-line string with success/failure for each operation.
-        """
-        lines = []
-        for op in operations:
-            name = op.get("name")
-            params = op.get("parameters", {}) or {}
-            
-            validation_ok, result = self._validate_and_map_params(name, params)
-            if not validation_ok:
-                lines.append(f"❌ {name}: {result}")
-                continue
-            
-            corrected_params = result
-            method = self.operation_map.get(name)
-            
-            if method:
-                try:
-                    success, message = method(**corrected_params)
-                    if success:
-                        lines.append(f"✅ {name}: {message}")
-                    else:
-                        lines.append(f"❌ {name}: {message}")
-                except TypeError as e:
-                    lines.append(f"❌ {name}: Parameter error - {e}")
-                except Exception as e:
-                    lines.append(f"❌ {name}: Execution error - {e}")
-            else:
-                lines.append(f"❌ {name}: Operation not implemented in the map")
+        """Execute operations with automatic parameter collection."""
+        if not operations:
+            return "❌ No operations provided"
         
-        return "\n".join(lines)
+        lines = []
+        
+        try:
+            # Step 1: Validate all operations and collect missing parameters
+            missing_params = {}
+            validated_ops = {}
+            
+            for op in operations:
+                name = op.get("name")
+                if not name:
+                    lines.append("❌ Operation missing 'name' field")
+                    continue
+                
+                params = op.get("parameters", {})
+                
+                # Check if operation exists
+                if name not in self.operation_map:
+                    lines.append(f"❌ {name}: Operation not implemented")
+                    continue
+                
+                # Validate parameters
+                is_valid, message, missing = self._validate_params(name, params)
+                
+                if missing:
+                    missing_params[name] = missing
+                elif not is_valid:
+                    lines.append(f"❌ {name}: {message}")
+                    continue
+                
+                validated_ops[name] = params
+            
+            # Return early if there are fatal errors
+            if lines and not missing_params:
+                return "\n".join(lines)
+            
+            # Step 2: Collect missing parameters if any
+            collected_params = {}
+            if missing_params:
+                print(f"\n🔍 Found {len(missing_params)} operations with missing parameters")
+                collected_params = self.ask_parameters(missing_params)
+            
+            # Step 3: Execute all operations
+            for op in operations:
+                name = op.get("name")
+                if name not in self.operation_map:
+                    continue  # Already handled above
+                
+                # Combine original and collected parameters
+                original_params = op.get("parameters", {})
+                additional_params = collected_params.get(name, {})
+                final_params = {**original_params, **additional_params}
+                
+                # Apply corrections
+                corrected_params = self._apply_parameter_corrections(name, final_params)
+                
+                # Final validation
+                is_valid, message, missing = self._validate_params(name, corrected_params)
+                if not is_valid:
+                    lines.append(f"❌ {name}: {message}")
+                    continue
+                
+                # Execute operation
+                try:
+                    method = self.operation_map[name]
+                    success, result = method(**corrected_params)
+                    
+                    if success:
+                        lines.append(f"✅ {name}: {result}")
+                    else:
+                        lines.append(f"❌ {name}: {result}")
+                        
+                except TypeError as e:
+                    lines.append(f"❌ {name}: Parameter error - {str(e)}")
+                except Exception as e:
+                    lines.append(f"❌ {name}: Execution error - {str(e)}")
+            
+            return "\n".join(lines) if lines else "✅ All operations completed successfully"
+            
+        except Exception as e:
+            return f"❌ Critical error in operation execution: {str(e)}"
