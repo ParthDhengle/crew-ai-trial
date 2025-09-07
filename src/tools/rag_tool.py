@@ -1,7 +1,7 @@
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from typing import Type, ClassVar, Optional
 import os
 import json
