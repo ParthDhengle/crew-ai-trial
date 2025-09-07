@@ -2,10 +2,10 @@
 import os
 from typing import List, Dict, Any
 import json
+import re
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
 from .operations.windows_directory import open_application, create_folder, delete_folder
-from .operations.communication import (send_email, send_reply_email, retrieveMails, searchMail, 
-                                     make_call)
+from .operations.communication import send_email, send_reply_email, retrieveMails,searchMail, make_call
 from .operations.file_management import (create_file, read_file, update_file, delete_file, 
                                        list_files, copy_file, move_file, search_files)
 from .operations.web_and_search import (search_web, download_file, open_website, 
@@ -165,9 +165,9 @@ Missing parameters:
                 extract_prompt += f"- {op_name}: {', '.join(params)}\n"
             
             extract_prompt += """
-Return ONLY a valid JSON object where keys are operation names and values contain the extracted parameters.
+Output ONLY a valid JSON object where keys are operation names and values contain the extracted parameters.
 If you cannot extract a parameter value, omit it from the JSON.
-Example: {"send_email": {"to": "user@example.com", "subject": "Meeting"}}"""
+Example: {{"send_email": {{"to": "user@example.com", "subject": "Meeting"}}}}"""
 
             # Use generate_text operation to extract parameters
             if "generate_text" in self.operation_map:
@@ -175,8 +175,11 @@ Example: {"send_email": {"to": "user@example.com", "subject": "Meeting"}}"""
                 if not success:
                     return {}
                 
+                # Clean the generated output
+                generated = re.sub(r'```json|```', '', generated).strip()
+                
                 # Try to parse the JSON
-                extracted = json.loads(generated.strip())
+                extracted = json.loads(generated)
                 return extracted if isinstance(extracted, dict) else {}
             
         except Exception as e:

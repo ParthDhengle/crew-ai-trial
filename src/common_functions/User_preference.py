@@ -1,43 +1,76 @@
 import os
+import json
 import warnings
 
-def parse_preferences(prefs_path):
-    """Parse user_preference.txt into a dict, ignoring invalid lines."""
-    prefs = {}
+
+def parse_preferences(prefs_path: str) -> dict:
+    """Parse user_profile.json into a dict."""
     if os.path.exists(prefs_path):
         try:
             with open(prefs_path, "r") as f:
-                for line in f:
-                    if ":" in line:
-                        key, value = line.split(":", 1)
-                        prefs[key.strip()] = value.strip()
+                return json.load(f)
         except Exception as e:
             warnings.warn(f"Error parsing preferences: {e}")
-    return prefs
+    return {}
 
-def collect_preferences(prefs_path , get_user_input):
+
+def collect_preferences(prefs_path: str, get_user_input):
     """Collect missing user preferences interactively, updating the file."""
     print("\n🛠️ Personalizing your experience! Filling in missing preferences.")
 
     # Define all keys and their choice options (None for free text)
     pref_definitions = {
         "Name": None,  # Free text
-        "Role": ["Student", "Professional (Engineer/Developer)", "Creative/Designer", "Manager/Entrepreneur", "Other"],
+        "Role": [
+            "Student", "Professional (Engineer/Developer)",
+            "Creative/Designer", "Manager/Entrepreneur", "Other"
+        ],
         "Location": None,
         "Productive Time": ["Morning", "Afternoon", "Evening", "Late Night"],
-        "Reminder Type": ["Gentle notification", "Phone call / Voice prompt", "Email / Message"],
-        "Top Task Type": ["Learning / Study", "Coding / Development", "Writing / Content Creation", "Management / Planning", "Personal Growth / Health"],
-        "Missed Task Handling": ["Auto-reschedule to next free slot", "Ask me before moving", "Skip if missed"],
-        "Top Motivation": ["Checking things off a list", "Friendly competition / Leaderboards", "Music + Encouragement", "Supportive reminders (like a friend)"],
-        "AI Tone": ["Calm & Professional", "Friendly & Casual", "Motivational & Pushy", "Fun & Humorous"],
-        "Break Reminder": ["Every 25 min (Pomodoro style)", "Every 1 hour", "Every 2 hours", "Never remind me"],
-        "Mood Check": ["Yes, ask me once a day", "Only if I look unproductive", "No, skip this"],
-        "Current Focus": ["Finish studies", "Grow career skills", "Build side projects", "Explore & learn", "Health & balance"]  # Optional
+        "Reminder Type": [
+            "Gentle notification", "Phone call / Voice prompt",
+            "Email / Message"
+        ],
+        "Top Task Type": [
+            "Learning / Study", "Coding / Development",
+            "Writing / Content Creation", "Management / Planning",
+            "Personal Growth / Health"
+        ],
+        "Missed Task Handling": [
+            "Auto-reschedule to next free slot",
+            "Ask me before moving",
+            "Skip if missed"
+        ],
+        "Top Motivation": [
+            "Checking things off a list",
+            "Friendly competition / Leaderboards",
+            "Music + Encouragement",
+            "Supportive reminders (like a friend)"
+        ],
+        "AI Tone": [
+            "Calm & Professional", "Friendly & Casual",
+            "Motivational & Pushy", "Fun & Humorous"
+        ],
+        "Break Reminder": [
+            "Every 25 min (Pomodoro style)",
+            "Every 1 hour", "Every 2 hours", "Never remind me"
+        ],
+        "Mood Check": [
+            "Yes, ask me once a day",
+            "Only if I look unproductive",
+            "No, skip this"
+        ],
+        "Current Focus": [
+            "Finish studies", "Grow career skills",
+            "Build side projects", "Explore & learn",
+            "Health & balance"
+        ]  # Optional
     }
 
     existing_prefs = parse_preferences(prefs_path)
     updated_prefs = existing_prefs.copy()
 
+    # Fill missing preferences
     for key, options in pref_definitions.items():
         if key not in existing_prefs or not existing_prefs[key]:
             if options:
@@ -62,7 +95,7 @@ def collect_preferences(prefs_path , get_user_input):
                 if value:
                     updated_prefs[key] = value
 
-    # Optional Current Focus
+    # Optional "Current Focus"
     if "Current Focus" not in updated_prefs or not updated_prefs["Current Focus"]:
         set_goals = get_user_input("\nWould you like to set a long-term goal? (yes/no): ").strip().lower()
         if set_goals == "yes":
@@ -86,8 +119,7 @@ def collect_preferences(prefs_path , get_user_input):
         try:
             os.makedirs(os.path.dirname(prefs_path), exist_ok=True)
             with open(prefs_path, "w") as f:
-                for k, v in updated_prefs.items():
-                    f.write(f"{k}: {v}\n")
+                json.dump(updated_prefs, f, indent=4)
             print("\n✅ Preferences updated! You can change them anytime by telling me new info.")
         except Exception as e:
             warnings.warn(f"Error saving preferences: {e}")

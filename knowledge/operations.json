@@ -1,0 +1,506 @@
+[
+{
+"name": "open_application",
+"required_parameters": ["app_name"],
+"optional_parameters": [],
+"description": "Opens an application on the desktop"
+},
+{
+"name": "create_folder",
+"required_parameters": ["path"],
+"optional_parameters": [],
+"description": "Creates a new directory at the specified path"
+},
+{
+"name": "delete_folder",
+"required_parameters": ["path"],
+"optional_parameters": [],
+"description": "Deletes a directory (and its contents if non-empty) at the specified path"
+},
+{
+"name": "send_email",
+"required_parameters": ["to", "subject"],
+"optional_parameters": ["info"],
+"description": "Sends an AI-generated email to the specified recipient with optional context"
+},
+{
+"name": "send_reply_email",
+"required_parameters": ["to", "subject"],
+"optional_parameters": ["retrieve_from_email", "limit"],
+"description": "Convenience function to send contextual reply emails based on recent emails from sender"
+},
+{
+"name": "retrieveMails",
+"required_parameters": ["from_email"],
+"optional_parameters": ["limit"],
+"description": "Retrieves last N emails from a specific sender"
+},
+{
+"name": "searchMail",
+"required_parameters": ["keyword"],
+"optional_parameters": ["limit"],
+"description": "Searches emails by keyword in subject, body, or sender"
+},
+{
+"name": "send_sms",
+"required_parameters": ["to", "message"],
+"optional_parameters": [],
+"description": "Sends an SMS to a phone number"
+},
+{
+"name": "make_call",
+"required_parameters": ["to", "message"],
+"optional_parameters": [],
+"description": "Places a phone call and delivers a message"
+},
+{
+"name": "send_whatsapp_message",
+"required_parameters": ["to", "message"],
+"optional_parameters": [],
+"description": "Sends a WhatsApp message to a contact"
+},
+{
+"name": "create_file",
+"required_parameters": ["filename", "content"],
+"optional_parameters": [],
+"description": "Creates a file with given content"
+},
+{
+"name": "read_file",
+"required_parameters": ["filename"],
+"optional_parameters": [],
+"description": "Reads and returns content of a file"
+},
+{
+"name": "update_file",
+"required_parameters": ["filename", "new_content"],
+"optional_parameters": [],
+"description": "Updates content of a file"
+},
+{
+"name": "delete_file",
+"required_parameters": ["filename"],
+"optional_parameters": [],
+"description": "Deletes a specified file"
+},
+{
+"name": "list_files",
+"required_parameters": ["directory"],
+"optional_parameters": [],
+"description": "Lists all files in a directory"
+},
+{
+"name": "copy_file",
+"required_parameters": ["source", "destination"],
+"optional_parameters": [],
+"description": "Copies a file from source to destination"
+},
+{
+"name": "move_file",
+"required_parameters": ["source", "destination"],
+"optional_parameters": [],
+"description": "Moves a file from source to destination"
+},
+{
+"name": "search_files",
+"required_parameters": ["directory", "pattern"],
+"optional_parameters": [],
+"description": "Searches for files matching a pattern in a directory"
+},
+{
+"name": "search_web",
+"required_parameters": ["query"],
+"optional_parameters": [],
+"description": "Searches the internet and returns top results"
+},
+{
+"name": "download_file",
+"required_parameters": ["url", "save_path"],
+"optional_parameters": [],
+"description": "Downloads a file from a URL"
+},
+{
+"name": "open_website",
+"required_parameters": ["url"],
+"optional_parameters": [],
+"description": "Opens a website in the system browser"
+},
+{
+"name": "get_weather",
+"required_parameters": ["location"],
+"optional_parameters": [],
+"description": "Fetches weather data for a location"
+},
+{
+"name": "get_news",
+"required_parameters": ["topic"],
+"optional_parameters": [],
+"description": "Retrieves latest news articles"
+},
+{
+"name": "browse_url",
+"required_parameters": ["url"],
+"optional_parameters": [],
+"description": "Fetches and returns content from a URL (text summary)"
+},
+{
+"name": "create_event",
+"required_parameters": ["title", "date", "time", "location"],
+"optional_parameters": [],
+"description": "Creates a calendar event"
+},
+{
+"name": "list_events",
+"required_parameters": ["date_range"],
+"optional_parameters": [],
+"description": "Lists events in the given date range"
+},
+{
+"name": "delete_event",
+"required_parameters": ["event_id"],
+"optional_parameters": [],
+"description": "Deletes a specific calendar event"
+},
+{
+"name": "get_time",
+"required_parameters": ["location"],
+"optional_parameters": [],
+"description": "Returns current time for a location"
+},
+{
+"name": "set_reminder",
+"required_parameters": ["message", "datetime"],
+"optional_parameters": [],
+"description": "Sets a reminder"
+},
+{
+"name": "update_event",
+"required_parameters": ["event_id", "updates"],
+"optional_parameters": [],
+"description": "Updates an existing calendar event"
+},
+{
+"name": "create_task",
+"required_parameters": ["title", "due_date", "priority"],
+"optional_parameters": [],
+"description": "Creates a new task"
+},
+{
+"name": "update_task",
+"required_parameters": ["task_id", "updates"],
+"optional_parameters": [],
+"description": "Updates an existing task"
+},
+{
+"name": "delete_task",
+"required_parameters": ["task_id"],
+"optional_parameters": [],
+"description": "Deletes a task"
+},
+{
+"name": "list_tasks",
+"required_parameters": ["filter"],
+"optional_parameters": [],
+"description": "Lists tasks with optional filter"
+},
+{
+"name": "mark_task_complete",
+"required_parameters": ["task_id"],
+"optional_parameters": [],
+"description": "Marks a task as completed"
+},
+{
+"name": "read_csv",
+"required_parameters": ["filepath"],
+"optional_parameters": [],
+"description": "Reads CSV and returns data"
+},
+{
+"name": "write_csv",
+"required_parameters": ["filepath", "data"],
+"optional_parameters": [],
+"description": "Writes data to CSV file"
+},
+{
+"name": "filter_csv",
+"required_parameters": ["filepath", "condition"],
+"optional_parameters": [],
+"description": "Filters CSV rows by condition"
+},
+{
+"name": "generate_report",
+"required_parameters": ["title", "data"],
+"optional_parameters": [],
+"description": "Generates a PDF report"
+},
+{
+"name": "read_json",
+"required_parameters": ["filepath"],
+"optional_parameters": [],
+"description": "Reads JSON file and returns data"
+},
+{
+"name": "write_json",
+"required_parameters": ["filepath", "data"],
+"optional_parameters": [],
+"description": "Writes data to JSON file"
+},
+{
+"name": "play_music",
+"required_parameters": ["song_name"],
+"optional_parameters": [],
+"description": "Plays a song"
+},
+{
+"name": "pause_music",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Pauses music"
+},
+{
+"name": "stop_music",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Stops music"
+},
+{
+"name": "play_video",
+"required_parameters": ["video_name"],
+"optional_parameters": [],
+"description": "Plays a video"
+},
+{
+"name": "take_screenshot",
+"required_parameters": ["save_path"],
+"optional_parameters": [],
+"description": "Takes a screenshot"
+},
+{
+"name": "record_audio",
+"required_parameters": ["duration", "save_path"],
+"optional_parameters": [],
+"description": "Records audio for a specified duration"
+},
+{
+"name": "play_audio",
+"required_parameters": ["file_path"],
+"optional_parameters": [],
+"description": "Plays an audio file"
+},
+{
+"name": "translate",
+"required_parameters": ["text", "target_language"],
+"optional_parameters": [],
+"description": "Translates text to another language"
+},
+{
+"name": "summarize_text",
+"required_parameters": ["text"],
+"optional_parameters": [],
+"description": "Summarizes the given text"
+},
+{
+"name": "scan_qr_code",
+"required_parameters": ["image_path"],
+"optional_parameters": [],
+"description": "Scans a QR code from image"
+},
+{
+"name": "calculate",
+"required_parameters": ["expression"],
+"optional_parameters": [],
+"description": "Evaluates a mathematical expression"
+},
+{
+"name": "unit_convert",
+"required_parameters": ["value", "from_unit", "to_unit"],
+"optional_parameters": [],
+"description": "Converts units (e.g., length, weight)"
+},
+{
+"name": "spell_check",
+"required_parameters": ["text"],
+"optional_parameters": [],
+"description": "Checks spelling and grammar in text"
+},
+{
+"name": "generate_password",
+"required_parameters": ["length"],
+"optional_parameters": [],
+"description": "Generates a secure password"
+},
+{
+"name": "generate_text",
+"required_parameters": ["prompt"],
+"optional_parameters": [],
+"description": "Generates AI-written text"
+},
+{
+"name": "generate_image",
+"required_parameters": ["prompt", "size"],
+"optional_parameters": [],
+"description": "Generates an AI image"
+},
+{
+"name": "generate_code",
+"required_parameters": ["prompt", "language"],
+"optional_parameters": [],
+"description": "Generates code snippet"
+},
+{
+"name": "analyze_sentiment",
+"required_parameters": ["text"],
+"optional_parameters": [],
+"description": "Analyzes sentiment of text"
+},
+{
+"name": "chat_with_ai",
+"required_parameters": ["message"],
+"optional_parameters": [],
+"description": "Responds to user in chat format"
+},
+{
+"name": "generate_document",
+"required_parameters": ["prompt", "format"],
+"optional_parameters": [],
+"description": "Generates a document (e.g., Markdown, PDF) based on prompt"
+},
+{
+"name": "shutdown_system",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Shuts down the system"
+},
+{
+"name": "restart_system",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Restarts the system"
+},
+{
+"name": "check_system_status",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Returns system health status (CPU, memory, disk usage)"
+},
+{
+"name": "list_running_processes",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Lists active processes"
+},
+{
+"name": "kill_process",
+"required_parameters": ["process_id"],
+"optional_parameters": [],
+"description": "Terminates a process"
+},
+{
+"name": "run_command",
+"required_parameters": ["command"],
+"optional_parameters": [],
+"description": "Runs a shell command and returns output"
+},
+{
+"name": "update_system",
+"required_parameters": [],
+"optional_parameters": [],
+"description": "Checks and applies system updates"
+},
+{
+"name": "git_clone",
+"required_parameters": ["repo_url", "path"],
+"optional_parameters": [],
+"description": "Clones a Git repository to the specified path"
+},
+{
+"name": "git_commit",
+"required_parameters": ["message", "path"],
+"optional_parameters": [],
+"description": "Commits changes in a Git repository at the path"
+},
+{
+"name": "git_push",
+"required_parameters": ["remote", "branch", "path"],
+"optional_parameters": [],
+"description": "Pushes changes to a remote branch in a Git repository"
+},
+{
+"name": "git_pull",
+"required_parameters": ["remote", "branch", "path"],
+"optional_parameters": [],
+"description": "Pulls updates from a remote branch in a Git repository"
+},
+{
+"name": "git_status",
+"required_parameters": ["path"],
+"optional_parameters": [],
+"description": "Gets the status of a Git repository"
+},
+{
+"name": "pip_install",
+"required_parameters": ["package"],
+"optional_parameters": [],
+"description": "Installs a Python package using pip"
+},
+{
+"name": "run_python_script",
+"required_parameters": ["script_path"],
+"optional_parameters": ["args"],
+"description": "Runs a Python script with optional arguments"
+},
+{
+"name": "open_in_ide",
+"required_parameters": ["file_path", "ide_name"],
+"optional_parameters": [],
+"description": "Opens a file in a specified IDE (e.g., VS Code)"
+},
+{
+"name": "build_project",
+"required_parameters": ["path", "build_tool"],
+"optional_parameters": [],
+"description": "Builds a project using a specified tool (e.g., make, npm)"
+},
+{
+"name": "deploy_project",
+"required_parameters": ["path", "platform"],
+"optional_parameters": [],
+"description": "Deploys a project to a platform (e.g., Heroku, AWS)"
+},
+{
+"name": "debug_code",
+"required_parameters": ["code_snippet", "language"],
+"optional_parameters": [],
+"description": "Analyzes and suggests fixes for code issues"
+},
+{
+"name": "recognize_speech",
+"required_parameters": ["duration"],
+"optional_parameters": [],
+"description": "Listens and recognizes speech for a duration, returns text"
+},
+{
+"name": "synthesize_speech",
+"required_parameters": ["text"],
+"optional_parameters": [],
+"description": "Converts text to speech and plays it"
+},
+{
+"name": "set_voice_volume",
+"required_parameters": ["level"],
+"optional_parameters": [],
+"description": "Sets the system voice output volume"
+},
+{
+"name": "knowledge_retrieval",
+"required_parameters": ["query"],
+"optional_parameters": [],
+"description": "Retrieves an explanation or information about a topic using a knowledge base or web search"
+},
+{
+"name": "update_user_preference",
+"required_parameters": ["key", "value"],
+"optional_parameters": [],
+"description": "Adds or updates a key-value pair in the user preference file"
+}
+]

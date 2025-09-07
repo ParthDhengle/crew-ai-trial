@@ -1,0 +1,8 @@
+{
+"short_term_tokens": 1200,
+"long_term_tokens": 800,
+"narrative_tokens": 300,
+"short_term_turns": 20,
+"summary_threshold": 500,
+"narrative_interval": 10
+}

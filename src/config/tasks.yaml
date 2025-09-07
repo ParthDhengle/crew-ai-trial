@@ -1,26 +1,25 @@
-# src/config/tasks.yaml
 summarize_history:
   description: "Summarize this chat history concisely (100-300 tokens), focusing on key topics, user intents, and recent exchanges:\n{full_history}"
   expected_output: "A concise summary string (~100-300 tokens)."
   agent: summarizer
 
 classify_query:
-  description: "Classify if this query needs a direct response or agentic handling (tools/reasoning). Output JSON: {{\"mode\": \"direct\" or \"agentic\"}}. \nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}"
+  description: "Classify if this query needs a direct response or agentic handling (tools/reasoning). Output JSON: {{\"mode\": \"direct\" or \"agentic\"}}.\nQuery: {user_query}\nContext: {prompt_context}"
   expected_output: "JSON string."
   agent: classifier
 
 generate_direct_response:
-  description: "Generate a coherent, helpful response based on the query and context.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}"
+  description: "Generate a coherent, helpful response based on the query and context.\nQuery: {user_query}\nContext: {prompt_context}"
   expected_output: "Final response string."
   agent: direct_responder
 
 analyze1:
-  description: "Analyze the query: Extract structured intents, break into sub-tasks, suggest possible operations based on names, flag ambiguities/errors. Output JSON: {{\"intents\": [...], \"subtasks\": [...], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nAvailable operation names: {op_names}"
+  description: "Analyze the query: Extract structured intents, break into sub-tasks, suggest possible operations based on names, flag ambiguities/errors. Output JSON: {{\"intents\": [...], \"subtasks\": [...], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nContext: {prompt_context}\nAvailable operation names: {op_names}"
   expected_output: "JSON with intents, subtasks, and issues."
   agent: analyzer1
 
 analyze2:
-  description: "Using the intents, sub-tasks, and retrieved operations, produce a final execution plan. Output JSON: {{\"operations\": [{{\"name\": \"...\", \"params\": {{...}}}}], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nIntents: {intents}\nSub-tasks: {subtasks}\nRetrieved operations: {retrieved_ops}"
+  description: "Using the intents, sub-tasks, and retrieved operations, produce a final execution plan. Output JSON: {{\"operations\": [{{\"name\": \"...\", \"params\": {{...}}}}], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nContext: {prompt_context}\nIntents: {intents}\nSub-tasks: {subtasks}\nRetrieved operations: {retrieved_ops}"
   expected_output: "JSON plan string."
   agent: analyzer2
 
@@ -30,6 +29,11 @@ refine_plan:
   agent: refiner
 
 synthesize_response:
-  description: "Synthesize these results into a coherent response. Include key outputs and explanations.\nQuery: {user_query}\nSummarized history: {summarized_history}\nUser preferences (from {user_preferences_path}): {user_preferences}\nOperation results: {op_results}"
+  description: "Synthesize these results into a coherent response. Include key outputs and explanations.\nQuery: {user_query}\nContext: {prompt_context}\nOperation results: {op_results}"
   expected_output: "Final response string."
   agent: synthesizer
+
+extract_memory:
+  description: "Extract from this interaction: facts, new/updated tasks, projects, user mood. Output JSON: {\"facts\": [{\"fact\": \"...\"}], \"tasks\": [{\"title\": \"...\", \"due\": \"...\"}], \"projects\": [{\"name\": \"...\", \"goal\": \"...\"}], \"mood\": \"productive|unproductive|...\"}.\nInteraction: {interaction}"
+  expected_output: "JSON string."
+  agent: memory_extractor

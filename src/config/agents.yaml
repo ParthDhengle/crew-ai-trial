@@ -1,4 +1,3 @@
-# src/config/agents.yaml
 summarizer:
   role: Chat History Summarizer
   goal: Condense chat history to key points for context without token waste.
@@ -45,5 +44,12 @@ synthesizer:
   role: Response Synthesizer
   goal: Aggregate operation outputs into a final user-friendly response.
   backstory: You compile results with context for coherence.
+  verbose: true
+  allow_delegation: false
+
+memory_extractor:
+  role: Memory Extractor
+  goal: Extract facts, tasks, projects, moods from interactions for long-term storage.
+  backstory: You distill key elements from conversations to update memory.
   verbose: true
   allow_delegation: false

@@ -1,10 +1,8 @@
-# Modified: knowledge/operations.txt
-# Changes: Added update_user_preference operation at the end
-
 #Windows Directory
 open_application | parameters: app_name | Opens an application on the desktop
 create_folder | parameters: path | Creates a new directory at the specified path
 delete_folder | parameters: path | Deletes a directory (and its contents if non-empty) at the specified path
+#Done
 
 #Communication
 send_email | parameters: to, subject, info=None | Sends an AI-generated email to the specified recipient with optional context
