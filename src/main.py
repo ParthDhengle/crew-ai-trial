@@ -1,18 +1,37 @@
 import os
 import sys
+import json
 from datetime import datetime
 from crew import AiAgent
 import traceback
 import warnings
 from pydantic import __version__ as pydantic_version
 from common_functions.Find_project_root import find_project_root
-from common_functions.User_preference import collect_preferences,parse_preferences
+
 # Correct PROJECT_ROOT: From src/main.py, dirname=src, '..' gets to project root
 PROJECT_ROOT = find_project_root()
 
 if pydantic_version.startswith('2'):  # Only apply if Pydantic v2
     from pydantic import PydanticDeprecatedSince20
     warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
+
+USER_PROFILE_PATH = os.path.join(PROJECT_ROOT, 'knowledge', 'user_profile.json')
+OPERATIONS_PATH = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
+
+REQUIRED_PROFILE_KEYS = [
+    "Name",
+    "Role",
+    "Location",
+    "Productive Time",
+    "Reminder Type",
+    "Top Task Type",
+    "Missed Task Handling",
+    "Top Motivation",
+    "AI Tone",
+    "Break Reminder",
+    "Mood Check",
+    "Current Focus"
+]
 
 def display_welcome():
     """Display welcome message and instructions."""
@@ -54,25 +73,42 @@ def get_user_input(prompt="💬 What can I help you with? "):
         print("\n👋 Goodbye!")
         return "quit"
 
+def load_or_create_profile():
+    """Load user_profile.json, check required keys, and prompt for missing ones."""
+    profile = {}
+    # Load if exists
+    if os.path.exists(USER_PROFILE_PATH):
+        try:
+            with open(USER_PROFILE_PATH, "r", encoding="utf-8") as f:
+                profile = json.load(f)
+        except json.JSONDecodeError:
+            print("⚠️ user_profile.json is corrupted. Rebuilding from scratch.")
+            profile = {}
+    # Ensure all required keys
+    updated = False
+    for key in REQUIRED_PROFILE_KEYS:
+        if key not in profile or not str(profile[key]).strip():
+            value = get_user_input(f"❓ Please provide your {key}: ")
+            if value.lower() in ["quit", "exit", "q"]:
+                print("👋 Exiting setup.")
+                sys.exit(0)
+            profile[key] = value
+            updated = True
+    # Save back
+    if updated or not os.path.exists(USER_PROFILE_PATH):
+        os.makedirs(os.path.dirname(USER_PROFILE_PATH), exist_ok=True)
+        with open(USER_PROFILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(profile, f, indent=4)
+        print("✅ user_profile.json updated.")
+    return profile
 
 def validate_environment():
-    """Check if required files exist and have content."""
-    required_files = [
-        os.path.join(PROJECT_ROOT, 'knowledge', 'user_preference.txt'),
-        os.path.join(PROJECT_ROOT, 'knowledge', 'operations.txt')
-    ]
+    """Check if required files exist and are valid."""
+    _ = load_or_create_profile()
 
-    for file_path in required_files:
-        if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
-            if 'user_preference.txt' in file_path:
-                collect_preferences(file_path,get_user_input)  # Will create/populate
-            else:
-                print(f"❌ Missing or empty: {file_path}")
-                return False
-        elif 'user_preference.txt' in file_path:
-            # Even if exists, check for completeness
-            collect_preferences(file_path,get_user_input)  # Will fill missing if any
-
+    if not os.path.exists(OPERATIONS_PATH) or os.stat(OPERATIONS_PATH).st_size == 0:
+        print(f"❌ Missing or empty: {OPERATIONS_PATH}")
+        return False
     return True
 
 def run_single_query(user_query=None):
@@ -104,7 +140,7 @@ def run_single_query(user_query=None):
 def run_interactive():
     """Run in interactive mode."""
     display_welcome()
-    validate_environment()  # Ensure preferences are set/filled
+    validate_environment()
     try:
         while True:
             if not run_single_query():
@@ -115,11 +151,9 @@ def run_interactive():
 def run():
     """Main entry point - supports both interactive and single-query modes."""
     if len(sys.argv) > 1:
-        # Single query mode
         query = ' '.join(sys.argv[1:]).strip('"')
         run_single_query(query)
     else:
-        # Interactive mode
         run_interactive()
 
 def train():

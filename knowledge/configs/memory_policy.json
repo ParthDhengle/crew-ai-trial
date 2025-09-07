@@ -1,5 +1,5 @@
 {
-"short_term_tokens": 1200,
+"short_term_tokens": 1000,
 "long_term_tokens": 800,
 "narrative_tokens": 300,
 "short_term_turns": 20,
