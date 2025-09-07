@@ -5,7 +5,7 @@ import json
 import re
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
 from .operations.windows_directory import open_application, create_folder, delete_folder
-from .operations.communication import send_email, send_reply_email, retrieveMails,searchMail, make_call
+from .operations.communication.communication import send_email, send_reply_email, retrieveMails,searchMail, make_call
 from .operations.file_management import (create_file, read_file, update_file, delete_file, 
                                        list_files, copy_file, move_file, search_files)
 from .operations.web_and_search import (search_web, download_file, open_website, 
@@ -85,34 +85,27 @@ class OperationsTool:
         }
 
     def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
-        """Parse operations.txt to get dynamic parameter definitions."""
+        """Parse operations.json to get dynamic parameter definitions."""
         param_defs = {}
         try:
-            ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.txt")
+            # Use operations.json instead of operations.txt for faster parsing
+            ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.json")
             with open(ops_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#") or "|" not in line:
-                        continue
-                    
-                    parts = [p.strip() for p in line.split("|")]
-                    if len(parts) < 2:
-                        continue
-                        
-                    name = parts[0]
-                    params_str = parts[1]
-                    
-                    if params_str.startswith("parameters:"):
-                        params_str = params_str[11:].strip()
-                    
-                    if params_str.lower() == "none":
-                        required, optional = [], []
-                    else:
-                        params = [p.strip() for p in params_str.split(",") if p.strip()]
-                        required = [p for p in params if '=' not in p]
-                        optional = [p.split('=')[0].strip() for p in params if '=' in p]
-                    
-                    param_defs[name] = {"required": required, "optional": optional}
+                operations_data = json.load(f)
+            
+            for op in operations_data:
+                name = op.get("name", "")
+                required_params = op.get("required_parameters", [])
+                optional_params = op.get("optional_parameters", [])
+                
+                param_defs[name] = {
+                    "required": required_params,
+                    "optional": optional_params
+                }
+            
+            print(f"✅ Loaded {len(param_defs)} operation definitions from operations.json")
+            return param_defs
+            
         except Exception as e:
             print(f"Error parsing operations.txt: {e}")
             return {}

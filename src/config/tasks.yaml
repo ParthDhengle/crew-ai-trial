@@ -34,6 +34,6 @@ synthesize_response:
   agent: synthesizer
 
 extract_memory:
-  description: "Extract from this interaction: facts, new/updated tasks, projects, user mood. Output JSON: {\"facts\": [{\"fact\": \"...\"}], \"tasks\": [{\"title\": \"...\", \"due\": \"...\"}], \"projects\": [{\"name\": \"...\", \"goal\": \"...\"}], \"mood\": \"productive|unproductive|...\"}.\nInteraction: {interaction}"
+  description: "Extract from this interaction: facts, new/updated tasks, projects, user mood. Output JSON: {{\"facts\": [{{\"fact\": \"...\"}}], \"tasks\": [{{\"title\": \"...\", \"due\": \"...\"}}], \"projects\": [{{\"name\": \"...\", \"goal\": \"...\"}}], \"mood\": \"productive|unproductive|...\"}}.\nInteraction: {interaction}"
   expected_output: "JSON string."
   agent: memory_extractor

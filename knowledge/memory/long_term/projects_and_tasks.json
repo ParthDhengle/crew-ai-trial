@@ -1,4 +1,14 @@
 {
-"projects": [],
-"tasks": []
+  "projects": [
+    {
+      "name": "side-project",
+      "goal": "complete coding sprint with full energy and keep momentum going strong"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "coding sprint",
+      "due": "no due date specified"
+    }
+  ]
 }
