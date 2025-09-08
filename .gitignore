@@ -21,3 +21,5 @@ knowledge/memory/short_term/*
 
 # But keep the .gitkeep file
 !knowledge/memory/short_term/.gitkeep
+index.faiss
+index.pkl

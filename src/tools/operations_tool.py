@@ -5,7 +5,12 @@ import json
 import re
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
 from .operations.windows_directory import open_application, create_folder, delete_folder
-from .operations.communication.communication import send_email, send_reply_email, retrieveMails,searchMail, make_call
+from .operations.communication.send_email import send_email
+from .operations.communication.send_reply_email import send_reply_email
+from .operations.communication.retrieveMails import retrieveMails
+from .operations.communication.searchMail import searchMail
+# from .operations.communication.make_call import make_call
+
 from .operations.file_management import (create_file, read_file, update_file, delete_file, 
                                        list_files, copy_file, move_file, search_files)
 from .operations.web_and_search import (search_web, download_file, open_website, 
@@ -46,7 +51,7 @@ class OperationsTool:
             "open_application": open_application, "create_folder": create_folder, "delete_folder": delete_folder,
             # Communication
             "send_email": send_email, "send_reply_email": send_reply_email, "retrieveMails": retrieveMails,
-            "searchMail": searchMail,  "make_call": make_call,
+            "searchMail": searchMail, # "make_call": make_call,
             # File Management
             "create_file": create_file, "read_file": read_file, "update_file": update_file, "delete_file": delete_file,
             "list_files": list_files, "copy_file": copy_file, "move_file": move_file, "search_files": search_files,
@@ -138,12 +143,7 @@ class OperationsTool:
         """Apply friendly parameter name corrections for common LLM mistakes."""
         corrected_params = params.copy()
         
-        # Email operations: map body/message to info
-        if operation_name in ["send_email", "send_reply_email"]:
-            if 'body' in corrected_params and 'info' not in corrected_params:
-                corrected_params['info'] = corrected_params.pop('body')
-            elif 'message' in corrected_params and 'info' not in corrected_params:
-                corrected_params['info'] = corrected_params.pop('message')
+        # Removed unnecessary remapping for send_email as function uses 'body' directly
         
         return corrected_params
 

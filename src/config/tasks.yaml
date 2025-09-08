@@ -1,8 +1,3 @@
-summarize_history:
-  description: "Summarize this chat history concisely (100-300 tokens), focusing on key topics, user intents, and recent exchanges:\n{full_history}"
-  expected_output: "A concise summary string (~100-300 tokens)."
-  agent: summarizer
-
 classify_query:
   description: |
     Classify the query as 'direct' (simple response, no operations) or 'agentic' (needs operations/planning).
@@ -31,6 +26,7 @@ classify_query:
     {{"mode": "agentic", "required_operations": ["create_file", "write_to_file", "execute_code"], "required_kb": ["long_term"]}}
 
     Always be accurate: If no ops match, but it's complex, still agentic with empty ops (fall back to reasoning).
+    ### UPDATED: IMPORTANT - Select 'required_operations' ONLY from the exact available operation names listed below. Do not invent, add, or guess new names. Use precise matches; if no match, prefer 'direct' mode or empty list. Err on the side of fewer ops if unsure.
     Query: {user_query}
     Available operation names: {op_names}
     User profile: {user_profile}
@@ -43,7 +39,12 @@ generate_direct_response:
   agent: direct_responder
 
 plan_execution:
-  description: "Produce a final execution plan using the required operations details and KB. Output JSON: {{\"plan\": [{{\"name\": \"...\", \"parameters\": {{...}}}}]}}.\nQuery: {user_query}\nKB Context: {kb_context}\nRequired operations details: {required_operations}"
+  description: |
+    Produce a final execution plan using the required operations details and KB. Output JSON: {{"plan": [{{"name": "...", "parameters": {{...}}}}]}}.
+    Query: {user_query}
+    KB Context: {kb_context}
+    Required operations details: {required_operations}
+    ### UPDATED: IMPORTANT - Use ONLY the exact operations listed in 'Required operations details' above. Do not invent, add, use, or reference any other operations. Map the query strictly to these available operations using their exact names and parameters. Be accurate and error-free: if the query cannot be fully addressed with the provided operations (e.g., missing ops for part of the task), include an 'error' key in the JSON like {{"plan": [...], "error": "Cannot complete X with available operations - suggest alternative"}}. Parameters must match exactly (required/optional as defined). Output strict JSON only, no extra text.
   expected_output: "JSON plan string."
   agent: planner
 
@@ -58,6 +59,7 @@ synthesize_response:
     Query: {user_query}
     KB Context: {kb_context}
     Operation results: {op_results}
+    ### UPDATED: If any operations failed, DO NOT attempt to manually fulfill the query (e.g., do not generate and display email content if send_email failed). Instead, report the failure clearly and suggest alternatives like "Retry with corrected parameters" or "Use direct mode for simple generation". Always focus on analysis, not substitution.
   expected_output: "Final response string."
   agent: synthesizer
 

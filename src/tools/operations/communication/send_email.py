@@ -1,160 +1,305 @@
+"""
+Functional Email Management System
+A functional system for composing, reviewing, and sending emails using Google Gemini AI and Gmail API.
+"""
+
 import os
 import re
 import json
-import smtplib
+import base64
+import logging
+from typing import Optional, Dict, List
 from email.mime.text import MIMEText
-from crewai import Agent, Crew, Process, Task, LLM
 
+from crewai import Agent, Task, LLM
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.credentials import Credentials
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
 
-
-# --- CONFIG ---
-PROJECT_ROOT = find_project_root()
-USER_PROFILE_PATH = os.path.join(PROJECT_ROOT, "knowledge", "user_profile.json")
-MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-# --- KB SEARCH (optimized for email only) ---
-def search_KB(parameter: str):
-    """
-    Searches the knowledge base only for email addresses related to the parameter.
-    Returns dict like: {'email': 'abc@example.com', 'source': 'user_profile'}
-    or None if not found.
-    """
-    results = {}
-    memory_manager = MemoryManager()
+# ------------------ Gmail Authentication ------------------
 
-    # 1. Search user_profile.json
-    if os.path.exists(USER_PROFILE_PATH):
-        with open(USER_PROFILE_PATH, "r", encoding="utf-8") as f:
-            profile = json.load(f)
+def get_gmail_service(project_root: Optional[str] = None):
+    """Authenticate with Gmail API and return a service object."""
+    if project_root is None:
+        project_root = find_project_root()
+
+    token_file = os.path.join(project_root, "token.json")
+    client_secret_file = os.path.join(project_root, "client_secret.json")
+    scopes = ["https://www.googleapis.com/auth/gmail.send"]
+
+    creds = None
+    if os.path.exists(token_file):
+        creds = Credentials.from_authorized_user_file(token_file, scopes)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            if not os.path.exists(client_secret_file):
+                logger.error("❌ client_secret.json missing in project root")
+                return None
+            flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
+            creds = flow.run_local_server(port=0)
+
+        with open(token_file, "w") as token:
+            token.write(creds.to_json())
+            logger.info("✅ Token saved.")
+
+    try:
+        return build("gmail", "v1", credentials=creds)
+    except HttpError as error:
+        logger.error(f"❌ Gmail API error: {error}")
+        return None
+
+
+# ------------------ Knowledge Base Search ------------------
+
+def find_email_in_kb(name: str, project_root: Optional[str] = None) -> Optional[str]:
+    """Search knowledge base for email address."""
+    if project_root is None:
+        project_root = find_project_root()
+
+    user_profile = os.path.join(project_root, "knowledge", "user_profile.json")
+    memory_dir = os.path.join(project_root, "knowledge", "memory")
+    extracted_facts = os.path.join(memory_dir, "long_term", "extracted_facts.json")
+
+    mm = MemoryManager()
+
+    # Search in user profile
+    if os.path.exists(user_profile):
+        try:
+            with open(user_profile, "r", encoding="utf-8") as f:
+                profile = json.load(f)
             for key, value in profile.items():
-                if parameter.lower() in str(key).lower() or parameter.lower() in str(value).lower():
-                    if isinstance(value, str) and re.match(r"[^@]+@[^@]+\.[^@]+", value):
-                        return {"email": value, "source": "user_profile"}
+                if (name.lower() in str(key).lower() or name.lower() in str(value).lower()):
+                    if isinstance(value, str) and is_valid_email(value):
+                        return value
+        except Exception:
+            pass
 
-    # 2. Search long-term memory (RAG)
-    long_term_result = memory_manager.retrieve_long_term(parameter)
-    if long_term_result:
-        emails = re.findall(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", str(long_term_result))
-        if emails:
-            return {"email": emails[0], "source": "long_term"}
+    # Search in long-term memory (RAG)
+    try:
+        long_term = mm.retrieve_long_term(name)
+        if long_term:
+            emails = extract_emails(str(long_term))
+            if emails:
+                return emails[0]
+    except Exception:
+        pass
 
-    # 3. Search short-term chat history
-    short_term_dir = os.path.join(MEMORY_DIR, "short_term")
+    # Search in short-term memory
+    short_term_dir = os.path.join(memory_dir, "short_term")
     if os.path.exists(short_term_dir):
-        for file_name in os.listdir(short_term_dir):
-            if file_name.endswith(".json"):
-                file_path = os.path.join(short_term_dir, file_name)
-                with open(file_path, "r", encoding="utf-8") as f:
+        for file in os.listdir(short_term_dir):
+            if not file.endswith(".json"):
+                continue
+            try:
+                with open(os.path.join(short_term_dir, file), "r", encoding="utf-8") as f:
                     history = json.load(f)
-                    for entry in history:
-                        emails = re.findall(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", json.dumps(entry))
+                for entry in history if isinstance(history, list) else []:
+                    if name.lower() in json.dumps(entry).lower():
+                        emails = extract_emails(json.dumps(entry))
                         if emails:
-                            return {"email": emails[0], "source": "short_term"}
+                            return emails[0]
+            except Exception:
+                continue
 
     return None
 
 
-# --- SEND EMAIL ---
-def send_email(to, subject, body):
-    """
-    Sends an AI-generated email to the specified recipient with user approval.
-    Args:
-        to (str): Recipient email address or name (will check KB if not in email format).
-        subject (str): Subject of the email.
-        body (str): Initial draft of the email (user-provided).
-    """
+def extract_emails(text: str) -> List[str]:
+    """Extract emails from text."""
+    return re.findall(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", text)
 
-    # Step 1: Resolve recipient email
-    email_pattern = r"[^@]+@[^@]+\.[^@]+"
-    recipient_email = None
 
-    if re.match(email_pattern, to):
-        recipient_email = to
-    else:
-        print(f"📖 Looking up email for '{to}' in knowledge base...")
-        kb_result = search_KB(to)
-        if kb_result and "email" in kb_result:
-            recipient_email = kb_result["email"]
-            print(f"✅ Found email in KB ({kb_result['source']}): {recipient_email}")
-        else:
-            recipient_email = input(f"❌ No email found for '{to}'. Please enter a valid email: ").strip()
+def is_valid_email(email: str) -> bool:
+    return bool(re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", email))
 
-    if not re.match(email_pattern, recipient_email):
-        print("❌ Invalid email address provided. Exiting.")
-        return
 
-    # Step 2: Configure sender credentials
-    from_email = os.getenv("SENDER_EMAIL", "your_email@gmail.com")
-    password = os.getenv("EMAIL_PASSWORD", "your_app_password")
+# ------------------ Gemini LLM Handling with Fallback ------------------
 
-    if from_email == "your_email@gmail.com" or password == "your_app_password":
-        print("❌ Email credentials not configured.")
-        print("   Please set environment variables SENDER_EMAIL and EMAIL_PASSWORD.")
-        return
+def get_llm_chain() -> List[LLM]:
+    """Return list of available LLMs with API keys."""
+    keys = [
+        os.getenv("GEMINI_API_KEY1"),
+        os.getenv("GEMINI_API_KEY2"),
+        os.getenv("GEMINI_API_KEY3"),
+        os.getenv("GEMINI_API_KEY4"),
+    ]
+    llms = []
+    for key in keys:
+        if key:
+            llms.append(LLM(model="gemini/gemini-1.5-flash-latest", api_key=key))
+    return llms
 
-    # Step 3: Setup LLM agent
-    try:
-        llm = LLM(model="ollama/llama3", base_url="http://localhost:11434")
-        print("✅ Using local Ollama LLM for refining emails.")
-    except Exception as e:
-        print(f"❌ Failed to initialize Ollama LLM: {e}")
-        return
 
-    email_writer = Agent(
-        role="Professional Email Writer",
-        goal=f"Write professional and concise emails to {recipient_email} with subject '{subject}'.",
-        backstory="You are an expert in writing clear, polite, and professional emails.",
-        llm=llm,
-        verbose=False
-    )
+def load_user_profile(project_root: str) -> dict:
+    """Load user profile JSON and return only relevant fields for email writing."""
+    profile_path = os.path.join(project_root, "knowledge", "user_profile.json")
+    if not os.path.exists(profile_path):
+        return {}
+
+    with open(profile_path, "r", encoding="utf-8") as f:
+        profile = json.load(f)
+
+    # Extract only relevant info
+    return {
+        "name": profile.get("Name"),
+        "role": profile.get("Role"),
+        "email": profile.get("email"),
+        "contact": profile.get("contacts")
+    }
+
+def refine_email_with_fallback(body: str, feedback: str, recipient: str, subject: str) -> str:
+    """Refine email using Gemini AI with fallback mechanism."""
+    llms = get_llm_chain()
+    if not llms:
+        logger.warning("⚠️ No LLM API keys available, returning original body")
+        return body
+
+    logger.info(f"🔧 Available LLMs: {len(llms)}")
+    
+    for i, llm in enumerate(llms):
+        try:
+            logger.info(f"🤖 Trying LLM {i+1}/{len(llms)}...")
+            user_info = load_user_profile(project_root=find_project_root())
+            agent = Agent(
+                role="Professional Email Writer",
+                goal=f"Write professional and concise emails on behalf of {user_info.get('name', 'the user')} "
+                    f"(Role: {user_info.get('role', 'N/A')}). "
+                    f"Ensure tone matches a professional yet clear communication style.",
+                backstory="Expert in professional email writing with years of experience in corporate communication.",
+                llm=llm,
+                verbose=False
+            )
+
+            # Build task with user context included
+            task = Task(
+                description=f"""
+                User identity:
+                - Name: {user_info.get('name')}
+                - Role: {user_info.get('role')}
+                - Email: {user_info.get('email')}
+                - Contact: {user_info.get('contact')}
+
+                Original email body:
+                {body}
+
+                User feedback for improvement:
+                {feedback}
+
+                Please refine this email to be more professional and descriptive while maintaining clarity and conciseness.
+                Focus on:
+                - Professional tone and language
+                - Clear and descriptive content
+                - Proper email structure
+                - Include a polite closing with the user's name and contact info if appropriate
+                """,
+                expected_output="A refined, professional email body that incorporates the feedback and includes the user's identity in the signature.",
+                agent=agent
+            )
+
+            result = agent.execute_task(task)
+            refined_body = str(result).strip()
+
+            logger.info("✅ Successfully refined email using LLM")
+            return refined_body
+            
+        except Exception as e:
+            error_msg = str(e)
+            logger.warning(f"⚠️ LLM {i+1} failed: {error_msg}")
+            
+            # Check if it's a rate limit error
+            if "429" in error_msg or "RATE_LIMIT_EXCEEDED" in error_msg or "Quota exceeded" in error_msg:
+                logger.info(f"🔄 Rate limit hit on LLM {i+1}, trying next LLM...")
+                continue
+            # Check for other common API errors
+            elif "401" in error_msg or "403" in error_msg:
+                logger.warning(f"🔑 Authentication error on LLM {i+1}, trying next LLM...")
+                continue
+            else:
+                logger.warning(f"❌ Unknown error on LLM {i+1}: {error_msg}")
+                continue
+    
+    # If all LLMs failed, return original body with a warning
+    logger.error("❌ All LLMs failed! Returning original email body.")
+    print("⚠️ Warning: Unable to refine email due to API issues. Using original content.")
+    return body
+
+
+def refine_email(body: str, feedback: str, recipient: str, subject: str) -> str:
+    """Legacy function name - calls the new fallback version."""
+    return refine_email_with_fallback(body, feedback, recipient, subject)
+
+
+# ------------------ Main Send Email Function ------------------
+
+def send_email(to: str, subject: str, body: str, project_root: Optional[str] = None) -> bool:
+    """Main function to send email with AI assistance."""
+    recipient = to if is_valid_email(to) else find_email_in_kb(to, project_root)
+
+    if not recipient:
+        recipient = input(f"❌ No email found for '{to}'. Enter a valid email: ").strip()
+        if not is_valid_email(recipient):
+            logger.error("❌ Invalid email address provided.")
+            return False
+
+    service = get_gmail_service(project_root)
+    if not service:
+        return False
 
     final_body = body.strip()
 
-    # Step 4: Feedback loop for refinement
     while True:
-        print("\n--- Email Preview ---")
-        print(f"To: {recipient_email}\nSubject: {subject}\n\n{final_body}")
-        print("---------------------")
+        # Preview
+        print("\n" + "="*50)
+        print("EMAIL PREVIEW")
+        print("="*50)
+        print(f"To: {recipient}")
+        print(f"Subject: {subject}\n")
+        print(final_body)
+        print("="*50)
 
         choice = input("\nIs this email okay? (yes/no): ").strip().lower()
         if choice in ["yes", "y"]:
-            try:
-                msg = MIMEText(final_body, "plain", "utf-8")
-                msg["Subject"] = subject
-                msg["From"] = from_email
-                msg["To"] = recipient_email
-
-                server = smtplib.SMTP("smtp.gmail.com", 587)
-                server.starttls()
-                server.login(from_email, password)
-                server.sendmail(from_email, [recipient_email], msg.as_string())
-                server.quit()
-                print("✅ Email sent successfully!")
-            except Exception as e:
-                print(f"❌ Error sending email: {e}")
-            break
+            return _send_via_gmail(service, recipient, subject, final_body)
         else:
-            feedback = input("Enter changes or feedback for improving the email: ").strip()
-            if not feedback:
-                print("❌ Feedback cannot be empty. Try again.")
-                continue
+            feedback = input("Enter changes or feedback: ").strip()
+            print("\n🤖 Refining email with AI assistance...")
+            final_body = refine_email(final_body, feedback, recipient, subject)
 
-            refinement_task = Task(
-                description=f"Refine the following email draft based on feedback.\n\n"
-                            f"Draft:\n{final_body}\n\n"
-                            f"Feedback: {feedback}\n\n"
-                            f"Return only the improved email body.",
-                expected_output="An improved professional email body.",
-                agent=email_writer
-            )
 
-            email_crew = Crew(agents=[email_writer], tasks=[refinement_task], process=Process.sequential)
-            try:
-                result = email_crew.kickoff()
-                final_body = str(result).strip()
-            except Exception as e:
-                print(f"❌ Error refining email: {e}")
-                return
+def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
+    """Send email via Gmail API."""
+    try:
+        msg = MIMEText(body, "plain", "utf-8")
+        msg["to"] = recipient
+        msg["subject"] = subject
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+        message = {"raw": raw}
+        service.users().messages().send(userId="me", body=message).execute()
+        logger.info("✅ Email sent successfully!")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Error sending email: {e}")
+        return False
+
+
+# ------------------ Example Usage ------------------
+
+if __name__ == "__main__":
+    success = send_email(
+        to="Atharva Deo",
+        subject="Project Updates",
+        body="Please provide the latest updates on the project status."
+    )
+    print("Done" if success else "Failed")
