@@ -34,11 +34,11 @@ def get_gmail_service(project_root: Optional[str] = None):
 
     token_file = os.path.join(project_root, "token.json")
     client_secret_file = os.path.join(project_root, "client_secret.json")
-    scopes = ["https://www.googleapis.com/auth/gmail.send"]
+    SCOPES = ["https://mail.google.com/"]
 
     creds = None
     if os.path.exists(token_file):
-        creds = Credentials.from_authorized_user_file(token_file, scopes)
+        creds = Credentials.from_authorized_user_file(token_file, SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -47,7 +47,7 @@ def get_gmail_service(project_root: Optional[str] = None):
             if not os.path.exists(client_secret_file):
                 logger.error("❌ client_secret.json missing in project root")
                 return None
-            flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
+            flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, SCOPES)
             creds = flow.run_local_server(port=0)
 
         with open(token_file, "w") as token:
@@ -293,13 +293,3 @@ def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
         logger.error(f"❌ Error sending email: {e}")
         return False
 
-
-# ------------------ Example Usage ------------------
-
-if __name__ == "__main__":
-    success = send_email(
-        to="Atharva Deo",
-        subject="Project Updates",
-        body="Please provide the latest updates on the project status."
-    )
-    print("Done" if success else "Failed")

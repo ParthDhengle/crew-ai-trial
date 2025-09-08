@@ -69,12 +69,12 @@ class AiAgent():
         
         # Planner (renamed from analyzer2)
         self.planner_llm = LLM(
-            model="gemini/gemini-1.5-flash-latest",
-            api_key=os.getenv("GEMINI_API_KEY2")
-        )
-        self.planner_fallback1_llm = LLM(
             model="openrouter/deepseek/deepseek-chat-v3.1:free",
             api_key=os.getenv("OPENROUTER_API_KEY3")
+        )
+        self.planner_fallback1_llm = LLM(
+            model="gemini/gemini-1.5-flash-latest",
+            api_key=os.getenv("GEMINI_API_KEY2")
         )
         self.planner_fallback2_llm = LLM(
             model="groq/llama-3.1-8b-instant",
