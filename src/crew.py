@@ -227,7 +227,7 @@ class AiAgent():
         required_kb = classification.get('required_kb', [])
         
         if 'short_term' in required_kb:
-            if len(history) >= 5:
+            if len(history) >= 10:
                 summary_task = self.summarize_history()
                 summary_task.description = summary_task.description.format(full_history=inputs['full_history'])
                 summary_agent = self.summarizer()
@@ -379,6 +379,16 @@ class AiAgent():
 
     def perform_operations(self, plan: dict) -> str:
         operations = plan.get('plan', [])
+        # Log raw plan for debugging
+        print(f"Raw plan received: {operations}")
+        
+        # Remap 'operation' to 'name' if needed
+        for op in operations:
+            if 'operation' in op and 'name' not in op:
+                op['name'] = op.pop('operation')
+            if 'params' in op and 'parameters' not in op:
+                op['parameters'] = op.pop('params')  # Also handle params key mismatch if any
+        
         ops_tool = OperationsTool()
         return ops_tool._run(operations)
 

@@ -43,12 +43,21 @@ generate_direct_response:
   agent: direct_responder
 
 plan_execution:
-  description: "Produce a final execution plan using the required operations details and KB. Output JSON: {{\"plan\": [{{\"operation\": \"...\", \"params\": {{...}}}}]}}.\nQuery: {user_query}\nKB Context: {kb_context}\nRequired operations details: {required_operations}"
+  description: "Produce a final execution plan using the required operations details and KB. Output JSON: {{\"plan\": [{{\"name\": \"...\", \"parameters\": {{...}}}}]}}.\nQuery: {user_query}\nKB Context: {kb_context}\nRequired operations details: {required_operations}"
   expected_output: "JSON plan string."
   agent: planner
 
 synthesize_response:
-  description: "Synthesize these results into a coherent response. Include key outputs and explanations.\nQuery: {user_query}\nKB Context: {kb_context}\nOperation results: {op_results}"
+  description: |
+    Synthesize operation results into a coherent, analytical response addressing the query. Structure as:
+    - **Operations Summary**: List each operation attempted, its result (success/failure), and explanation.
+    - **Key Outputs**: Detail what was achieved (or errors encountered).
+    - **Next Steps**: If any ops failed/partial, suggest fixes or follow-ups (e.g., "Retry with param X").
+    - **Recommendations**: Your suggestions for better results (e.g., "Update plan for Y").
+    Do NOT generate full content like emails/docs/code unless all ops succeeded and it's explicitly required for the query—focus on analysis/guidance.
+    Query: {user_query}
+    KB Context: {kb_context}
+    Operation results: {op_results}
   expected_output: "Final response string."
   agent: synthesizer
 

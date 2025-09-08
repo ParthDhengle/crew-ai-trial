@@ -19,8 +19,8 @@
 },
 {
 "name": "send_email",
-"required_parameters": ["to", "subject"],
-"optional_parameters": ["info"],
+"required_parameters": ["to", "subject","body"],
+"optional_parameters": [],
 "description": "Sends an AI-generated email to the specified recipient with optional context"
 },
 {
@@ -330,18 +330,6 @@
 "description": "Generates a secure password"
 },
 {
-"name": "generate_text",
-"required_parameters": ["prompt"],
-"optional_parameters": [],
-"description": "Generates AI-written text"
-},
-{
-"name": "generate_image",
-"required_parameters": ["prompt", "size"],
-"optional_parameters": [],
-"description": "Generates an AI image"
-},
-{
 "name": "generate_code",
 "required_parameters": ["prompt", "language"],
 "optional_parameters": [],
@@ -352,12 +340,6 @@
 "required_parameters": ["text"],
 "optional_parameters": [],
 "description": "Analyzes sentiment of text"
-},
-{
-"name": "chat_with_ai",
-"required_parameters": ["message"],
-"optional_parameters": [],
-"description": "Responds to user in chat format"
 },
 {
 "name": "generate_document",
