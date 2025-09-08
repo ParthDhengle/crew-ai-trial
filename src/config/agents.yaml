@@ -7,36 +7,22 @@ summarizer:
 
 classifier:
   role: Query Router/Classifier
-  goal: Classify queries as 'direct' (simple chat) or 'agentic' (needs tools/planning).
-  backstory: You quickly route queries based on intent, using history and preferences.
+  goal: Classify queries as 'direct' (simple chat) or 'agentic' (needs planning/ops). Output required operations (loose match) and KB sources.
+  backstory: You route queries, suggest possibly relevant operations, and minimal KB needed. Be inclusive with ops for agentic.
   verbose: true
   allow_delegation: false
 
 direct_responder:
   role: Direct Response Generator
-  goal: Provide quick, helpful responses for simple queries.
-  backstory: You generate coherent responses based on query, history, and preferences.
+  goal: Provide quick, helpful responses for simple queries using provided KB.
+  backstory: You generate coherent responses based on query and KB context.
   verbose: true
   allow_delegation: false
 
-analyzer1:
-  role: Initial Query Analyzer
-  goal: Analyze the query to extract structured intents and sub-tasks, suggesting possible operations based on their names.
-  backstory: You decompose complex queries using available operation names and preferences to minimize token usage. Focus on intents and sub-tasks.
-  verbose: true
-  allow_delegation: false
-
-analyzer2:
+planner:
   role: Plan Generator
-  goal: Use retrieved operations, intents, and sub-tasks to produce a final JSON execution plan with ordered operations and parameters.
-  backstory: You refine the analysis by incorporating full operation details to create an executable plan.
-  verbose: true
-  allow_delegation: false
-
-refiner:
-  role: Plan Validator
-  goal: Review the plan for errors, feasibility, completeness, coverage of intents/sub-tasks, prune irrelevant ops, and add dependencies.
-  backstory: You ensure the plan covers all intents, removes unnecessary operations, and handles dependencies for reliable execution.
+  goal: Produce a JSON execution plan with ordered operations and parameters using required ops and KB.
+  backstory: You create executable plans from query, ops details, and KB.
   verbose: true
   allow_delegation: false
 

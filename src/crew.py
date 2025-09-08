@@ -39,18 +39,18 @@ class AiAgent():
             api_key=os.getenv("GEMINI_API_KEY1")
         )
         
-        # Classifier
+        # Classifier - Upgraded to better LLM
         self.classifier_llm = LLM(
-            model="groq/llama-3.1-8b-instant",
+            model="groq/llama-3.3-70b-versatile",
             api_key=os.getenv("GROQ_API_KEY1")
         )
         self.classifier_fallback1_llm = LLM(
-            model="openrouter/google/gemma-2-9b-it:free",
-            api_key=os.getenv("OPENROUTER_API_KEY2")
-        )
-        self.classifier_fallback2_llm = LLM(
             model="gemini/gemini-1.5-flash-latest",
             api_key=os.getenv("GEMINI_API_KEY2")
+        )
+        self.classifier_fallback2_llm = LLM(
+            model="openrouter/deepseek/deepseek-chat-v3.1:free",
+            api_key=os.getenv("OPENROUTER_API_KEY2")
         )
         
         # Direct Responder
@@ -67,46 +67,18 @@ class AiAgent():
             api_key=os.getenv("GEMINI_API_KEY3")
         )
         
-        # Analyzer1
-        self.analyzer1_llm = LLM(
-            model="groq/llama-3.3-70b-versatile",
-            api_key=os.getenv("GROQ_API_KEY2")
-        )
-        self.analyzer1_fallback1_llm = LLM(
-            model="openrouter/deepseek/deepseek-chat-v3.1:free",
-            api_key=os.getenv("OPENROUTER_API_KEY2")
-        )
-        self.analyzer1_fallback2_llm = LLM(
-            model="gemini/gemini-1.5-flash-latest",
-            api_key=os.getenv("GEMINI_API_KEY4")
-        )
-        
-        # Analyzer2
-        self.analyzer2_llm = LLM(
+        # Planner (renamed from analyzer2)
+        self.planner_llm = LLM(
             model="gemini/gemini-1.5-flash-latest",
             api_key=os.getenv("GEMINI_API_KEY2")
         )
-        self.analyzer2_fallback1_llm = LLM(
+        self.planner_fallback1_llm = LLM(
             model="openrouter/deepseek/deepseek-chat-v3.1:free",
             api_key=os.getenv("OPENROUTER_API_KEY3")
         )
-        self.analyzer2_fallback2_llm = LLM(
+        self.planner_fallback2_llm = LLM(
             model="groq/llama-3.1-8b-instant",
             api_key=os.getenv("GROQ_API_KEY3")
-        )
-        
-        # Refiner
-        self.refiner_llm = LLM(
-            model="openrouter/deepseek/deepseek-chat-v3.1:free",
-            api_key=os.getenv("OPENROUTER_API_KEY1")
-        )
-        self.refiner_fallback1_llm = LLM(
-            model="gemini/gemini-1.5-flash-latest",
-            api_key=os.getenv("GEMINI_API_KEY3")
-        )
-        self.refiner_fallback2_llm = LLM(
-            model="groq/llama-3.3-70b-versatile",
-            api_key=os.getenv("GROQ_API_KEY4")
         )
         
         # Synthesizer
@@ -140,21 +112,8 @@ class AiAgent():
         return Agent(config=self.agents_config['direct_responder'], llm=self.direct_responder_llm, verbose=True)
 
     @agent
-    def analyzer1(self) -> Agent:
-        return Agent(
-            config=self.agents_config['analyzer1'],
-            tools=[RagTool(), FileManagerTool()],
-            llm=self.analyzer1_llm,
-            verbose=True
-        )
-
-    @agent
-    def analyzer2(self) -> Agent:
-        return Agent(config=self.agents_config['analyzer2'], llm=self.analyzer2_llm, verbose=True)
-
-    @agent
-    def refiner(self) -> Agent:
-        return Agent(config=self.agents_config['refiner'], llm=self.refiner_llm, verbose=True)
+    def planner(self) -> Agent:
+        return Agent(config=self.agents_config['planner'], llm=self.planner_llm, verbose=True)
 
     @agent
     def synthesizer(self) -> Agent:
@@ -162,8 +121,8 @@ class AiAgent():
 
     @agent
     def memory_extractor(self) -> Agent:
-        # Reuse Analyzer1 LLM
-        return Agent(config=self.agents_config['memory_extractor'], llm=self.analyzer1_llm, verbose=True)
+        # Reuse planner LLM for memory extractor
+        return Agent(config=self.agents_config['memory_extractor'], llm=self.planner_llm, verbose=True)
 
     # === Tasks ===
     @task
@@ -179,16 +138,8 @@ class AiAgent():
         return Task(config=self.tasks_config['generate_direct_response'])
 
     @task
-    def analyze1(self) -> Task:
-        return Task(config=self.tasks_config['analyze1'])
-
-    @task
-    def analyze2(self) -> Task:
-        return Task(config=self.tasks_config['analyze2'])
-
-    @task
-    def refine_plan(self) -> Task:
-        return Task(config=self.tasks_config['refine_plan'])
+    def plan_execution(self) -> Task:
+        return Task(config=self.tasks_config['plan_execution'])
 
     @task
     def synthesize_response(self) -> Task:
@@ -206,13 +157,16 @@ class AiAgent():
             if isinstance(e, APIError) and getattr(e, 'status_code', None) != 429:
                 raise e
             if not fallbacks:
-                raise e
-            print(f"Rate limit error with {agent.llm.model}. Switching to fallback.")
+                print(f"Exhausted fallbacks for {agent.llm.model}. Returning error message.")
+                return "Error: LLM request failed. Please try again later."
+            print(f"Rate limit or API error with {agent.llm.model}. Switching to fallback.")
             agent.llm = fallbacks[0]
             return self._execute_task_with_fallbacks(agent, task, fallbacks[1:])
 
     # === Optimized Workflow ===
     def run_workflow(self, user_query: str):
+        # 1. Input Handling
+        user_query = user_query.strip()  # Normalize input
         history = ChatHistory.load_history()
         inputs = {
             'user_query': user_query,
@@ -241,44 +195,15 @@ class AiAgent():
             print("Warning: Invalid or empty operations JSON. Using default empty list.")
             available_operations = []
 
-        # Extract operation names for Analyzer1 (to minimize tokens)
+        # Extract operation names
         op_names = "\n".join([op['name'] for op in available_operations])
 
-        # --- OPTIMIZATION: Only summarize if history is long ---
-        summary = "No significant history."
-        if len(history) >= 5:  # Changed from 2 to 5 to avoid unnecessary summarization
-            summary_task = self.summarize_history()
-            summary_task.description = summary_task.description.format(full_history=inputs['full_history'])
-            summary_agent = self.summarizer()
-            summary = self._execute_task_with_fallbacks(
-                summary_agent,
-                summary_task,
-                [self.summarizer_fallback1_llm, self.summarizer_fallback2_llm]
-            )
-        else:
-            # For short histories, just use the last few exchanges
-            if history:
-                recent_history = history[-3:]  # Last 3 exchanges
-                summary = json.dumps(recent_history)
-
-        # --- Preprocessor: Load/assemble memory (optimized) ---
-        narrative_summary = self.memory_manager.get_narrative_summary()
-        relevant_long_term = ""
-        
-        # Only do expensive RAG lookup for complex queries
-        if len(user_query.split()) > 3:  # Simple heuristic
-            relevant_long_term = LongTermRagTool()._run(query=user_query)
-
-        prompt_context = self.memory_manager.assemble_prompt_context(
-            summary, user_profile, narrative_summary, relevant_long_term
-        )
-        inputs['prompt_context'] = prompt_context
-
-        # --- Classify query ---
+        # 2. Classification
         classify_task = self.classify_query()
         classify_task.description = classify_task.description.format(
             user_query=inputs['user_query'],
-            prompt_context=inputs['prompt_context']
+            op_names=op_names,
+            user_profile=json.dumps(user_profile)
         )
         classify_agent = self.classifier()
         classification_raw = self._execute_task_with_fallbacks(
@@ -289,111 +214,108 @@ class AiAgent():
         
         try:
             classification = json5.loads(re.sub(r'```json|```', '', classification_raw).strip())
-        except:
-            # Fallback if JSON parsing fails
-            if 'direct' in classification_raw.lower():
-                classification = {'mode': 'direct'}
-            else:
-                classification = {'mode': 'agentic'}
+        except Exception as e:
+            print(f"Classification parsing failed: {e}. Defaulting to agentic with full KB.")
+            classification = {
+                'mode': 'agentic',
+                'required_operations': [op['name'] for op in available_operations],
+                'required_kb': ['short_term', 'long_term', 'narrative']
+            }
 
+        # 3. Knowledge Retrieval
+        kb_context = {}
+        required_kb = classification.get('required_kb', [])
+        
+        if 'short_term' in required_kb:
+            if len(history) >= 5:
+                summary_task = self.summarize_history()
+                summary_task.description = summary_task.description.format(full_history=inputs['full_history'])
+                summary_agent = self.summarizer()
+                kb_context['short_term'] = self._execute_task_with_fallbacks(
+                    summary_agent,
+                    summary_task,
+                    [self.summarizer_fallback1_llm, self.summarizer_fallback2_llm]
+                )
+            else:
+                kb_context['short_term'] = json.dumps(history[-3:]) if history else "No history."
+
+        if 'long_term' in required_kb:
+            # Only do RAG if query is substantive
+            kb_context['long_term'] = LongTermRagTool()._run(query=user_query) if len(user_query.split()) > 3 else ""
+
+        if 'narrative' in required_kb:
+            kb_context['narrative'] = self.memory_manager.get_narrative_summary()
+
+        # Include user profile always for consistency
+        kb_context['user_profile'] = json.dumps(user_profile)
+
+        # Assemble kb_context as structured string
+        kb_context_str = "\n".join([f"{k}: {v}" for k, v in kb_context.items()])
+
+        # 4. Mode Routing
         if classification['mode'] == 'direct':
-            # --- Direct Response (Optimized) ---
+            # Direct: Use direct_responder
             response_task = self.generate_direct_response()
             response_task.description = response_task.description.format(
                 user_query=inputs['user_query'],
-                prompt_context=inputs['prompt_context']
+                kb_context=kb_context_str
             )
             response_agent = self.direct_responder()
-            response = self._execute_task_with_fallbacks(
+            final_response = self._execute_task_with_fallbacks(
                 response_agent,
                 response_task,
                 [self.direct_responder_fallback1_llm, self.direct_responder_fallback2_llm]
             )
-            final_response = response
-        else:
-            # --- Agentic Path (existing code) ---
-            # Analyzer1
-            analyze1_task = self.analyze1()
-            analyze1_task.description = analyze1_task.description.format(
-                user_query=inputs['user_query'],
-                prompt_context=inputs['prompt_context'],
-                op_names=op_names
-            )
-            analyzer1_agent = self.analyzer1()
-            analyze1_raw = self._execute_task_with_fallbacks(
-                analyzer1_agent,
-                analyze1_task,
-                [self.analyzer1_fallback1_llm, self.analyzer1_fallback2_llm]
-            )
-            
-            try:
-                analyze1_json = json5.loads(re.sub(r'json|```', '', analyze1_raw).strip())
-            except:
-                # Fallback if parsing fails
-                analyze1_json = {'intents': [], 'subtasks': [user_query]}
+        else:  # agentic
+            # Get full details for required ops (loose from classifier)
+            required_ops_names = classification.get('required_operations', [])
+            required_ops = [op for op in available_operations if op['name'] in required_ops_names]
+            required_ops_str = json.dumps(required_ops)
 
-            # RAG Retrieval: Fetch relevant operations
-            subtasks = analyze1_json.get('subtasks', [])
-            rag_tool = RagTool()
-            retrieved_ops_set = set()
-            for subtask in subtasks:
-                rag_results = rag_tool._run(query=subtask, k=5)
-                retrieved_ops_set.update(rag_results.split('\n'))
-            retrieved_ops = "\n".join(retrieved_ops_set)
-
-            # Analyzer2
-            analyze2_task = self.analyze2()
-            analyze2_task.description = analyze2_task.description.format(
+            # Step A: Planner
+            plan_task = self.plan_execution()
+            plan_task.description = plan_task.description.format(
                 user_query=inputs['user_query'],
-                prompt_context=inputs['prompt_context'],
-                intents=json.dumps(analyze1_json.get('intents', [])),
-                subtasks=json.dumps(subtasks),
-                retrieved_ops=retrieved_ops
+                kb_context=kb_context_str,
+                required_operations=required_ops_str
             )
-            analyzer2_agent = self.analyzer2()
+            planner_agent = self.planner()
             plan_raw = self._execute_task_with_fallbacks(
-                analyzer2_agent,
-                analyze2_task,
-                [self.analyzer2_fallback1_llm, self.analyzer2_fallback2_llm]
+                planner_agent,
+                plan_task,
+                [self.planner_fallback1_llm, self.planner_fallback2_llm]
             )
             
             try:
-                plan = json5.loads(re.sub(r'json|```', '', plan_raw).strip())
-            except:
-                plan = {'operations': [], 'error': 'Failed to parse plan'}
+                plan = json5.loads(re.sub(r'```json|```', '', plan_raw).strip())
+            except Exception as e:
+                print(f"Plan parsing failed: {e}. Retrying with fallback prompt.")
+                # Retry with instruction for strict JSON
+                plan_task.description += "\nPrevious attempt failed. Output strict JSON only, no extra text."
+                plan_raw = self._execute_task_with_fallbacks(
+                    planner_agent,
+                    plan_task,
+                    [self.planner_fallback1_llm, self.planner_fallback2_llm]
+                )
+                try:
+                    plan = json5.loads(re.sub(r'```json|```', '', plan_raw).strip())
+                except:
+                    plan = {'plan': [], 'error': 'Failed to generate valid plan JSON after retry.'}
 
-            # Refine plan
-            refine_task = self.refine_plan()
-            refine_task.description = refine_task.description.format(
-                plan=json.dumps(plan),
-                operations_file_path=inputs['operations_file_path'],
-                available_operations=json.dumps(available_operations),  # Convert to string
-                intents=json.dumps(analyze1_json.get('intents', [])),
-                subtasks=json.dumps(subtasks)
-            )
-            refine_agent = self.refiner()
-            refined_raw = self._execute_task_with_fallbacks(
-                refine_agent,
-                refine_task,
-                [self.refiner_fallback1_llm, self.refiner_fallback2_llm]
-            )
-            
-            try:
-                refined_plan = json5.loads(re.sub(r'json|```', '', refined_raw).strip())
-            except:
-                refined_plan = {'error': 'Failed to refine plan'}
-
-            if 'error' in refined_plan:
-                final_response = refined_plan['error']
+            if 'error' in plan:
+                final_response = plan['error']
             else:
-                # Execute operations
-                op_results = self.perform_operations(refined_plan)
+                # Step B: Executor
+                try:
+                    op_results = self.perform_operations(plan)
+                except Exception as e:
+                    op_results = f"Execution failed: {str(e)}. Partial results may be available."
                 
-                # Synthesize response
+                # Step C: Synthesizer (Response Generator)
                 synth_task = self.synthesize_response()
                 synth_task.description = synth_task.description.format(
                     user_query=inputs['user_query'],
-                    prompt_context=inputs['prompt_context'],
+                    kb_context=kb_context_str,
                     op_results=op_results
                 )
                 synth_agent = self.synthesizer()
@@ -403,15 +325,19 @@ class AiAgent():
                     [self.synthesizer_fallback1_llm, self.synthesizer_fallback2_llm]
                 )
 
+        # 5. Error & Fallbacks handled in _execute_task_with_fallbacks
+
+        # 6. Output to User (final_response is natural language)
+
         # --- Save history ---
         history.append({"role": "user", "content": user_query})
         history.append({"role": "assistant", "content": final_response})
         ChatHistory.save_history(history)
 
-        # --- OPTIMIZATION: Only extract memory periodically or for complex interactions ---
+        # --- OPTIMIZATION: Memory extraction ---
         should_extract_memory = (
-            len(history) % 5 == 0 or  # Every 5 interactions
-            classification['mode'] == 'agentic' or  # Complex interactions
+            len(history) % 5 == 0 or  
+            classification['mode'] == 'agentic' or  
             any(keyword in user_query.lower() for keyword in ['remember', 'task', 'project', 'remind'])
         )
 
@@ -424,30 +350,23 @@ class AiAgent():
                     })
                 }
                 extract_task = self.extract_memory()
-                
-                # FIX: Properly escape the format string
-                interaction_data = extract_inputs['interaction']
-                extract_task.description = extract_task.description.format(interaction=interaction_data)
+                extract_task.description = extract_task.description.format(interaction=extract_inputs['interaction'])
                 
                 extracted_raw = self._execute_task_with_fallbacks(
                     self.memory_extractor(),
                     extract_task,
-                    [self.analyzer1_fallback1_llm, self.analyzer1_fallback2_llm]
+                    [self.planner_fallback1_llm, self.planner_fallback2_llm]
                 )
                 
-                try:
-                    extracted = json5.loads(re.sub(r'json|```', '', extracted_raw).strip())
-                    self.memory_manager.update_long_term(extracted)
-                except Exception as e:
-                    print(f"Warning: Failed to parse memory extraction: {e}")
-                    
+                extracted = json5.loads(re.sub(r'```json|```', '', extracted_raw).strip())
+                self.memory_manager.update_long_term(extracted)
             except Exception as e:
                 print(f"Warning: Memory extraction failed: {e}")
 
-        # --- Periodic narrative (less frequent) ---
-        if len(history) % self.memory_manager.policy.get('narrative_interval', 20) == 0:  # Every 20 instead of 10
+        # --- Periodic narrative ---
+        if len(history) % self.memory_manager.policy.get('narrative_interval', 20) == 0:  
             try:
-                narrative = self.memory_manager.create_narrative_summary(summary)
+                narrative = self.memory_manager.create_narrative_summary(kb_context.get('short_term', ''))
                 summaries_path = os.path.join(MEMORY_DIR, 'narrative', 'summaries.json')
                 summaries = self.memory_manager.safe_load_json(summaries_path)
                 summaries.append({"date": date.today().isoformat(), "summary": narrative})
@@ -459,7 +378,7 @@ class AiAgent():
         return final_response
 
     def perform_operations(self, plan: dict) -> str:
-        operations = plan.get('operations', [])
+        operations = plan.get('plan', [])
         ops_tool = OperationsTool()
         return ops_tool._run(operations)
 

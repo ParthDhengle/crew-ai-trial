@@ -4,32 +4,51 @@ summarize_history:
   agent: summarizer
 
 classify_query:
-  description: "Classify if this query needs a direct response or agentic handling (tools/reasoning). Output JSON: {{\"mode\": \"direct\" or \"agentic\"}}.\nQuery: {user_query}\nContext: {prompt_context}"
+  description: |
+    Classify the query as 'direct' (simple response, no operations) or 'agentic' (needs operations/planning).
+    For 'direct': required_operations must be empty, but may need KB for context (e.g., user profile or history).
+    For 'agentic': list as many possibly relevant operation names (loose, inclusive matching; err on the side of including more).
+    required_kb: minimal list from ['short_term', 'long_term', 'narrative'] needed; only include if truly required to avoid waste.
+    Output strict JSON: {{"mode": "direct" or "agentic", "required_operations": [...], "required_kb": [...]}}.
+
+    Examples:
+    Query: “What’s my current focus?”
+    {{"mode": "direct", "required_operations": [], "required_kb": ["long_term", "narrative"]}}
+
+    Query: “Set a reminder for my coding sprint tomorrow at 5 pm and email me the plan.”
+    {{"mode": "agentic", "required_operations": ["set_reminder", "send_email"], "required_kb": ["short_term", "long_term"]}}
+
+    Query: "Tell me a joke."
+    {{"mode": "direct", "required_operations": [], "required_kb": []}}
+
+    Query: "Search the web for latest AI news and summarize."
+    {{"mode": "agentic", "required_operations": ["web_search", "summarize_text"], "required_kb": []}}
+
+    Query: "Remind me what I said last time about my project."
+    {{"mode": "direct", "required_operations": [], "required_kb": ["short_term"]}}
+
+    Query: "Create a file, write code to it, then run it."
+    {{"mode": "agentic", "required_operations": ["create_file", "write_to_file", "execute_code"], "required_kb": ["long_term"]}}
+
+    Always be accurate: If no ops match, but it's complex, still agentic with empty ops (fall back to reasoning).
+    Query: {user_query}
+    Available operation names: {op_names}
+    User profile: {user_profile}
   expected_output: "JSON string."
   agent: classifier
 
 generate_direct_response:
-  description: "Generate a coherent, helpful response based on the query and context.\nQuery: {user_query}\nContext: {prompt_context}"
+  description: "Generate a coherent, helpful response based on the query and provided KB context.\nQuery: {user_query}\nKB Context: {kb_context}"
   expected_output: "Final response string."
   agent: direct_responder
 
-analyze1:
-  description: "Analyze the query: Extract structured intents, break into sub-tasks, suggest possible operations based on names, flag ambiguities/errors. Output JSON: {{\"intents\": [...], \"subtasks\": [...], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nContext: {prompt_context}\nAvailable operation names: {op_names}"
-  expected_output: "JSON with intents, subtasks, and issues."
-  agent: analyzer1
-
-analyze2:
-  description: "Using the intents, sub-tasks, and retrieved operations, produce a final execution plan. Output JSON: {{\"operations\": [{{\"name\": \"...\", \"params\": {{...}}}}], \"potential_issues\": \"...\"}}.\nQuery: {user_query}\nContext: {prompt_context}\nIntents: {intents}\nSub-tasks: {subtasks}\nRetrieved operations: {retrieved_ops}"
+plan_execution:
+  description: "Produce a final execution plan using the required operations details and KB. Output JSON: {{\"plan\": [{{\"operation\": \"...\", \"params\": {{...}}}}]}}.\nQuery: {user_query}\nKB Context: {kb_context}\nRequired operations details: {required_operations}"
   expected_output: "JSON plan string."
-  agent: analyzer2
-
-refine_plan:
-  description: "Review this plan for errors, feasibility, and completeness. Ensure it covers all intents and sub-tasks, prune irrelevant operations, add dependencies if needed. Fix issues or flag if unresolvable. Output refined JSON plan or {{\"error\": \"Need user clarification\"}}.\nPlan: {plan}\nAvailable operations (from {operations_file_path}): {available_operations}\nIntents: {intents}\nSub-tasks: {subtasks}"
-  expected_output: "Refined JSON string."
-  agent: refiner
+  agent: planner
 
 synthesize_response:
-  description: "Synthesize these results into a coherent response. Include key outputs and explanations.\nQuery: {user_query}\nContext: {prompt_context}\nOperation results: {op_results}"
+  description: "Synthesize these results into a coherent response. Include key outputs and explanations.\nQuery: {user_query}\nKB Context: {kb_context}\nOperation results: {op_results}"
   expected_output: "Final response string."
   agent: synthesizer
 
