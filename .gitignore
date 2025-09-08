@@ -16,4 +16,8 @@ lock.json
 uv.lock
 test
 Project Overview 1 NOVA.pdf
-short_term/
+# Ignore everything in short_term
+knowledge/memory/short_term/*
+
+# But keep the .gitkeep file
+!knowledge/memory/short_term/.gitkeep

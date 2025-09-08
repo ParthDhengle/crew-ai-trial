@@ -157,3 +157,8 @@ Parallel execution for faster agentic paths.
 Integration with additional models (e.g., Grok API).
 Monitoring: Track token usage and rate limits in real-time.
 UI: Web/app interface for easier testing.
+
+\knowledge\memory> git update-index --assume-unchanged long_term/extracted_facts.json long_term/projects_and_tasks.json narrative/summaries.json narrative/mood_logs.json
+
+knowledge\memory> Remove-Item
+-Recurse -Force short_term\*
