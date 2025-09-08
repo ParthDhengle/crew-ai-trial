@@ -51,15 +51,14 @@ plan_execution:
 synthesize_response:
   description: |
     Synthesize operation results into a coherent, analytical response addressing the query. Structure as:
-    - **Operations Summary**: List each operation attempted, its result (success/failure), and explanation.
-    - **Key Outputs**: Detail what was achieved (or errors encountered).
+    - **Operations Summary**: List each operation attempted, its result (success/failure), and explanation, based SOLELY on the provided Operation results.
+    - **Key Outputs**: Detail what was achieved (or errors encountered) from Operation results.
     - **Next Steps**: If any ops failed/partial, suggest fixes or follow-ups (e.g., "Retry with param X").
     - **Recommendations**: Your suggestions for better results (e.g., "Update plan for Y").
-    Do NOT generate full content like emails/docs/code unless all ops succeeded and it's explicitly required for the query—focus on analysis/guidance.
+    Do NOT use KB Context to determine operation success/failure—rely only on Operation results. Do NOT generate full content like emails/docs/code unless all ops succeeded and it's explicitly required for the query—focus on analysis/guidance.
     Query: {user_query}
     KB Context: {kb_context}
     Operation results: {op_results}
-    ### UPDATED: If any operations failed, DO NOT attempt to manually fulfill the query (e.g., do not generate and display email content if send_email failed). Instead, report the failure clearly and suggest alternatives like "Retry with corrected parameters" or "Use direct mode for simple generation". Always focus on analysis, not substitution.
   expected_output: "Final response string."
   agent: synthesizer
 
