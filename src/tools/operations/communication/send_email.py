@@ -288,8 +288,8 @@ def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
         message = {"raw": raw}
         service.users().messages().send(userId="me", body=message).execute()
         logger.info("✅ Email sent successfully!")
-        return True
+        return True, "Email sent successfully!"
     except Exception as e:
         logger.error(f"❌ Error sending email: {e}")
-        return False
+        return False, "Error {e}"
 

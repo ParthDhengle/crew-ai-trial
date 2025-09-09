@@ -4,36 +4,86 @@ from typing import List, Dict, Any
 import json
 import re
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
-from .operations.windows_directory import open_application, create_folder, delete_folder
+from .operations.windows_directory.open_application import open_application
+from .operations.windows_directory.create_folder import create_folder
+from .operations.windows_directory.delete_folder import delete_folder
 from .operations.communication.send_email import send_email
 from .operations.communication.send_reply_email import send_reply_email
 from .operations.communication.retrieveMails import retrieveMails
 from .operations.communication.searchMail import searchMail
 # from .operations.communication.make_call import make_call
 
-from .operations.file_management import (create_file, read_file, update_file, delete_file, 
-                                       list_files, copy_file, move_file, search_files)
-from .operations.web_and_search import (search_web, download_file, open_website, 
-                                      get_weather, get_news, browse_url)
-from .operations.calendar_and_time import (create_event, list_events, delete_event, 
-                                         get_time, set_reminder, update_event)
-from .operations.task_management import (create_task, update_task, delete_task, 
-                                       list_tasks, mark_task_complete)
-from .operations.data_handling import (read_csv, write_csv, filter_csv, generate_report, 
-                                     read_json, write_json)
-from .operations.media import (play_music, pause_music, stop_music, play_video, 
-                             take_screenshot, record_audio, play_audio)
-from .operations.utilities import (translate, summarize_text, scan_qr_code, calculate, 
-                                 unit_convert, spell_check, generate_password)
-from .operations.ai_and_content_generation import (generate_text, generate_image, generate_code, 
-                                                 analyze_sentiment, chat_with_ai, generate_document)
-from .operations.system import (shutdown_system, restart_system, check_system_status, 
-                              list_running_processes, kill_process, run_command, update_system)
-from .operations.development_tools import (git_clone, git_commit, git_push, git_pull, git_status, 
-                                         pip_install, run_python_script, open_in_ide, 
-                                         build_project, deploy_project, debug_code)
-from .operations.knowledge import knowledge_retrieval
-from .operations.preferences import update_user_preference
+from .operations.file_management.create_file import create_file
+from .operations.file_management.read_file import read_file
+from .operations.file_management.update_file import update_file
+from .operations.file_management.delete_file import delete_file
+from .operations.file_management.list_files import list_files
+from .operations.file_management.copy_file import copy_file
+from .operations.file_management.move_file import move_file
+from .operations.file_management.search_files import search_files
+from .operations.web_and_search.search_web import search_web
+from .operations.web_and_search.download_file import download_file
+from .operations.web_and_search.open_website import open_website
+from .operations.web_and_search.get_weather import get_weather
+from .operations.web_and_search.get_news import get_news
+from .operations.web_and_search.browse_url import browse_url
+from .operations.calendar_and_time.create_event import create_event
+from .operations.calendar_and_time.list_events import list_events
+from .operations.calendar_and_time.delete_event import delete_event
+from .operations.calendar_and_time.get_time import get_time
+from .operations.calendar_and_time.set_reminder import set_reminder
+from .operations.calendar_and_time.update_event import update_event
+from .operations.task_management.create_task import create_task
+from .operations.task_management.update_task import update_task
+from .operations.task_management.delete_task import delete_task
+from .operations.task_management.list_tasks import list_tasks
+from .operations.task_management.mark_task_complete import mark_task_complete
+from .operations.data_handling.read_csv import read_csv
+from .operations.data_handling.write_csv import write_csv
+from .operations.data_handling.filter_csv import filter_csv
+from .operations.data_handling.generate_report import generate_report
+from .operations.data_handling.read_json import read_json
+from .operations.data_handling.write_json import write_json
+from .operations.media.play_music import play_music
+from .operations.media.pause_music import pause_music
+from .operations.media.stop_music import stop_music
+from .operations.media.play_video import play_video
+from .operations.media.take_screenshot import take_screenshot
+from .operations.media.record_audio import record_audio
+from .operations.media.play_audio import play_audio
+from .operations.utilities.translate import translate
+from .operations.utilities.summarize_text import summarize_text
+from .operations.utilities.scan_qr_code import scan_qr_code
+from .operations.utilities.calculate import calculate
+from .operations.utilities.unit_convert import unit_convert
+from .operations.utilities.spell_check import spell_check
+from .operations.utilities.generate_password import generate_password
+from .operations.ai_and_content_generation.generate_text import generate_text
+from .operations.ai_and_content_generation.generate_image import generate_image
+from .operations.ai_and_content_generation.generate_code import generate_code
+from .operations.ai_and_content_generation.analyze_sentiment import analyze_sentiment
+from .operations.ai_and_content_generation.chat_with_ai import chat_with_ai
+from .operations.ai_and_content_generation.generate_document import generate_document
+from .operations.system.shutdown_system import shutdown_system
+from .operations.system.restart_system import restart_system
+from .operations.system.check_system_status import check_system_status
+from .operations.system.list_running_processes import list_running_processes
+from .operations.system.kill_process import kill_process
+from .operations.system.run_command import run_command
+from .operations.system.update_system import update_system
+from .operations.development_tools.git_clone import git_clone
+from .operations.development_tools.git_commit import git_commit
+from .operations.development_tools.git_push import git_push
+from .operations.development_tools.git_pull import git_pull
+from .operations.development_tools.git_status import git_status
+from .operations.development_tools.pip_install import pip_install
+from .operations.development_tools.run_python_script import run_python_script
+from .operations.development_tools.open_in_ide import open_in_ide
+from .operations.development_tools.build_project import build_project
+from .operations.development_tools.deploy_project import deploy_project
+from .operations.development_tools.debug_code import debug_code
+from .operations.knowledge.knowledge_retrieval import knowledge_retrieval
+from .operations.preferences.update_user_preference import update_user_preference
 from common_functions.Find_project_root import find_project_root
 
 PROJECT_ROOT =find_project_root()

@@ -1,9 +1,9 @@
 import os
 import json
-from datetime import date
+from datetime import datetime  # Updated import for timestamp
 import google.generativeai as genai
 from common_functions.Find_project_root import find_project_root
-
+import uuid
 project_root = find_project_root()
 SHORT_TERM_DIR = os.path.join(project_root, 'knowledge', 'memory', 'short_term')
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
@@ -11,9 +11,9 @@ genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
 class ChatHistory:
     @staticmethod
     def get_history_file():
-        today = date.today().isoformat()
-        return os.path.join(SHORT_TERM_DIR, f'session_{today}.json')
-
+        today = datetime.now().strftime('%Y-%m-%d')
+        session_id = uuid.uuid4().hex[:8]  # Short unique ID
+        return os.path.join(SHORT_TERM_DIR, f'session_{today}_{session_id}.json')
     @staticmethod
     def load_history():
         history_file = ChatHistory.get_history_file()
@@ -31,7 +31,8 @@ class ChatHistory:
                 else:
                     print(f"Warning: Empty file {history_file}. Returning empty history.")
                     return []
-        print(f"Warning: History file not found {history_file}. Returning empty history.")
+        # For new sessions, the file won't exist yet—start empty
+        print(f"Starting new session: {history_file}")
         return []
 
     @staticmethod
