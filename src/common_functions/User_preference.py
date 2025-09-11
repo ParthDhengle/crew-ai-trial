@@ -1,127 +1,49 @@
 import os
 import json
 import warnings
+from firebase_client import get_user_profile, update_user_profile
 
+def parse_preferences(prefs_path: str = None) -> dict:
+    """Load profile from Firestore."""
+    return get_user_profile()
 
-def parse_preferences(prefs_path: str) -> dict:
-    """Parse user_profile.json into a dict."""
-    if os.path.exists(prefs_path):
-        try:
-            with open(prefs_path, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            warnings.warn(f"Error parsing preferences: {e}")
-    return {}
-
-
-def collect_preferences(prefs_path: str, get_user_input):
-    """Collect missing user preferences interactively, updating the file."""
-    print("\n🛠️ Personalizing your experience! Filling in missing preferences.")
-
-    # Define all keys and their choice options (None for free text)
+def collect_preferences(prefs_path: str = None, get_user_input=None):
+    """Collect preferences and save to Firestore."""
+    if get_user_input is None:
+        get_user_input = input
+    print("\n🛠️ Personalizing! (Saving to Firestore)")
     pref_definitions = {
-        "Name": None,  # Free text
-        "Role": [
-            "Student", "Professional (Engineer/Developer)",
-            "Creative/Designer", "Manager/Entrepreneur", "Other"
-        ],
+        "Name": None,
+        "Role": ["Student", "Professional (Engineer/Developer)", "Creative/Designer", "Manager/Entrepreneur", "Other"],
         "Location": None,
-        "Productive Time": ["Morning", "Afternoon", "Evening", "Late Night"],
-        "Reminder Type": [
-            "Gentle notification", "Phone call / Voice prompt",
-            "Email / Message"
-        ],
-        "Top Task Type": [
-            "Learning / Study", "Coding / Development",
-            "Writing / Content Creation", "Management / Planning",
-            "Personal Growth / Health"
-        ],
-        "Missed Task Handling": [
-            "Auto-reschedule to next free slot",
-            "Ask me before moving",
-            "Skip if missed"
-        ],
-        "Top Motivation": [
-            "Checking things off a list",
-            "Friendly competition / Leaderboards",
-            "Music + Encouragement",
-            "Supportive reminders (like a friend)"
-        ],
-        "AI Tone": [
-            "Calm & Professional", "Friendly & Casual",
-            "Motivational & Pushy", "Fun & Humorous"
-        ],
-        "Break Reminder": [
-            "Every 25 min (Pomodoro style)",
-            "Every 1 hour", "Every 2 hours", "Never remind me"
-        ],
-        "Mood Check": [
-            "Yes, ask me once a day",
-            "Only if I look unproductive",
-            "No, skip this"
-        ],
-        "Current Focus": [
-            "Finish studies", "Grow career skills",
-            "Build side projects", "Explore & learn",
-            "Health & balance"
-        ]  # Optional
+        "Productive Time": ["Morning", "Afternoon", "Evening", "Night"],
+        "Reminder Type": ["Email", "Push Notification", "None"],
+        "Top Task Type": ["Work", "Study", "Personal", "Health", "Other"],
+        "Missed Task Handling": ["Reschedule Automatically", "Mark as Overdue", "Delete"],
+        "Top Motivation": ["Career Growth", "Personal Development", "Work-Life Balance", "Creativity", "Health"],
+        "AI Tone": ["Friendly", "Professional", "Casual", "Motivational"],
+        "Break Reminder": ["Every 25 minutes", "Every 1 hour", "Every 2 hours", "None"],
+        "Mood Check": ["Daily", "Weekly", "None"],
+        "Current Focus": ["Finish studies", "Grow career skills", "Build side projects", "Explore & learn", "Health & balance"]
     }
-
-    existing_prefs = parse_preferences(prefs_path)
+    existing_prefs = parse_preferences()
     updated_prefs = existing_prefs.copy()
-
-    # Fill missing preferences
     for key, options in pref_definitions.items():
         if key not in existing_prefs or not existing_prefs[key]:
             if options:
-                print(f"\n{key}?")
-                for i, opt in enumerate(options, 1):
-                    print(f"{i}. {opt}")
-                while True:
-                    try:
-                        choice = int(get_user_input("Choose a number: "))
-                        if 1 <= choice <= len(options):
-                            value = options[choice - 1]
-                            if value == "Other":
-                                value = get_user_input("Please specify: ").strip()
-                            updated_prefs[key] = value
-                            break
-                        else:
-                            print("Invalid choice. Try again.")
-                    except ValueError:
-                        print("Please enter a number.")
-            else:
-                value = get_user_input(f"{key}? ").strip()
-                if value:
-                    updated_prefs[key] = value
-
-    # Optional "Current Focus"
-    if "Current Focus" not in updated_prefs or not updated_prefs["Current Focus"]:
-        set_goals = get_user_input("\nWould you like to set a long-term goal? (yes/no): ").strip().lower()
-        if set_goals == "yes":
-            options = pref_definitions["Current Focus"]
-            print("\nWhat’s your current focus?")
-            for i, opt in enumerate(options, 1):
-                print(f"{i}. {opt}")
-            while True:
+                print(f"\n{key}:")
+                for i, option in enumerate(options, 1):
+                    print(f"{i}. {option}")
+                choice = get_user_input(f"Select {key} (1-{len(options)}): ")
                 try:
-                    choice = int(get_user_input("Choose a number: "))
-                    if 1 <= choice <= len(options):
-                        updated_prefs["Current Focus"] = options[choice - 1]
-                        break
-                    else:
-                        print("Invalid choice. Try again.")
-                except ValueError:
-                    print("Please enter a number.")
-
-    # Write back only if changes
+                    value = options[int(choice) - 1]
+                except (ValueError, IndexError):
+                    value = options[0] if options else choice
+            else:
+                value = get_user_input(f"{key}: ")
+            updated_prefs[key] = value
     if updated_prefs != existing_prefs:
-        try:
-            os.makedirs(os.path.dirname(prefs_path), exist_ok=True)
-            with open(prefs_path, "w") as f:
-                json.dump(updated_prefs, f, indent=4)
-            print("\n✅ Preferences updated! You can change them anytime by telling me new info.")
-        except Exception as e:
-            warnings.warn(f"Error saving preferences: {e}")
+        update_user_profile(updated_prefs)
+        print("\n✅ Preferences updated in Firestore!")
     else:
-        print("\n✅ All preferences already set. No changes needed.")
+        print("\n✅ Preferences up to date.")

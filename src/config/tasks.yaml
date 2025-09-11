@@ -1,68 +1,50 @@
 classify_query:
   description: |
-    Classify the query as 'direct' (simple response, no operations) or 'agentic' (needs operations/planning).
-    For 'direct': required_operations must be empty, but may need KB for context (e.g., user profile or history).
-    For 'agentic': list as many possibly relevant operation names (loose, inclusive matching; err on the side of including more).
-    required_kb: minimal list from ['short_term', 'long_term', 'narrative'] needed; only include if truly required to avoid waste.
-    Output strict JSON: {{"mode": "direct" or "agentic", "required_operations": [...], "required_kb": [...]}}.
-
-    Examples:
-    Query: “What’s my current focus?”
-    {{"mode": "direct", "required_operations": [], "required_kb": ["long_term", "narrative"]}}
-
-    Query: “Set a reminder for my coding sprint tomorrow at 5 pm and email me the plan.”
-    {{"mode": "agentic", "required_operations": ["set_reminder", "send_email"], "required_kb": ["short_term", "long_term"]}}
-
-    Query: "Tell me a joke."
-    {{"mode": "direct", "required_operations": [], "required_kb": []}}
-
-    Query: "Search the web for latest AI news and summarize."
-    {{"mode": "agentic", "required_operations": ["web_search", "summarize_text"], "required_kb": []}}
-
-    Query: "Remind me what I said last time about my project."
-    {{"mode": "direct", "required_operations": [], "required_kb": ["short_term"]}}
-
-    Query: "Create a file, write code to it, then run it."
-    {{"mode": "agentic", "required_operations": ["create_file", "write_to_file", "execute_code"], "required_kb": ["long_term"]}}
-
-    Always be accurate: If no ops match, but it's complex, still agentic with empty ops (fall back to reasoning).
-    ### UPDATED: IMPORTANT - Select 'required_operations' ONLY from the exact available operation names listed below. Do not invent, add, or guess new names. Use precise matches; if no match, prefer 'direct' mode or empty list. Err on the side of fewer ops if unsure.
-    Query: {user_query}
-    Available operation names: {op_names}
-    User profile: {user_profile}
+    Classify the query as 'direct' (simple response, no operations) or 'agentic' (needs operations/planning). 
+    For 'direct': required_operations empty, KB for context (user profile from Firestore, history).
+    For 'agentic': list relevant operation names (inclusive, e.g., task.create, snapshot.create).
+    required_kb: minimal from ['short_term', 'long_term', 'narrative'] (long_term uses FAISS+Firestore, narrative from summaries).
+    Output JSON: {"mode": "direct" or "agentic", "required_operations": [...], "required_kb": [...]}. Use available ops only.
+    Query: {user_query} Available ops: {op_names} Profile: {user_profile}
   expected_output: "JSON string."
   agent: classifier
 
 generate_direct_response:
-  description: "Generate a coherent, helpful response based on the query and provided KB context.\nQuery: {user_query}\nKB Context: {kb_context}"
-  expected_output: "Final response string."
+  description: |
+    Generate helpful response using query and KB (Firestore for user profile/tasks, FAISS for long-term, Firestore summaries for narrative).
+    Query: {user_query}
+    KB: {kb_context}
+  expected_output: "Response string."
   agent: direct_responder
 
 plan_execution:
   description: |
-    Produce a final execution plan using the required operations details and KB. Output JSON: {{"plan": [{{"name": "...", "parameters": {{...}}}}]}}.
-    Query: {user_query}
-    KB Context: {kb_context}
-    Required operations details: {required_operations}
-    ### UPDATED: IMPORTANT - Use ONLY the exact operations listed in 'Required operations details' above. Do not invent, add, use, or reference any other operations. Map the query strictly to these available operations using their exact names and parameters. Be accurate and error-free: if the query cannot be fully addressed with the provided operations (e.g., missing ops for part of the task), include an 'error' key in the JSON like {{"plan": [...], "error": "Cannot complete X with available operations - suggest alternative"}}. Parameters must match exactly (required/optional as defined). Output strict JSON only, no extra text.
-  expected_output: "JSON plan string."
+    Create JSON plan: {"plan": [{"name": "...", "parameters": {...}}]}. 
+    Use required ops (e.g., task.create saves to Firestore, snapshot.create uses Storage, rag.index_file updates FAISS).
+    If incomplete, add "error": "...".
+    Query: {user_query} KB: {kb_context} Ops: {required_operations}
+    Output strict JSON.
+  expected_output: "JSON plan."
   agent: planner
 
 synthesize_response:
   description: |
-    Synthesize operation results into a coherent, analytical response addressing the query. Structure as:
-    - **Operations Summary**: List each operation attempted, its result (success/failure), and explanation, based SOLELY on the provided Operation results.
-    - **Key Outputs**: Detail what was achieved (or errors encountered) from Operation results.
-    - **Next Steps**: If any ops failed/partial, suggest fixes or follow-ups (e.g., "Retry with param X").
-    - **Recommendations**: Your suggestions for better results (e.g., "Update plan for Y").
-    Do NOT use KB Context to determine operation success/failure—rely only on Operation results. Do NOT generate full content like emails/docs/code unless all ops succeeded and it's explicitly required for the query—focus on analysis/guidance.
-    Query: {user_query}
-    KB Context: {kb_context}
-    Operation results: {op_results}
-  expected_output: "Final response string."
+    Synthesize results: Operations Summary (from {op_results}), Key Outputs, Next Steps, Recommendations.
+    Use KB for context (Firestore for user profile/tasks/summaries, FAISS for long-term).
+    Query: {user_query} KB: {kb_context} Results: {op_results}
+  expected_output: "Response string."
   agent: synthesizer
 
 extract_memory:
-  description: "Extract from this interaction: facts, new/updated tasks, projects, user mood. Output JSON: {{\"facts\": [{{\"fact\": \"...\"}}], \"tasks\": [{{\"title\": \"...\", \"due\": \"...\"}}], \"projects\": [{{\"name\": \"...\", \"goal\": \"...\"}}], \"mood\": \"productive|unproductive|...\"}}.\nInteraction: {interaction}"
-  expected_output: "JSON string."
+  description: |
+    Extract facts/tasks/projects/moods from interaction for Firestore (knowledge_base, tasks, projects, mood_logs) and FAISS update.
+    JSON: {"facts": [...], "tasks": [...], "projects": [...], "mood": "..."}.
+    Interaction: {interaction}
+  expected_output: "JSON."
   agent: memory_extractor
+
+summarize_history:
+  description: |
+    Summarize history concisely (100-300 tokens): {full_history}
+  expected_output: "Summary string."
+  agent: summarizer

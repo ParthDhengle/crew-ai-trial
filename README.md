@@ -162,3 +162,14 @@ UI: Web/app interface for easier testing.
 
 knowledge\memory> Remove-Item
 -Recurse -Force short_term\*
+
+## Firebase Integration
+
+This project now uses Firebase Firestore for metadata (user profiles, tasks, projects, etc.) and Firebase Storage for files (snapshots, uploads). Local FAISS is used for vector search, with metadata stored in Firestore.
+
+### Setup Steps
+
+1. **Install Dependencies**:
+   ```bash
+   pip install firebase-admin
+   ```
