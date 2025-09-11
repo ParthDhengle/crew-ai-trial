@@ -85,6 +85,7 @@ from .operations.development_tools.debug_code import debug_code
 from .operations.knowledge.knowledge_retrieval import knowledge_retrieval
 from .operations.preferences.update_user_preference import update_user_preference
 from common_functions.Find_project_root import find_project_root
+from .operations.executor import run_cmd
 
 PROJECT_ROOT =find_project_root()
 

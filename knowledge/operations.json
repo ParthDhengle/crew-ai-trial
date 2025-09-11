@@ -1,488 +1,470 @@
-[
 {
-"name": "open_application",
-"required_parameters": ["app_name"],
-"optional_parameters": [],
-"description": "Opens an application on the desktop"
+"operations": [
+{
+"name": "file.list",
+"required_parameters": ["path"],
+"optional_parameters": ["recursive", "filters", "limit"],
+"description": "Lists files in the specified path, with options for recursion, filtering, and limiting results.",
+"capabilities": "fs_read",
+"preview": "N/A (read-only)",
+"undo": "N/A"
 },
 {
-"name": "create_folder",
+"name": "file.read",
+"required_parameters": ["path"],
+"optional_parameters": ["start", "length"],
+"description": "Reads content from a file starting at a specified offset and length.",
+"capabilities": "fs_read",
+"preview": "N/A",
+"undo": "N/A"
+},
+{
+"name": "file.compute_hash",
+"required_parameters": ["path"],
+"optional_parameters": ["algo"],
+"description": "Computes a hash (e.g., SHA256) for the specified file.",
+"capabilities": "fs_read",
+"preview": "N/A",
+"undo": "N/A"
+},
+{
+"name": "file.find_duplicates",
+"required_parameters": ["path"],
+"optional_parameters": ["threshold", "compare"],
+"description": "Finds duplicate files in a path based on hash or perceptual similarity.",
+"capabilities": "fs_read",
+"preview": "returns candidate groups",
+"undo": "N/A"
+},
+{
+"name": "file.move",
+"required_parameters": ["src", "dst"],
+"optional_parameters": ["dry_run"],
+"description": "Moves files from source to destination, with dry-run option.",
+"capabilities": "fs_write, fs_read",
+"preview": "required (list of planned moves + counts + size)",
+"undo": "support (undo_info: original paths / snapshot pointer)",
+"safety": "confirm_required=true"
+},
+{
+"name": "file.copy",
+"required_parameters": ["src", "dst"],
+"optional_parameters": ["dry_run"],
+"description": "Copies files from source to destination, with dry-run option.",
+"capabilities": "fs_write, fs_read",
+"preview": "required",
+"undo": "delete copied files",
+"safety": "confirm_required optionally"
+},
+{
+"name": "file.delete",
+"required_parameters": ["path"],
+"optional_parameters": ["dry_run", "force"],
+"description": "Deletes files at the specified path, with dry-run and force options.",
+"capabilities": "fs_write, fs_read",
+"preview": "required (shows files, sizes)",
+"undo": "soft-delete/trash (move to trash bucket, reversible for retention window)",
+"safety": "confirm_required=true, irreversible only after retention"
+},
+{
+"name": "file.create_folder",
 "required_parameters": ["path"],
 "optional_parameters": [],
-"description": "Creates a new directory at the specified path"
+"description": "Creates a new folder at the specified path.",
+"capabilities": "fs_write",
+"preview": "optional",
+"undo": "delete folder if empty"
 },
 {
-"name": "delete_folder",
-"required_parameters": ["path"],
+"name": "file.list_large_files",
+"required_parameters": ["path", "size_threshold_bytes"],
 "optional_parameters": [],
-"description": "Deletes a directory (and its contents if non-empty) at the specified path"
+"description": "Lists files larger than the specified size threshold in a path.",
+"capabilities": "fs_read",
+"preview": "N/A"
 },
 {
-"name": "send_email",
-"required_parameters": ["to", "subject","body"],
+"name": "file.update_metadata",
+"required_parameters": ["path", "metadata"],
 "optional_parameters": [],
-"description": "Sends an AI-generated email to the specified recipient with optional context"
+"description": "Updates metadata for a file.",
+"capabilities": "fs_write, db_write (if storing metadata)",
+"preview": "required for bulk changes",
+"undo": "previous metadata snapshot"
 },
 {
-"name": "send_reply_email",
-"required_parameters": ["to", "subject"],
-"optional_parameters": ["retrieve_from_email", "limit"],
-"description": "Convenience function to send contextual reply emails based on recent emails from sender"
+"name": "organize.by_rules",
+"required_parameters": ["path", "rule_set_id"],
+"optional_parameters": ["dry_run", "limit"],
+"description": "Organizes files in a path based on predefined rules.",
+"capabilities": "fs_read, fs_write",
+"preview": "required (planned moves & rules applied)",
+"undo": "support via snapshot/undo_info"
 },
 {
-"name": "retrieveMails",
-"required_parameters": ["from_email"],
-"optional_parameters": ["limit"],
-"description": "Retrieves last N emails from a specific sender"
+"name": "organize.apply_template",
+"required_parameters": ["path", "template_name"],
+"optional_parameters": ["dry_run"],
+"description": "Applies an organization template to files in a path.",
+"capabilities": "fs_write",
+"preview": "required",
+"undo": "support"
 },
 {
-"name": "searchMail",
-"required_parameters": ["keyword"],
-"optional_parameters": ["limit"],
-"description": "Searches emails by keyword in subject, body, or sender"
+"name": "file.find_by_content",
+"required_parameters": ["path", "query_text"],
+"optional_parameters": ["top_k"],
+"description": "Searches files by content in a path.",
+"capabilities": "fs_read, ocr",
+"preview": "returns matches & excerpts",
+"undo": "N/A"
 },
 {
-"name": "send_sms",
-"required_parameters": ["to", "message"],
-"optional_parameters": [],
-"description": "Sends an SMS to a phone number"
+"name": "snapshot.create",
+"required_parameters": ["paths"],
+"optional_parameters": ["name", "retention_days"],
+"description": "Creates a snapshot of specified paths for backup.",
+"capabilities": "fs_read, object_store_write",
+"preview": "estimated size/time",
+"undo": "snapshot id (used to restore)"
 },
 {
-"name": "make_call",
-"required_parameters": ["to", "message"],
-"optional_parameters": [],
-"description": "Places a phone call and delivers a message"
-},
-{
-"name": "send_whatsapp_message",
-"required_parameters": ["to", "message"],
-"optional_parameters": [],
-"description": "Sends a WhatsApp message to a contact"
-},
-{
-"name": "create_file",
-"required_parameters": ["filename", "content"],
-"optional_parameters": [],
-"description": "Creates a file with given content"
-},
-{
-"name": "read_file",
-"required_parameters": ["filename"],
-"optional_parameters": [],
-"description": "Reads and returns content of a file"
-},
-{
-"name": "update_file",
-"required_parameters": ["filename", "new_content"],
-"optional_parameters": [],
-"description": "Updates content of a file"
-},
-{
-"name": "delete_file",
-"required_parameters": ["filename"],
-"optional_parameters": [],
-"description": "Deletes a specified file"
-},
-{
-"name": "list_files",
-"required_parameters": ["directory"],
-"optional_parameters": [],
-"description": "Lists all files in a directory"
-},
-{
-"name": "copy_file",
-"required_parameters": ["source", "destination"],
-"optional_parameters": [],
-"description": "Copies a file from source to destination"
-},
-{
-"name": "move_file",
-"required_parameters": ["source", "destination"],
-"optional_parameters": [],
-"description": "Moves a file from source to destination"
-},
-{
-"name": "search_files",
-"required_parameters": ["directory", "pattern"],
-"optional_parameters": [],
-"description": "Searches for files matching a pattern in a directory"
-},
-{
-"name": "search_web",
-"required_parameters": ["query"],
-"optional_parameters": [],
-"description": "Searches the internet and returns top results"
-},
-{
-"name": "download_file",
-"required_parameters": ["url", "save_path"],
-"optional_parameters": [],
-"description": "Downloads a file from a URL"
-},
-{
-"name": "open_website",
-"required_parameters": ["url"],
-"optional_parameters": [],
-"description": "Opens a website in the system browser"
-},
-{
-"name": "get_weather",
-"required_parameters": ["location"],
-"optional_parameters": [],
-"description": "Fetches weather data for a location"
-},
-{
-"name": "get_news",
-"required_parameters": ["topic"],
-"optional_parameters": [],
-"description": "Retrieves latest news articles"
-},
-{
-"name": "browse_url",
-"required_parameters": ["url"],
-"optional_parameters": [],
-"description": "Fetches and returns content from a URL (text summary)"
-},
-{
-"name": "create_event",
-"required_parameters": ["title", "date", "time", "location"],
-"optional_parameters": [],
-"description": "Creates a calendar event"
-},
-{
-"name": "list_events",
-"required_parameters": ["date_range"],
-"optional_parameters": [],
-"description": "Lists events in the given date range"
-},
-{
-"name": "delete_event",
-"required_parameters": ["event_id"],
-"optional_parameters": [],
-"description": "Deletes a specific calendar event"
-},
-{
-"name": "get_time",
-"required_parameters": ["location"],
-"optional_parameters": [],
-"description": "Returns current time for a location"
-},
-{
-"name": "set_reminder",
-"required_parameters": ["message", "datetime"],
-"optional_parameters": [],
-"description": "Sets a reminder"
-},
-{
-"name": "update_event",
-"required_parameters": ["event_id", "updates"],
-"optional_parameters": [],
-"description": "Updates an existing calendar event"
-},
-{
-"name": "create_task",
-"required_parameters": ["title", "due_date", "priority"],
-"optional_parameters": [],
-"description": "Creates a new task"
-},
-{
-"name": "update_task",
-"required_parameters": ["task_id", "updates"],
-"optional_parameters": [],
-"description": "Updates an existing task"
-},
-{
-"name": "delete_task",
-"required_parameters": ["task_id"],
-"optional_parameters": [],
-"description": "Deletes a task"
-},
-{
-"name": "list_tasks",
-"required_parameters": ["filter"],
-"optional_parameters": [],
-"description": "Lists tasks with optional filter"
-},
-{
-"name": "mark_task_complete",
-"required_parameters": ["task_id"],
-"optional_parameters": [],
-"description": "Marks a task as completed"
-},
-{
-"name": "read_csv",
-"required_parameters": ["filepath"],
-"optional_parameters": [],
-"description": "Reads CSV and returns data"
-},
-{
-"name": "write_csv",
-"required_parameters": ["filepath", "data"],
-"optional_parameters": [],
-"description": "Writes data to CSV file"
-},
-{
-"name": "filter_csv",
-"required_parameters": ["filepath", "condition"],
-"optional_parameters": [],
-"description": "Filters CSV rows by condition"
-},
-{
-"name": "generate_report",
-"required_parameters": ["title", "data"],
-"optional_parameters": [],
-"description": "Generates a PDF report"
-},
-{
-"name": "read_json",
-"required_parameters": ["filepath"],
-"optional_parameters": [],
-"description": "Reads JSON file and returns data"
-},
-{
-"name": "write_json",
-"required_parameters": ["filepath", "data"],
-"optional_parameters": [],
-"description": "Writes data to JSON file"
-},
-{
-"name": "play_music",
-"required_parameters": ["song_name"],
-"optional_parameters": [],
-"description": "Plays a song"
-},
-{
-"name": "pause_music",
+"name": "snapshot.list",
 "required_parameters": [],
-"optional_parameters": [],
-"description": "Pauses music"
+"optional_parameters": ["path"],
+"description": "Lists available snapshots.",
+"capabilities": "db_read",
+"preview": "list"
 },
 {
-"name": "stop_music",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Stops music"
+"name": "snapshot.restore",
+"required_parameters": ["snapshot_id", "target_path"],
+"optional_parameters": ["dry_run"],
+"description": "Restores a snapshot to a target path.",
+"capabilities": "object_store_read, fs_write",
+"preview": "shows restore plan",
+"undo": "create new snapshot of current state before restore"
 },
 {
-"name": "play_video",
-"required_parameters": ["video_name"],
+"name": "snapshot.delete",
+"required_parameters": ["snapshot_id"],
 "optional_parameters": [],
-"description": "Plays a video"
+"description": "Deletes a specified snapshot.",
+"capabilities": "object_store_write",
+"preview": "N/A",
+"safety": "confirm_required"
 },
 {
-"name": "take_screenshot",
-"required_parameters": ["save_path"],
-"optional_parameters": [],
-"description": "Takes a screenshot"
-},
-{
-"name": "record_audio",
-"required_parameters": ["duration", "save_path"],
-"optional_parameters": [],
-"description": "Records audio for a specified duration"
-},
-{
-"name": "play_audio",
+"name": "ocr.extract_text",
 "required_parameters": ["file_path"],
-"optional_parameters": [],
-"description": "Plays an audio file"
+"optional_parameters": ["pages", "lang"],
+"description": "Extracts text from images or PDFs using OCR.",
+"capabilities": "ocr, fs_read",
+"preview": "estimated pages & time",
+"undo": "N/A (creates derived artifact in object store)"
 },
 {
-"name": "translate",
-"required_parameters": ["text", "target_language"],
-"optional_parameters": [],
-"description": "Translates text to another language"
+"name": "parser.extract_metadata",
+"required_parameters": ["file_path"],
+"optional_parameters": ["type_hint"],
+"description": "Extracts structured metadata (e.g., from invoices or receipts).",
+"capabilities": "fs_read, ocr",
+"preview": "N/A"
 },
 {
-"name": "summarize_text",
-"required_parameters": ["text"],
-"optional_parameters": [],
-"description": "Summarizes the given text"
+"name": "rag.index_file",
+"required_parameters": ["file_path"],
+"optional_parameters": ["chunk_size", "model", "user_id"],
+"description": "Indexes a file for RAG semantic search.",
+"capabilities": "fs_read, network (vector DB)",
+"preview": "num chunks, token estimate, cost estimate",
+"undo": "drop index entries"
 },
 {
-"name": "scan_qr_code",
-"required_parameters": ["image_path"],
-"optional_parameters": [],
-"description": "Scans a QR code from image"
+"name": "rag.reindex_folder",
+"required_parameters": ["path", "user_id"],
+"optional_parameters": ["force"],
+"description": "Reindexes all files in a folder for RAG.",
+"capabilities": "fs_read, network",
+"preview": "N/A"
 },
 {
-"name": "calculate",
-"required_parameters": ["expression"],
-"optional_parameters": [],
-"description": "Evaluates a mathematical expression"
-},
-{
-"name": "unit_convert",
-"required_parameters": ["value", "from_unit", "to_unit"],
-"optional_parameters": [],
-"description": "Converts units (e.g., length, weight)"
-},
-{
-"name": "spell_check",
-"required_parameters": ["text"],
-"optional_parameters": [],
-"description": "Checks spelling and grammar in text"
-},
-{
-"name": "generate_password",
-"required_parameters": ["length"],
-"optional_parameters": [],
-"description": "Generates a secure password"
-},
-{
-"name": "generate_code",
-"required_parameters": ["prompt", "language"],
-"optional_parameters": [],
-"description": "Generates code snippet"
-},
-{
-"name": "analyze_sentiment",
-"required_parameters": ["text"],
-"optional_parameters": [],
-"description": "Analyzes sentiment of text"
-},
-{
-"name": "generate_document",
-"required_parameters": ["prompt", "format"],
-"optional_parameters": [],
-"description": "Generates a document (e.g., Markdown, PDF) based on prompt"
-},
-{
-"name": "shutdown_system",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Shuts down the system"
-},
-{
-"name": "restart_system",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Restarts the system"
-},
-{
-"name": "check_system_status",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Returns system health status (CPU, memory, disk usage)"
-},
-{
-"name": "list_running_processes",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Lists active processes"
-},
-{
-"name": "kill_process",
-"required_parameters": ["process_id"],
-"optional_parameters": [],
-"description": "Terminates a process"
-},
-{
-"name": "run_command",
-"required_parameters": ["command"],
-"optional_parameters": [],
-"description": "Runs a shell command and returns output"
-},
-{
-"name": "update_system",
-"required_parameters": [],
-"optional_parameters": [],
-"description": "Checks and applies system updates"
-},
-{
-"name": "git_clone",
-"required_parameters": ["repo_url", "path"],
-"optional_parameters": [],
-"description": "Clones a Git repository to the specified path"
-},
-{
-"name": "git_commit",
-"required_parameters": ["message", "path"],
-"optional_parameters": [],
-"description": "Commits changes in a Git repository at the path"
-},
-{
-"name": "git_push",
-"required_parameters": ["remote", "branch", "path"],
-"optional_parameters": [],
-"description": "Pushes changes to a remote branch in a Git repository"
-},
-{
-"name": "git_pull",
-"required_parameters": ["remote", "branch", "path"],
-"optional_parameters": [],
-"description": "Pulls updates from a remote branch in a Git repository"
-},
-{
-"name": "git_status",
-"required_parameters": ["path"],
-"optional_parameters": [],
-"description": "Gets the status of a Git repository"
-},
-{
-"name": "pip_install",
-"required_parameters": ["package"],
-"optional_parameters": [],
-"description": "Installs a Python package using pip"
-},
-{
-"name": "run_python_script",
-"required_parameters": ["script_path"],
-"optional_parameters": ["args"],
-"description": "Runs a Python script with optional arguments"
-},
-{
-"name": "open_in_ide",
-"required_parameters": ["file_path", "ide_name"],
-"optional_parameters": [],
-"description": "Opens a file in a specified IDE (e.g., VS Code)"
-},
-{
-"name": "build_project",
-"required_parameters": ["path", "build_tool"],
-"optional_parameters": [],
-"description": "Builds a project using a specified tool (e.g., make, npm)"
-},
-{
-"name": "deploy_project",
-"required_parameters": ["path", "platform"],
-"optional_parameters": [],
-"description": "Deploys a project to a platform (e.g., Heroku, AWS)"
-},
-{
-"name": "debug_code",
-"required_parameters": ["code_snippet", "language"],
-"optional_parameters": [],
-"description": "Analyzes and suggests fixes for code issues"
-},
-{
-"name": "recognize_speech",
-"required_parameters": ["duration"],
-"optional_parameters": [],
-"description": "Listens and recognizes speech for a duration, returns text"
-},
-{
-"name": "synthesize_speech",
-"required_parameters": ["text"],
-"optional_parameters": [],
-"description": "Converts text to speech and plays it"
-},
-{
-"name": "set_voice_volume",
-"required_parameters": ["level"],
-"optional_parameters": [],
-"description": "Sets the system voice output volume"
-},
-{
-"name": "knowledge_retrieval",
+"name": "search.semantic",
 "required_parameters": ["query"],
-"optional_parameters": [],
-"description": "Retrieves an explanation or information about a topic using a knowledge base or web search"
+"optional_parameters": ["top_k", "filters"],
+"description": "Performs semantic search using embeddings.",
+"capabilities": "network",
+"preview": "N/A"
 },
 {
-"name": "update_user_preference",
-"required_parameters": ["key", "value"],
+"name": "search.hybrid",
+"required_parameters": ["query"],
+"optional_parameters": ["top_k", "filters", "use_ft"],
+"description": "Performs hybrid search (semantic + full-text).",
+"capabilities": "network, search_index",
+"preview": "N/A"
+},
+{
+"name": "task.create",
+"required_parameters": ["title", "user_id"],
+"optional_parameters": ["description", "due_date", "estimate_min", "related_files"],
+"description": "Creates a new task.",
+"capabilities": "db_write",
+"preview": "summary"
+},
+{
+"name": "task.update",
+"required_parameters": ["task_id", "fields"],
 "optional_parameters": [],
-"description": "Adds or updates a key-value pair in the user preference file"
+"description": "Updates an existing task.",
+"capabilities": "db_write",
+"undo": "previous snapshot in history"
+},
+{
+"name": "task.list",
+"required_parameters": ["user_id"],
+"optional_parameters": ["status", "date_range"],
+"description": "Lists tasks for a user.",
+"capabilities": "db_read",
+"preview": "N/A"
+},
+{
+"name": "task.mark_complete",
+"required_parameters": ["task_id"],
+"optional_parameters": ["completed_at"],
+"description": "Marks a task as complete.",
+"capabilities": "db_write",
+"undo": "reopen action (if within policy)"
+},
+{
+"name": "task.auto_reschedule",
+"required_parameters": ["task_id"],
+"optional_parameters": ["reason", "heuristic"],
+"description": "Automatically reschedules a task.",
+"capabilities": "db_write, calendar_write (if adding slots)",
+"preview": "new schedule recommended",
+"safety": "confirm_required: true"
+},
+{
+"name": "calendar.create_event",
+"required_parameters": ["calendar_id", "title", "start", "end"],
+"optional_parameters": ["attendees", "location"],
+"description": "Creates a calendar event.",
+"capabilities": "calendar_write, network",
+"preview": "required for mass invites"
+},
+{
+"name": "task.deadline_checkin",
+"required_parameters": ["task_id"],
+"optional_parameters": [],
+"description": "Checks in on a task deadline and prompts for status.",
+"capabilities": "notification, db_write",
+"preview": "N/A"
+},
+{
+"name": "email.fetch_recent",
+"required_parameters": ["user_id"],
+"optional_parameters": ["n", "filters"],
+"description": "Fetches recent emails for a user.",
+"capabilities": "email_read",
+"preview": "summary"
+},
+{
+"name": "email.triage",
+"required_parameters": ["user_id"],
+"optional_parameters": ["days"],
+"description": "Triages emails and suggests actions.",
+"capabilities": "email_read, db_write (to create tasks)",
+"preview": "N/A"
+},
+{
+"name": "email.draft_reply",
+"required_parameters": ["email_id"],
+"optional_parameters": ["tone", "length"],
+"description": "Drafts a reply to an email.",
+"capabilities": "email_read",
+"preview": "N/A"
+},
+{
+"name": "focus.start_session",
+"required_parameters": ["user_id", "duration_min"],
+"optional_parameters": ["block_list", "allow_emergency"],
+"description": "Starts a focus session with app/url blocking.",
+"capabilities": "system_control (app kill, hosts file / firewall rules), notification",
+"preview": "blocked items list & expected end time",
+"undo": "end session"
+},
+{
+"name": "focus.end_session",
+"required_parameters": ["session_id"],
+"optional_parameters": [],
+"description": "Ends a focus session.",
+"capabilities": "system_control",
+"preview": "session summary and distractions log"
+},
+{
+"name": "focus.log_distraction",
+"required_parameters": ["session_id"],
+"optional_parameters": ["app", "url", "ts"],
+"description": "Logs a distraction during a focus session.",
+"capabilities": "db_write",
+"preview": "N/A"
+},
+{
+"name": "expenses.process_folder",
+"required_parameters": ["path", "user_id"],
+"optional_parameters": ["currency", "dry_run"],
+"description": "Processes receipts in a folder to create expense entries.",
+"capabilities": "ocr, fs_read, db_write",
+"preview": "list of receipts, totals, suggested categories",
+"undo": "delete created expense drafts"
+},
+{
+"name": "expenses.create_report",
+"required_parameters": ["expense_ids"],
+"optional_parameters": ["format", "approver_email"],
+"description": "Creates an expense report.",
+"capabilities": "db_read, email_send (needs approval)",
+"preview": "report draft"
+},
+{
+"name": "expenses.submit",
+"required_parameters": ["report_id"],
+"optional_parameters": [],
+"description": "Submits an expense report.",
+"capabilities": "email_send",
+"safety": "confirm_required"
+},
+{
+"name": "meeting.start_recording",
+"required_parameters": ["meeting_id", "user_id"],
+"optional_parameters": [],
+"description": "Starts recording a meeting.",
+"capabilities": "audio_record (local file)",
+"preview": "N/A"
+},
+{
+"name": "meeting.transcribe",
+"required_parameters": ["recording_id"],
+"optional_parameters": ["model"],
+"description": "Transcribes a meeting recording.",
+"capabilities": "network (ASR), object_store_read",
+"preview": "duration & cost estimate"
+},
+{
+"name": "meeting.extract_actions",
+"required_parameters": ["transcript_id"],
+"optional_parameters": [],
+"description": "Extracts action items from a meeting transcript.",
+"capabilities": "nlp, db_write",
+"preview": "N/A"
+},
+{
+"name": "rules.create",
+"required_parameters": ["user_id", "name", "trigger", "actions"],
+"optional_parameters": ["enabled"],
+"description": "Creates a new automation rule.",
+"capabilities": "db_write",
+"preview": "simulation on sample events"
+},
+{
+"name": "rules.simulate",
+"required_parameters": ["rule_id", "sample_event"],
+"optional_parameters": [],
+"description": "Simulates running a rule on a sample event.",
+"capabilities": "db_read",
+"preview": "result of simulation"
+},
+{
+"name": "rules.run",
+"required_parameters": ["rule_id", "event_payload"],
+"optional_parameters": [],
+"description": "Runs a specified rule on an event.",
+"capabilities": "db_read, operations capabilities used by actions",
+"safety": "confirm if rule performs destructive ops (first-run)"
+},
+{
+"name": "system.run_command_sandboxed",
+"required_parameters": ["cmd"],
+"optional_parameters": ["cwd", "timeout", "dry_run"],
+"description": "Runs a command in a sandboxed environment.",
+"capabilities": "system_control",
+"preview": "command + environment variables (no execution)",
+"safety": "confirm_required"
+},
+{
+"name": "file.preview_changes",
+"required_parameters": ["steps"],
+"optional_parameters": [],
+"description": "Previews changes from a series of file operations.",
+"capabilities": "N/A",
+"preview": "unified human-readable diff & totals"
+},
+{
+"name": "audit.log_query",
+"required_parameters": ["user_id"],
+"optional_parameters": ["date_range", "limit"],
+"description": "Queries audit logs for operations.",
+"capabilities": "db_read",
+"preview": "recent ops + undo availability"
+},
+{
+"name": "undo.last_operation",
+"required_parameters": ["operation_id"],
+"optional_parameters": [],
+"description": "Undoes the last operation if possible.",
+"capabilities": "depends on op being reversed (fs_write etc.)",
+"safety": "grave caution — confirm_required"
+},
+{
+"name": "kb.create_entry",
+"required_parameters": ["user_id", "title", "content_md"],
+"optional_parameters": ["tags", "references"],
+"description": "Creates a new knowledge base entry.",
+"capabilities": "db_write, network (if indexing)",
+"preview": "show generated snippet"
+},
+{
+"name": "kb.search",
+"required_parameters": ["query"],
+"optional_parameters": ["top_k", "filters"],
+"description": "Searches the knowledge base.",
+"capabilities": "network",
+"preview": "relevant KB entries"
+},
+{
+"name": "autofill.fill_form",
+"required_parameters": ["form_url"],
+"optional_parameters": ["profile_id", "pause_before_submit"],
+"description": "Autofills a form using profile data.",
+"capabilities": "browser_automation, network, system_control",
+"preview": "filled fields shown to user",
+"safety": "confirm before actual submit"
+},
+{
+"name": "maintenance.cleanup_temp",
+"required_parameters": ["path"],
+"optional_parameters": ["older_than_days", "dry_run"],
+"description": "Cleans up temporary files older than specified days.",
+"capabilities": "fs_write, fs_read",
+"preview": "N/A",
+"undo": "via snapshot/trash"
+},
+{
+"name": "monitor.list_processes",
+"required_parameters": [],
+"optional_parameters": ["filters"],
+"description": "Lists running processes.",
+"capabilities": "system_read",
+"preview": "N/A"
+},
+{
+"name": "monitor.kill_process",
+"required_parameters": ["pid"],
+"optional_parameters": ["force"],
+"description": "Kills a running process.",
+"capabilities": "system_control",
+"safety": "confirm_required"
 }
 ]
+}

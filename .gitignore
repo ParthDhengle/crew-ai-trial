@@ -15,6 +15,7 @@ node_modules/
 lock.json
 uv.lock
 test
+
 Project Overview 1 NOVA.pdf
 # Ignore everything in short_term
 knowledge/memory/short_term/*
@@ -23,3 +24,4 @@ knowledge/memory/short_term/*
 !knowledge/memory/short_term/.gitkeep
 index.faiss
 index.pkl
+NOVA_firebase_credentials.json
