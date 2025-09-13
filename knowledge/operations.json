@@ -1,470 +1,479 @@
 {
-"operations": [
-{
-"name": "file.list",
-"required_parameters": ["path"],
-"optional_parameters": ["recursive", "filters", "limit"],
-"description": "Lists files in the specified path, with options for recursion, filtering, and limiting results.",
-"capabilities": "fs_read",
-"preview": "N/A (read-only)",
-"undo": "N/A"
-},
-{
-"name": "file.read",
-"required_parameters": ["path"],
-"optional_parameters": ["start", "length"],
-"description": "Reads content from a file starting at a specified offset and length.",
-"capabilities": "fs_read",
-"preview": "N/A",
-"undo": "N/A"
-},
-{
-"name": "file.compute_hash",
-"required_parameters": ["path"],
-"optional_parameters": ["algo"],
-"description": "Computes a hash (e.g., SHA256) for the specified file.",
-"capabilities": "fs_read",
-"preview": "N/A",
-"undo": "N/A"
-},
-{
-"name": "file.find_duplicates",
-"required_parameters": ["path"],
-"optional_parameters": ["threshold", "compare"],
-"description": "Finds duplicate files in a path based on hash or perceptual similarity.",
-"capabilities": "fs_read",
-"preview": "returns candidate groups",
-"undo": "N/A"
-},
-{
-"name": "file.move",
-"required_parameters": ["src", "dst"],
-"optional_parameters": ["dry_run"],
-"description": "Moves files from source to destination, with dry-run option.",
-"capabilities": "fs_write, fs_read",
-"preview": "required (list of planned moves + counts + size)",
-"undo": "support (undo_info: original paths / snapshot pointer)",
-"safety": "confirm_required=true"
-},
-{
-"name": "file.copy",
-"required_parameters": ["src", "dst"],
-"optional_parameters": ["dry_run"],
-"description": "Copies files from source to destination, with dry-run option.",
-"capabilities": "fs_write, fs_read",
-"preview": "required",
-"undo": "delete copied files",
-"safety": "confirm_required optionally"
-},
-{
-"name": "file.delete",
-"required_parameters": ["path"],
-"optional_parameters": ["dry_run", "force"],
-"description": "Deletes files at the specified path, with dry-run and force options.",
-"capabilities": "fs_write, fs_read",
-"preview": "required (shows files, sizes)",
-"undo": "soft-delete/trash (move to trash bucket, reversible for retention window)",
-"safety": "confirm_required=true, irreversible only after retention"
-},
-{
-"name": "file.create_folder",
-"required_parameters": ["path"],
-"optional_parameters": [],
-"description": "Creates a new folder at the specified path.",
-"capabilities": "fs_write",
-"preview": "optional",
-"undo": "delete folder if empty"
-},
-{
-"name": "file.list_large_files",
-"required_parameters": ["path", "size_threshold_bytes"],
-"optional_parameters": [],
-"description": "Lists files larger than the specified size threshold in a path.",
-"capabilities": "fs_read",
-"preview": "N/A"
-},
-{
-"name": "file.update_metadata",
-"required_parameters": ["path", "metadata"],
-"optional_parameters": [],
-"description": "Updates metadata for a file.",
-"capabilities": "fs_write, db_write (if storing metadata)",
-"preview": "required for bulk changes",
-"undo": "previous metadata snapshot"
-},
-{
-"name": "organize.by_rules",
-"required_parameters": ["path", "rule_set_id"],
-"optional_parameters": ["dry_run", "limit"],
-"description": "Organizes files in a path based on predefined rules.",
-"capabilities": "fs_read, fs_write",
-"preview": "required (planned moves & rules applied)",
-"undo": "support via snapshot/undo_info"
-},
-{
-"name": "organize.apply_template",
-"required_parameters": ["path", "template_name"],
-"optional_parameters": ["dry_run"],
-"description": "Applies an organization template to files in a path.",
-"capabilities": "fs_write",
-"preview": "required",
-"undo": "support"
-},
-{
-"name": "file.find_by_content",
-"required_parameters": ["path", "query_text"],
-"optional_parameters": ["top_k"],
-"description": "Searches files by content in a path.",
-"capabilities": "fs_read, ocr",
-"preview": "returns matches & excerpts",
-"undo": "N/A"
-},
-{
-"name": "snapshot.create",
-"required_parameters": ["paths"],
-"optional_parameters": ["name", "retention_days"],
-"description": "Creates a snapshot of specified paths for backup.",
-"capabilities": "fs_read, object_store_write",
-"preview": "estimated size/time",
-"undo": "snapshot id (used to restore)"
-},
-{
-"name": "snapshot.list",
-"required_parameters": [],
-"optional_parameters": ["path"],
-"description": "Lists available snapshots.",
-"capabilities": "db_read",
-"preview": "list"
-},
-{
-"name": "snapshot.restore",
-"required_parameters": ["snapshot_id", "target_path"],
-"optional_parameters": ["dry_run"],
-"description": "Restores a snapshot to a target path.",
-"capabilities": "object_store_read, fs_write",
-"preview": "shows restore plan",
-"undo": "create new snapshot of current state before restore"
-},
-{
-"name": "snapshot.delete",
-"required_parameters": ["snapshot_id"],
-"optional_parameters": [],
-"description": "Deletes a specified snapshot.",
-"capabilities": "object_store_write",
-"preview": "N/A",
-"safety": "confirm_required"
-},
-{
-"name": "ocr.extract_text",
-"required_parameters": ["file_path"],
-"optional_parameters": ["pages", "lang"],
-"description": "Extracts text from images or PDFs using OCR.",
-"capabilities": "ocr, fs_read",
-"preview": "estimated pages & time",
-"undo": "N/A (creates derived artifact in object store)"
-},
-{
-"name": "parser.extract_metadata",
-"required_parameters": ["file_path"],
-"optional_parameters": ["type_hint"],
-"description": "Extracts structured metadata (e.g., from invoices or receipts).",
-"capabilities": "fs_read, ocr",
-"preview": "N/A"
-},
-{
-"name": "rag.index_file",
-"required_parameters": ["file_path"],
-"optional_parameters": ["chunk_size", "model", "user_id"],
-"description": "Indexes a file for RAG semantic search.",
-"capabilities": "fs_read, network (vector DB)",
-"preview": "num chunks, token estimate, cost estimate",
-"undo": "drop index entries"
-},
-{
-"name": "rag.reindex_folder",
-"required_parameters": ["path", "user_id"],
-"optional_parameters": ["force"],
-"description": "Reindexes all files in a folder for RAG.",
-"capabilities": "fs_read, network",
-"preview": "N/A"
-},
-{
-"name": "search.semantic",
-"required_parameters": ["query"],
-"optional_parameters": ["top_k", "filters"],
-"description": "Performs semantic search using embeddings.",
-"capabilities": "network",
-"preview": "N/A"
-},
-{
-"name": "search.hybrid",
-"required_parameters": ["query"],
-"optional_parameters": ["top_k", "filters", "use_ft"],
-"description": "Performs hybrid search (semantic + full-text).",
-"capabilities": "network, search_index",
-"preview": "N/A"
-},
-{
-"name": "task.create",
-"required_parameters": ["title", "user_id"],
-"optional_parameters": ["description", "due_date", "estimate_min", "related_files"],
-"description": "Creates a new task.",
-"capabilities": "db_write",
-"preview": "summary"
-},
-{
-"name": "task.update",
-"required_parameters": ["task_id", "fields"],
-"optional_parameters": [],
-"description": "Updates an existing task.",
-"capabilities": "db_write",
-"undo": "previous snapshot in history"
-},
-{
-"name": "task.list",
-"required_parameters": ["user_id"],
-"optional_parameters": ["status", "date_range"],
-"description": "Lists tasks for a user.",
-"capabilities": "db_read",
-"preview": "N/A"
-},
-{
-"name": "task.mark_complete",
-"required_parameters": ["task_id"],
-"optional_parameters": ["completed_at"],
-"description": "Marks a task as complete.",
-"capabilities": "db_write",
-"undo": "reopen action (if within policy)"
-},
-{
-"name": "task.auto_reschedule",
-"required_parameters": ["task_id"],
-"optional_parameters": ["reason", "heuristic"],
-"description": "Automatically reschedules a task.",
-"capabilities": "db_write, calendar_write (if adding slots)",
-"preview": "new schedule recommended",
-"safety": "confirm_required: true"
-},
-{
-"name": "calendar.create_event",
-"required_parameters": ["calendar_id", "title", "start", "end"],
-"optional_parameters": ["attendees", "location"],
-"description": "Creates a calendar event.",
-"capabilities": "calendar_write, network",
-"preview": "required for mass invites"
-},
-{
-"name": "task.deadline_checkin",
-"required_parameters": ["task_id"],
-"optional_parameters": [],
-"description": "Checks in on a task deadline and prompts for status.",
-"capabilities": "notification, db_write",
-"preview": "N/A"
-},
-{
-"name": "email.fetch_recent",
-"required_parameters": ["user_id"],
-"optional_parameters": ["n", "filters"],
-"description": "Fetches recent emails for a user.",
-"capabilities": "email_read",
-"preview": "summary"
-},
-{
-"name": "email.triage",
-"required_parameters": ["user_id"],
-"optional_parameters": ["days"],
-"description": "Triages emails and suggests actions.",
-"capabilities": "email_read, db_write (to create tasks)",
-"preview": "N/A"
-},
-{
-"name": "email.draft_reply",
-"required_parameters": ["email_id"],
-"optional_parameters": ["tone", "length"],
-"description": "Drafts a reply to an email.",
-"capabilities": "email_read",
-"preview": "N/A"
-},
-{
-"name": "focus.start_session",
-"required_parameters": ["user_id", "duration_min"],
-"optional_parameters": ["block_list", "allow_emergency"],
-"description": "Starts a focus session with app/url blocking.",
-"capabilities": "system_control (app kill, hosts file / firewall rules), notification",
-"preview": "blocked items list & expected end time",
-"undo": "end session"
-},
-{
-"name": "focus.end_session",
-"required_parameters": ["session_id"],
-"optional_parameters": [],
-"description": "Ends a focus session.",
-"capabilities": "system_control",
-"preview": "session summary and distractions log"
-},
-{
-"name": "focus.log_distraction",
-"required_parameters": ["session_id"],
-"optional_parameters": ["app", "url", "ts"],
-"description": "Logs a distraction during a focus session.",
-"capabilities": "db_write",
-"preview": "N/A"
-},
-{
-"name": "expenses.process_folder",
-"required_parameters": ["path", "user_id"],
-"optional_parameters": ["currency", "dry_run"],
-"description": "Processes receipts in a folder to create expense entries.",
-"capabilities": "ocr, fs_read, db_write",
-"preview": "list of receipts, totals, suggested categories",
-"undo": "delete created expense drafts"
-},
-{
-"name": "expenses.create_report",
-"required_parameters": ["expense_ids"],
-"optional_parameters": ["format", "approver_email"],
-"description": "Creates an expense report.",
-"capabilities": "db_read, email_send (needs approval)",
-"preview": "report draft"
-},
-{
-"name": "expenses.submit",
-"required_parameters": ["report_id"],
-"optional_parameters": [],
-"description": "Submits an expense report.",
-"capabilities": "email_send",
-"safety": "confirm_required"
-},
-{
-"name": "meeting.start_recording",
-"required_parameters": ["meeting_id", "user_id"],
-"optional_parameters": [],
-"description": "Starts recording a meeting.",
-"capabilities": "audio_record (local file)",
-"preview": "N/A"
-},
-{
-"name": "meeting.transcribe",
-"required_parameters": ["recording_id"],
-"optional_parameters": ["model"],
-"description": "Transcribes a meeting recording.",
-"capabilities": "network (ASR), object_store_read",
-"preview": "duration & cost estimate"
-},
-{
-"name": "meeting.extract_actions",
-"required_parameters": ["transcript_id"],
-"optional_parameters": [],
-"description": "Extracts action items from a meeting transcript.",
-"capabilities": "nlp, db_write",
-"preview": "N/A"
-},
-{
-"name": "rules.create",
-"required_parameters": ["user_id", "name", "trigger", "actions"],
-"optional_parameters": ["enabled"],
-"description": "Creates a new automation rule.",
-"capabilities": "db_write",
-"preview": "simulation on sample events"
-},
-{
-"name": "rules.simulate",
-"required_parameters": ["rule_id", "sample_event"],
-"optional_parameters": [],
-"description": "Simulates running a rule on a sample event.",
-"capabilities": "db_read",
-"preview": "result of simulation"
-},
-{
-"name": "rules.run",
-"required_parameters": ["rule_id", "event_payload"],
-"optional_parameters": [],
-"description": "Runs a specified rule on an event.",
-"capabilities": "db_read, operations capabilities used by actions",
-"safety": "confirm if rule performs destructive ops (first-run)"
-},
-{
-"name": "system.run_command_sandboxed",
-"required_parameters": ["cmd"],
-"optional_parameters": ["cwd", "timeout", "dry_run"],
-"description": "Runs a command in a sandboxed environment.",
-"capabilities": "system_control",
-"preview": "command + environment variables (no execution)",
-"safety": "confirm_required"
-},
-{
-"name": "file.preview_changes",
-"required_parameters": ["steps"],
-"optional_parameters": [],
-"description": "Previews changes from a series of file operations.",
-"capabilities": "N/A",
-"preview": "unified human-readable diff & totals"
-},
-{
-"name": "audit.log_query",
-"required_parameters": ["user_id"],
-"optional_parameters": ["date_range", "limit"],
-"description": "Queries audit logs for operations.",
-"capabilities": "db_read",
-"preview": "recent ops + undo availability"
-},
-{
-"name": "undo.last_operation",
-"required_parameters": ["operation_id"],
-"optional_parameters": [],
-"description": "Undoes the last operation if possible.",
-"capabilities": "depends on op being reversed (fs_write etc.)",
-"safety": "grave caution — confirm_required"
-},
-{
-"name": "kb.create_entry",
-"required_parameters": ["user_id", "title", "content_md"],
-"optional_parameters": ["tags", "references"],
-"description": "Creates a new knowledge base entry.",
-"capabilities": "db_write, network (if indexing)",
-"preview": "show generated snippet"
-},
-{
-"name": "kb.search",
-"required_parameters": ["query"],
-"optional_parameters": ["top_k", "filters"],
-"description": "Searches the knowledge base.",
-"capabilities": "network",
-"preview": "relevant KB entries"
-},
-{
-"name": "autofill.fill_form",
-"required_parameters": ["form_url"],
-"optional_parameters": ["profile_id", "pause_before_submit"],
-"description": "Autofills a form using profile data.",
-"capabilities": "browser_automation, network, system_control",
-"preview": "filled fields shown to user",
-"safety": "confirm before actual submit"
-},
-{
-"name": "maintenance.cleanup_temp",
-"required_parameters": ["path"],
-"optional_parameters": ["older_than_days", "dry_run"],
-"description": "Cleans up temporary files older than specified days.",
-"capabilities": "fs_write, fs_read",
-"preview": "N/A",
-"undo": "via snapshot/trash"
-},
-{
-"name": "monitor.list_processes",
-"required_parameters": [],
-"optional_parameters": ["filters"],
-"description": "Lists running processes.",
-"capabilities": "system_read",
-"preview": "N/A"
-},
-{
-"name": "monitor.kill_process",
-"required_parameters": ["pid"],
-"optional_parameters": ["force"],
-"description": "Kills a running process.",
-"capabilities": "system_control",
-"safety": "confirm_required"
-}
-]
+  "operations": [
+    {
+      "name": "file.list",
+      "required_parameters": ["path"],
+      "optional_parameters": ["recursive", "filters", "limit"],
+      "description": "Lists files in the specified path, with options for recursion, filtering, and limiting results.",
+      "capabilities": "fs_read",
+      "preview": "N/A (read-only)",
+      "undo": "N/A"
+    },
+    {
+      "name": "file.read",
+      "required_parameters": ["path"],
+      "optional_parameters": ["start", "length"],
+      "description": "Reads content from a file starting at a specified offset and length.",
+      "capabilities": "fs_read",
+      "preview": "N/A",
+      "undo": "N/A"
+    },
+    {
+      "name": "file.compute_hash",
+      "required_parameters": ["path"],
+      "optional_parameters": ["algo"],
+      "description": "Computes a hash (e.g., SHA256) for the specified file.",
+      "capabilities": "fs_read",
+      "preview": "N/A",
+      "undo": "N/A"
+    },
+    {
+      "name": "file.find_duplicates",
+      "required_parameters": ["path"],
+      "optional_parameters": ["threshold", "compare"],
+      "description": "Finds duplicate files in a path based on hash or perceptual similarity.",
+      "capabilities": "fs_read",
+      "preview": "returns candidate groups",
+      "undo": "N/A"
+    },
+    {
+      "name": "file.move",
+      "required_parameters": ["src", "dst"],
+      "optional_parameters": ["dry_run"],
+      "description": "Moves files from source to destination, with dry-run option.",
+      "capabilities": "fs_write, fs_read",
+      "preview": "required (list of planned moves + counts + size)",
+      "undo": "support (undo_info: original paths / snapshot pointer)",
+      "safety": "confirm_required=true"
+    },
+    {
+      "name": "file.copy",
+      "required_parameters": ["src", "dst"],
+      "optional_parameters": ["dry_run"],
+      "description": "Copies files from source to destination, with dry-run option.",
+      "capabilities": "fs_write, fs_read",
+      "preview": "required",
+      "undo": "delete copied files",
+      "safety": "confirm_required optionally"
+    },
+    {
+      "name": "file.delete",
+      "required_parameters": ["path"],
+      "optional_parameters": ["dry_run", "force"],
+      "description": "Deletes files at the specified path, with dry-run and force options.",
+      "capabilities": "fs_write, fs_read",
+      "preview": "required (shows files, sizes)",
+      "undo": "soft-delete/trash (move to trash bucket, reversible for retention window)",
+      "safety": "confirm_required=true, irreversible only after retention"
+    },
+    {
+      "name": "file.create_folder",
+      "required_parameters": ["path"],
+      "optional_parameters": [],
+      "description": "Creates a new folder at the specified path.",
+      "capabilities": "fs_write",
+      "preview": "optional",
+      "undo": "delete folder if empty"
+    },
+    {
+      "name": "file.list_large_files",
+      "required_parameters": ["path", "size_threshold_bytes"],
+      "optional_parameters": [],
+      "description": "Lists files larger than the specified size threshold in a path.",
+      "capabilities": "fs_read",
+      "preview": "N/A"
+    },
+    {
+      "name": "file.update_metadata",
+      "required_parameters": ["path", "metadata"],
+      "optional_parameters": [],
+      "description": "Updates metadata for a file.",
+      "capabilities": "fs_write, db_write (if storing metadata)",
+      "preview": "required for bulk changes",
+      "undo": "previous metadata snapshot"
+    },
+    {
+      "name": "organize.by_rules",
+      "required_parameters": ["path", "rule_set_id"],
+      "optional_parameters": ["dry_run", "limit"],
+      "description": "Organizes files in a path based on predefined rules.",
+      "capabilities": "fs_read, fs_write",
+      "preview": "required (planned moves & rules applied)",
+      "undo": "support via snapshot/undo_info"
+    },
+    {
+      "name": "organize.apply_template",
+      "required_parameters": ["path", "template_name"],
+      "optional_parameters": ["dry_run"],
+      "description": "Applies an organization template to files in a path.",
+      "capabilities": "fs_write",
+      "preview": "required",
+      "undo": "support"
+    },
+    {
+      "name": "file.find_by_content",
+      "required_parameters": ["path", "query_text"],
+      "optional_parameters": ["top_k"],
+      "description": "Searches files by content in a path.",
+      "capabilities": "fs_read, ocr",
+      "preview": "returns matches & excerpts",
+      "undo": "N/A"
+    },
+    {
+      "name": "snapshot.create",
+      "required_parameters": ["paths"],
+      "optional_parameters": ["name", "retention_days"],
+      "description": "Creates a snapshot of specified paths for backup.",
+      "capabilities": "fs_read, object_store_write",
+      "preview": "estimated size/time",
+      "undo": "snapshot id (used to restore)"
+    },
+    {
+      "name": "snapshot.list",
+      "required_parameters": [],
+      "optional_parameters": ["path"],
+      "description": "Lists available snapshots.",
+      "capabilities": "db_read",
+      "preview": "list"
+    },
+    {
+      "name": "snapshot.restore",
+      "required_parameters": ["snapshot_id", "target_path"],
+      "optional_parameters": ["dry_run"],
+      "description": "Restores a snapshot to a target path.",
+      "capabilities": "object_store_read, fs_write",
+      "preview": "shows restore plan",
+      "undo": "create new snapshot of current state before restore"
+    },
+    {
+      "name": "snapshot.delete",
+      "required_parameters": ["snapshot_id"],
+      "optional_parameters": [],
+      "description": "Deletes a specified snapshot.",
+      "capabilities": "object_store_write",
+      "preview": "N/A",
+      "safety": "confirm_required"
+    },
+    {
+      "name": "ocr.extract_text",
+      "required_parameters": ["file_path"],
+      "optional_parameters": ["pages", "lang"],
+      "description": "Extracts text from images or PDFs using OCR.",
+      "capabilities": "ocr, fs_read",
+      "preview": "estimated pages & time",
+      "undo": "N/A (creates derived artifact in object store)"
+    },
+    {
+      "name": "parser.extract_metadata",
+      "required_parameters": ["file_path"],
+      "optional_parameters": ["type_hint"],
+      "description": "Extracts structured metadata (e.g., from invoices or receipts).",
+      "capabilities": "fs_read, ocr",
+      "preview": "N/A"
+    },
+    {
+      "name": "rag.index_file",
+      "required_parameters": ["file_path"],
+      "optional_parameters": ["chunk_size", "model", "user_id"],
+      "description": "Indexes a file for RAG semantic search.",
+      "capabilities": "fs_read, network (vector DB)",
+      "preview": "num chunks, token estimate, cost estimate",
+      "undo": "drop index entries"
+    },
+    {
+      "name": "rag.reindex_folder",
+      "required_parameters": ["path", "user_id"],
+      "optional_parameters": ["force"],
+      "description": "Reindexes all files in a folder for RAG.",
+      "capabilities": "fs_read, network",
+      "preview": "N/A"
+    },
+    {
+      "name": "search.semantic",
+      "required_parameters": ["query"],
+      "optional_parameters": ["top_k", "filters"],
+      "description": "Performs semantic search using embeddings.",
+      "capabilities": "network",
+      "preview": "N/A"
+    },
+    {
+      "name": "search.hybrid",
+      "required_parameters": ["query"],
+      "optional_parameters": ["top_k", "filters", "use_ft"],
+      "description": "Performs hybrid search (semantic + full-text).",
+      "capabilities": "network, search_index",
+      "preview": "N/A"
+    },
+    {
+      "name": "custom_search",
+      "required_parameters": ["query"],
+      "optional_parameters": ["num_results", "site_restrict"],
+      "description": "Performs a web search using Google Custom Search API.",
+      "capabilities": "network",
+      "preview": "search results summary",
+      "undo": "N/A"
+    },
+    {
+      "name": "task.create",
+      "required_parameters": ["title", "user_id"],
+      "optional_parameters": ["description", "due_date", "estimate_min", "related_files"],
+      "description": "Creates a new task.",
+      "capabilities": "db_write",
+      "preview": "summary"
+    },
+    {
+      "name": "task.update",
+      "required_parameters": ["task_id", "fields"],
+      "optional_parameters": [],
+      "description": "Updates an existing task.",
+      "capabilities": "db_write",
+      "undo": "previous snapshot in history"
+    },
+    {
+      "name": "task.list",
+      "required_parameters": ["user_id"],
+      "optional_parameters": ["status", "date_range"],
+      "description": "Lists tasks for a user.",
+      "capabilities": "db_read",
+      "preview": "N/A"
+    },
+    {
+      "name": "task.mark_complete",
+      "required_parameters": ["task_id"],
+      "optional_parameters": ["completed_at"],
+      "description": "Marks a task as complete.",
+      "capabilities": "db_write",
+      "undo": "reopen action (if within policy)"
+    },
+    {
+      "name": "task.auto_reschedule",
+      "required_parameters": ["task_id"],
+      "optional_parameters": ["reason", "heuristic"],
+      "description": "Automatically reschedules a task.",
+      "capabilities": "db_write, calendar_write (if adding slots)",
+      "preview": "new schedule recommended",
+      "safety": "confirm_required: true"
+    },
+    {
+      "name": "calendar.create_event",
+      "required_parameters": ["calendar_id", "title", "start", "end"],
+      "optional_parameters": ["attendees", "location"],
+      "description": "Creates a calendar event.",
+      "capabilities": "calendar_write, network",
+      "preview": "required for mass invites"
+    },
+    {
+      "name": "task.deadline_checkin",
+      "required_parameters": ["task_id"],
+      "optional_parameters": [],
+      "description": "Checks in on a task deadline and prompts for status.",
+      "capabilities": "notification, db_write",
+      "preview": "N/A"
+    },
+    {
+      "name": "email.fetch_recent",
+      "required_parameters": ["user_id"],
+      "optional_parameters": ["n", "filters"],
+      "description": "Fetches recent emails for a user.",
+      "capabilities": "email_read",
+      "preview": "summary"
+    },
+    {
+      "name": "email.triage",
+      "required_parameters": ["user_id"],
+      "optional_parameters": ["days"],
+      "description": "Triages emails and suggests actions.",
+      "capabilities": "email_read, db_write (to create tasks)",
+      "preview": "N/A"
+    },
+    {
+      "name": "email.draft_reply",
+      "required_parameters": ["email_id"],
+      "optional_parameters": ["tone", "length"],
+      "description": "Drafts a reply to an email.",
+      "capabilities": "email_read",
+      "preview": "N/A"
+    },
+    {
+      "name": "focus.start_session",
+      "required_parameters": ["user_id", "duration_min"],
+      "optional_parameters": ["block_list", "allow_emergency"],
+      "description": "Starts a focus session with app/url blocking.",
+      "capabilities": "system_control (app kill, hosts file / firewall rules), notification",
+      "preview": "blocked items list & expected end time",
+      "undo": "end session"
+    },
+    {
+      "name": "focus.end_session",
+      "required_parameters": ["session_id"],
+      "optional_parameters": [],
+      "description": "Ends a focus session.",
+      "capabilities": "system_control",
+      "preview": "session summary and distractions log"
+    },
+    {
+      "name": "focus.log_distraction",
+      "required_parameters": ["session_id"],
+      "optional_parameters": ["app", "url", "ts"],
+      "description": "Logs a distraction during a focus session.",
+      "capabilities": "db_write",
+      "preview": "N/A"
+    },
+    {
+      "name": "expenses.process_folder",
+      "required_parameters": ["path", "user_id"],
+      "optional_parameters": ["currency", "dry_run"],
+      "description": "Processes receipts in a folder to create expense entries.",
+      "capabilities": "ocr, fs_read, db_write",
+      "preview": "list of receipts, totals, suggested categories",
+      "undo": "delete created expense drafts"
+    },
+    {
+      "name": "expenses.create_report",
+      "required_parameters": ["expense_ids"],
+      "optional_parameters": ["format", "approver_email"],
+      "description": "Creates an expense report.",
+      "capabilities": "db_read, email_send (needs approval)",
+      "preview": "report draft"
+    },
+    {
+      "name": "expenses.submit",
+      "required_parameters": ["report_id"],
+      "optional_parameters": [],
+      "description": "Submits an expense report.",
+      "capabilities": "email_send",
+      "safety": "confirm_required"
+    },
+    {
+      "name": "meeting.start_recording",
+      "required_parameters": ["meeting_id", "user_id"],
+      "optional_parameters": [],
+      "description": "Starts recording a meeting.",
+      "capabilities": "audio_record (local file)",
+      "preview": "N/A"
+    },
+    {
+      "name": "meeting.transcribe",
+      "required_parameters": ["recording_id"],
+      "optional_parameters": ["model"],
+      "description": "Transcribes a meeting recording.",
+      "capabilities": "network (ASR), object_store_read",
+      "preview": "duration & cost estimate"
+    },
+    {
+      "name": "meeting.extract_actions",
+      "required_parameters": ["transcript_id"],
+      "optional_parameters": [],
+      "description": "Extracts action items from a meeting transcript.",
+      "capabilities": "nlp, db_write",
+      "preview": "N/A"
+    },
+    {
+      "name": "rules.create",
+      "required_parameters": ["user_id", "name", "trigger", "actions"],
+      "optional_parameters": ["enabled"],
+      "description": "Creates a new automation rule.",
+      "capabilities": "db_write",
+      "preview": "simulation on sample events"
+    },
+    {
+      "name": "rules.simulate",
+      "required_parameters": ["rule_id", "sample_event"],
+      "optional_parameters": [],
+      "description": "Simulates running a rule on a sample event.",
+      "capabilities": "db_read",
+      "preview": "result of simulation"
+    },
+    {
+      "name": "rules.run",
+      "required_parameters": ["rule_id", "event_payload"],
+      "optional_parameters": [],
+      "description": "Runs a specified rule on an event.",
+      "capabilities": "db_read, operations capabilities used by actions",
+      "safety": "confirm if rule performs destructive ops (first-run)"
+    },
+    {
+      "name": "system.run_command_sandboxed",
+      "required_parameters": ["cmd"],
+      "optional_parameters": ["cwd", "timeout", "dry_run"],
+      "description": "Runs a command in a sandboxed environment.",
+      "capabilities": "system_control",
+      "preview": "command + environment variables (no execution)",
+      "safety": "confirm_required"
+    },
+    {
+      "name": "file.preview_changes",
+      "required_parameters": ["steps"],
+      "optional_parameters": [],
+      "description": "Previews changes from a series of file operations.",
+      "capabilities": "N/A",
+      "preview": "unified human-readable diff & totals"
+    },
+    {
+      "name": "audit.log_query",
+      "required_parameters": ["user_id"],
+      "optional_parameters": ["date_range", "limit"],
+      "description": "Queries audit logs for operations.",
+      "capabilities": "db_read",
+      "preview": "recent ops + undo availability"
+    },
+    {
+      "name": "undo.last_operation",
+      "required_parameters": ["operation_id"],
+      "optional_parameters": [],
+      "description": "Undoes the last operation if possible.",
+      "capabilities": "depends on op being reversed (fs_write etc.)",
+      "safety": "grave caution — confirm_required"
+    },
+    {
+      "name": "kb.create_entry",
+      "required_parameters": ["user_id", "title", "content_md"],
+      "optional_parameters": ["tags", "references"],
+      "description": "Creates a new knowledge base entry.",
+      "capabilities": "db_write, network (if indexing)",
+      "preview": "show generated snippet"
+    },
+    {
+      "name": "kb.search",
+      "required_parameters": ["query"],
+      "optional_parameters": ["top_k", "filters"],
+      "description": "Searches the knowledge base.",
+      "capabilities": "network",
+      "preview": "relevant KB entries"
+    },
+    {
+      "name": "autofill.fill_form",
+      "required_parameters": ["form_url"],
+      "optional_parameters": ["profile_id", "pause_before_submit"],
+      "description": "Autofills a form using profile data.",
+      "capabilities": "browser_automation, network, system_control",
+      "preview": "filled fields shown to user",
+      "safety": "confirm before actual submit"
+    },
+    {
+      "name": "maintenance.cleanup_temp",
+      "required_parameters": ["path"],
+      "optional_parameters": ["older_than_days", "dry_run"],
+      "description": "Cleans up temporary files older than specified days.",
+      "capabilities": "fs_write, fs_read",
+      "preview": "N/A",
+      "undo": "via snapshot/trash"
+    },
+    {
+      "name": "monitor.list_processes",
+      "required_parameters": [],
+      "optional_parameters": ["filters"],
+      "description": "Lists running processes.",
+      "capabilities": "system_read",
+      "preview": "N/A"
+    },
+    {
+      "name": "monitor.kill_process",
+      "required_parameters": ["pid"],
+      "optional_parameters": ["force"],
+      "description": "Kills a running process.",
+      "capabilities": "system_control",
+      "safety": "confirm_required"
+    }
+  ]
 }

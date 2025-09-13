@@ -16,11 +16,9 @@ from google.oauth2.credentials import Credentials
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ------------------ Shared Functions from send_email.py ------------------
 
 def get_gmail_service(project_root: Optional[str] = None):
     """Authenticate with Gmail API and return a service object."""
@@ -88,7 +86,6 @@ def find_email_in_kb(name: str, project_root: Optional[str] = None) -> Optional[
     except Exception:
         pass
 
-    # Search in short-term memory
     short_term_dir = os.path.join(memory_dir, "short_term")
     if os.path.exists(short_term_dir):
         for file in os.listdir(short_term_dir):
@@ -150,7 +147,6 @@ def load_user_profile(project_root: str) -> dict:
     }
 
 
-# ------------------ Email Retrieval Functions ------------------
 
 def _get_header(headers, name):
     """Gets a specific header value from a list of email headers."""
@@ -332,7 +328,6 @@ def generate_reply_with_fallback(original_email: Dict, description: str, project
                 logger.warning(f"❌ Unknown error on LLM {i+1}: {error_msg}")
                 continue
     
-    # If all LLMs failed, return a basic reply
     logger.error("❌ All LLMs failed! Returning basic reply.")
     print("⚠️ Warning: Unable to generate AI reply due to API issues. Using basic template.")
     return f"Thank you for your email regarding '{original_email.get('subject', 'your message')}'. {description}"

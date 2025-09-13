@@ -133,6 +133,3 @@ def retrieveMails(max_results=10):
     except HttpError as error:
         print(f"❌ An error occurred while retrieving emails: {error}")
         return []
-
-
-retrieveMails()
