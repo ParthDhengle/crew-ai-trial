@@ -19,9 +19,10 @@ dependencies = [
     "langchain>=0.3.4",
     "faiss-cpu>=1.9.0",
     "sentence-transformers>=3.2.1",
-    "google-generativeai>=0.8.3",  # For Gemini
+    "google-generativeai>=0.8.3",
     "google-auth>=2.35.0",
     "google-auth-oauthlib>=1.2.1",
+    "google-api-python-client>=2.149.0",  # Added for Custom Search API
     "pyautogui",
     "json5>=0.9.25",
     "firebase_admin",
