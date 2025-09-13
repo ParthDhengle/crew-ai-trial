@@ -134,5 +134,3 @@ def retrieveMails(max_results=10):
         print(f"❌ An error occurred while retrieving emails: {error}")
         return []
 
-
-retrieveMails()

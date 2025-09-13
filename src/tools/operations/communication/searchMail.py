@@ -290,5 +290,3 @@ def searchMail(keyword: str, limit=None) -> Tuple[bool, str]:
         logger.error(f"❌ Error in searchMail: {e}")
         return False, f"❌ Error searching emails: {str(e)}"
     
-    
-print(searchMail("Manoj"))
