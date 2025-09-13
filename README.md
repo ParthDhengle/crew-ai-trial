@@ -172,7 +172,6 @@ This project now uses Firebase Firestore for metadata (user profiles, tasks, pro
 1. **Install Dependencies**:
    ```bash
    pip install firebase-admin
-   pip install langchain_huggingface
    ```
 
 step 1: clone

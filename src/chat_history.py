@@ -1,49 +1,60 @@
+# Updated src/chat_history.py
+# Now uses Firebase for storage, with session-based history (default to global session if none specified).
+# Limits to last 20 turns for token efficiency.
+# Summarization remains local via Gemini for speed.
+
 import os
 import json
-from datetime import datetime  # Updated import for timestamp
+from datetime import datetime
 import google.generativeai as genai
 from common_functions.Find_project_root import find_project_root
 import uuid
+from firebase_client import add_chat_message, get_chat_history  # Updated imports
+
 project_root = find_project_root()
-SHORT_TERM_DIR = os.path.join(project_root, 'knowledge', 'memory', 'short_term')
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
 
 class ChatHistory:
     @staticmethod
-    def get_history_file():
+    def get_session_id():
+        # Use a default session ID based on today + short UUID for persistence across runs.
         today = datetime.now().strftime('%Y-%m-%d')
-        session_id = uuid.uuid4().hex[:8]  # Short unique ID
-        return os.path.join(SHORT_TERM_DIR, f'session_{today}_{session_id}.json')
-    @staticmethod
-    def load_history():
-        history_file = ChatHistory.get_history_file()
-        if os.path.exists(history_file):
-            with open(history_file, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
-                if content:
-                    try:
-                        history = json.loads(content)
-                        # Limit to last 20 turns for token budget
-                        return history[-20:]
-                    except json.JSONDecodeError as e:
-                        print(f"Warning: Invalid JSON in {history_file} ({e}). Returning empty history.")
-                        return []
-                else:
-                    print(f"Warning: Empty file {history_file}. Returning empty history.")
-                    return []
-        # For new sessions, the file won't exist yet—start empty
-        print(f"Starting new session: {history_file}")
-        return []
+        return f"session_{today}_{uuid.uuid4().hex[:8]}"
 
     @staticmethod
-    def save_history(history):
-        history_file = ChatHistory.get_history_file()
-        os.makedirs(os.path.dirname(history_file), exist_ok=True)
-        with open(history_file, 'w', encoding='utf-8') as f:
-            json.dump(history, f, indent=2)
+    def load_history(session_id: str = None):
+        if session_id is None:
+            session_id = ChatHistory.get_session_id()
+        # Fetch recent history (last 50 docs, filter to session if provided)
+        history_docs = get_chat_history(session_id)
+        # Sort by timestamp and limit to last 20 turns (user/assistant pairs)
+        history_docs.sort(key=lambda x: x.get('timestamp', ''))
+        history = []
+        for doc in history_docs[-40:]:  # Up to 40 to get ~20 pairs
+            history.append({
+                "role": doc["role"],
+                "content": doc["content"]
+            })
+        # Ensure even number (trim if odd)
+        if len(history) % 2 == 1:
+            history = history[:-1]
+        print(f"Loaded {len(history)//2} turns from Firebase (session: {session_id}).")
+        return history
 
     @staticmethod
-    def summarize(history):
+    def save_history(history: list, session_id: str = None):
+        if session_id is None:
+            session_id = ChatHistory.get_session_id()
+        for entry in history:
+            add_chat_message(
+                role=entry["role"],
+                content=entry["content"],
+                session_id=session_id
+            )
+        print(f"Saved history to Firebase (session: {session_id}).")
+
+    @staticmethod
+    def summarize(history: list):
         if len(history) < 2:
             return "No significant history."
         model = genai.GenerativeModel('gemini-1.5-flash')

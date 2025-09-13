@@ -1,48 +1,23 @@
+# Updated src/config/tasks.yaml
+# Refined: Updated descriptions; removed obsolete tasks.
 classify_query:
   description: |
-    Classify the query as 'direct' (simple response, no operations) or 'agentic' (needs operations/planning). 
-    For 'direct': required_operations empty, KB for context (user profile from Firestore, history).
-    For 'agentic': list relevant operation names (inclusive, e.g., task.create, snapshot.create).
-    required_kb: minimal from ['short_term', 'long_term', 'narrative'] (long_term uses FAISS+Firestore, narrative from summaries).
-    Output JSON: {"mode": "direct" or "agentic", "required_operations": [...], "required_kb": [...]}. Use available ops only.
-    Query: {user_query} Available ops: {op_names} Profile: {user_profile}
-  expected_output: "JSON string."
+    Inputs: Query: {user_query} | File (if any): {file_content} | History: {full_history} | Profile: {user_profile} | Available ops: {op_names}
+    Classify: 'direct' (simple aid, no ops) or 'agentic' (needs ops execution).
+    For direct: Provide full, accurate direct_response using context.
+    For agentic: Generate ordered operations [ {{"name": "op1", "parameters": {{"param": "value"}} }} , ... ] (use available ops, plan logical flow). Summarize intent: user_summarized_requirements (detailed, from history/profile/query/file).
+    Output STRICT JSON only: {{"mode": "agentic|direct", "operations": [ ... ], "user_summarized_requirements": "..." }} or {{"mode": "direct", "direct_response": "..." }}. No extra text.
+  expected_output: "Strict JSON object."
   agent: classifier
-
-generate_direct_response:
-  description: |
-    Generate helpful response using query and KB (Firestore for user profile/tasks, FAISS for long-term, Firestore summaries for narrative).
-    Query: {user_query}
-    KB: {kb_context}
-  expected_output: "Response string."
-  agent: direct_responder
-
-plan_execution:
-  description: |
-    Create JSON plan: {"plan": [{"name": "...", "parameters": {...}}]}. 
-    Use required ops (e.g., task.create saves to Firestore, snapshot.create uses Storage, rag.index_file updates FAISS).
-    If incomplete, add "error": "...".
-    Query: {user_query} KB: {kb_context} Ops: {required_operations}
-    Output strict JSON.
-  expected_output: "JSON plan."
-  agent: planner
 
 synthesize_response:
   description: |
-    Synthesize results: Operations Summary (from {op_results}), Key Outputs, Next Steps, Recommendations.
-    Use KB for context (Firestore for user profile/tasks/summaries, FAISS for long-term).
-    Query: {user_query} KB: {kb_context} Results: {op_results}
-  expected_output: "Response string."
+    User Requirements: {user_summarized_requirements}
+    Operation Results: {op_results}
+    Synthesize: display_response (coherent final answer, mention ops e.g., "Performed web_search + create_task: [results]"), extracted_fact (list of 1-3 short, structured facts for KB, e.g., [ "New task: Buy milk due 2025-09-14" ]).
+    Output STRICT JSON only: {{"display_response": "...", "extracted_fact": [ "fact1", ... ] }}. No extra text.
+  expected_output: "Strict JSON object."
   agent: synthesizer
-
-extract_memory:
-  description: |
-    Extract facts/tasks/projects/moods from interaction for Firestore (knowledge_base, tasks, projects, mood_logs) and FAISS update.
-    JSON: {"facts": [...], "tasks": [...], "projects": [...], "mood": "..."}.
-    Interaction: {interaction}
-  expected_output: "JSON."
-  agent: memory_extractor
-
 summarize_history:
   description: |
     Summarize history concisely (100-300 tokens): {full_history}
