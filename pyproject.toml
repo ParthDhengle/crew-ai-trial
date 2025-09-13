@@ -39,5 +39,8 @@ ui = "agent_demo.main:run_ui"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_demo"]
+
 [tool.crewai]
 type = "crew"
