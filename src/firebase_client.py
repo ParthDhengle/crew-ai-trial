@@ -60,6 +60,42 @@ def query_collection(collection: str, filters: list = None, limit: int = None, s
         query = query.limit(limit)
     return [doc.to_dict() for doc in query.stream()]
 
+def get_operations() -> list:
+    """Get operations from Firestore (or fallback to json)."""
+    ops = query_collection("operations", subcollection=False)  # Assumes top-level collection
+    if ops:
+        return ops  # List of dicts like operations.json
+    # Fallback to json
+    ops_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.json")
+    if os.path.exists(ops_path):
+        with open(ops_path, "r") as f:
+            return json.load(f).get("operations", [])
+    return []
+
+def add_operation(name: str, params: dict, description: str) -> str:
+    """Add op to Firestore (for future dynamic ops)."""
+    data = {"name": name, "required_parameters": params.get("required", []), "optional_parameters": params.get("optional", []), "description": description}
+    return add_document("operations", data, subcollection=False)
+
+def get_chat_history(session_id: str = None) -> list:
+    """Get chat history docs, optionally filtered by session_id."""
+    filters = [("session_id", "==", session_id)] if session_id else None
+    docs = query_collection("chat_history", filters=filters, limit=50)
+    # Sort by timestamp
+    docs.sort(key=lambda x: x.get('timestamp', ''))
+    return docs
+
+def add_chat_message(role: str, content: str, session_id: str = None) -> str:
+    """Add a message to chat_history collection."""
+    data = {
+        "role": role,
+        "content": content,
+        "timestamp": datetime.now().isoformat()
+    }
+    if session_id:
+        data["session_id"] = session_id
+    return add_document("chat_history", data)
+
 def delete_document(collection: str, doc_id: str, subcollection: bool = True) -> bool:
     """Delete doc."""
     try:

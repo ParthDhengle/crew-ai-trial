@@ -72,7 +72,8 @@ def validate_environment():
         print(f"❌ Firebase error: {e}")
         return False
 
-def run_single_query(user_query=None):
+
+def run_single_query(user_query=None, file_path=None, session_id=None):
     if not validate_environment():
         return False
     profile = load_or_create_profile()
@@ -85,16 +86,25 @@ def run_single_query(user_query=None):
         return True
     if not user_query:
         return True
-    print(f"\n🔍 Processing: '{user_query}' (Profile: {profile.get('Name', 'Unknown')})")
+    print(f"\n🔍 Processing: '{user_query}'" + (f" [File: {file_path}]" if file_path else "") + f" (Profile: {profile.get('Name', 'Unknown')})")
     try:
         crew_instance = AiAgent()
-        final_response = crew_instance.run_workflow(user_query)
+        final_response = crew_instance.run_workflow(user_query, file_path, session_id)
         print(final_response)
         return True
     except Exception as e:
         print(f"❌ Error: {e}")
         traceback.print_exc()
         return True
+
+def run():
+    if len(sys.argv) > 1:
+        query = " ".join(sys.argv[1:-2]).strip('"') if len(sys.argv) > 3 else " ".join(sys.argv[1:]).strip('"')
+        file_path = sys.argv[-1] if len(sys.argv) > 2 and os.path.isfile(sys.argv[-1]) else None
+        run_single_query(query, file_path)
+    else:
+        run_interactive()
+
 
 def run_interactive():
     display_welcome()
@@ -105,12 +115,6 @@ def run_interactive():
     except KeyboardInterrupt:
         print("\n👋 Goodbye!")
 
-def run():
-    if len(sys.argv) > 1:
-        query = " ".join(sys.argv[1:]).strip('"')
-        run_single_query(query)
-    else:
-        run_interactive()
 
 def train():
     # Unchanged
