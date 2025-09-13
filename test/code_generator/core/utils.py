@@ -42,5 +42,8 @@ def choose_model(est_size):
     """
     Selects model based on estimated size/complexity for cost optimization.
     Using gemini-1.5-flash for tiny/small, gemini-1.5-pro for medium/large.
-    """    
-    return "gemini-1.5-flash"
+    """
+    if est_size in ["tiny", "small"]:
+        return "gemini-1.5-flash"  # Cheap
+    else:
+        return "gemini-1.5-pro"  # Stronger for medium/large

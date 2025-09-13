@@ -50,7 +50,7 @@ Based on the request, create a detailed project plan in strict JSON format match
 Output only the JSON, no extra text.
     """
     # Use cheap model for planning to save costs
-    response = llm_call(prompt, model="gpt-3.5-turbo", max_tokens=1500)
+    response = llm_call(prompt, model="gemini-1.5-flash", max_tokens=1500)
     try:
         plan = json.loads(response)
         return plan

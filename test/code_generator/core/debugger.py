@@ -35,7 +35,7 @@ Output strict JSON:
 No extra text.
     """
     # Use strong model for complex debugging
-    response = llm_call(prompt, model="gpt-4", max_tokens=4000)
+    response = llm_call(prompt, model="gemini-1.5-pro", max_tokens=4000)
     try:
         edits = json.loads(response)
         return edits
