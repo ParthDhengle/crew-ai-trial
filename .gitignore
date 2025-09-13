@@ -13,9 +13,9 @@ aliases.json
 models--openai--whisper-medium
 node_modules/
 lock.json
-uv.lock
-test
 
+test
+uv.lock
 Project Overview 1 NOVA.pdf
 # Ignore everything in short_term
 knowledge/memory/short_term/*
