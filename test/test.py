@@ -22,3 +22,8 @@ def run_command(command: str):
         return {"success": True, "output": result.stdout.strip(), "error": ""}
     except subprocess.CalledProcessError as e:
         return {"success": False, "output": e.stdout.strip(), "error": e.stderr.strip()}
+
+
+response = run_command("echo > sample.cpp")
+response = run_command("echo \"#include <iostream>\nusing namespace std;\nint main() {\n    cout << \\\"Hello from C++!\\\" << endl;\n    return 0;\n}\" > sample.cpp")
+print(response)

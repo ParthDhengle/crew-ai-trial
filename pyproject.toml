@@ -23,7 +23,9 @@ dependencies = [
     "google-auth>=2.35.0",
     "google-auth-oauthlib>=1.2.1",
     "pyautogui",
-    "json5>=0.9.25"
+    "json5>=0.9.25",
+    "firebase_admin",
+    "langchain_huggingface"
 ]
 
 [project.scripts]

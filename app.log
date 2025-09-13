@@ -1,0 +1,10 @@
+2025-09-14 00:29:19 - AIAssistant - INFO - Starting AI Assistant
+2025-09-14 00:29:19 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-14 00:29:19 - AIAssistant - INFO - Displayed welcome message
+2025-09-14 00:29:19 - AIAssistant - INFO - Processing single query: None
+2025-09-14 00:29:19 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-14 00:29:20 - AIAssistant - INFO - Firebase connected successfully
+2025-09-14 00:29:20 - AIAssistant - INFO - Loading or creating user profile
+2025-09-14 00:29:20 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Grow career skills", "integrations": {"email": "parthdhengle12@gmail.com"}, "Productive Time": "Morning", "updated_at": "2025-09-11T17:04:07.698024", "focus_hours": ["Morning"], "Mood Check": "Daily", "name": "Parth", "Name": "Parth Dhengle", "AI Tone": "Motivational", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "IST", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-14 00:30:08 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-14 00:30:08 - AIAssistant - INFO - User requested to quit
