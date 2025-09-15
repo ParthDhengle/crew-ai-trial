@@ -475,5 +475,6 @@
       "capabilities": "system_control",
       "safety": "confirm_required"
     }
+    
   ]
 }
