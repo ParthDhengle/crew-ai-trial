@@ -6,6 +6,15 @@ from datetime import datetime
 import warnings
 import json
 import requests
+from dotenv import load_dotenv
+
+# Load .env file from project root
+env_path = r"C:\Users\soham\OneDrive\Desktop\crew-ai-trial\.env"
+if not os.path.exists(env_path):
+    print(f"Error: .env file not found at {env_path}")
+    sys.exit(1)
+load_dotenv(env_path)
+print(f"Loaded .env file from {env_path}")
 
 # Suppress syntax warnings from PBI_dashboard_creator
 warnings.filterwarnings("ignore", category=SyntaxWarning)
@@ -94,6 +103,13 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         tuple[bool, str]: (success, result message or error)
     """
     try:
+        # Verify API keys
+        grok_api_key = os.getenv("GROQ_API_KEY1")
+        gemini_api_key = os.getenv("GEMINI_API_KEY1")
+        if not grok_api_key and not gemini_api_key:
+            logger.error(f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}.")
+            return False, f"Error: No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}."
+
         # Resolve CSV path
         csv_path = os.path.abspath(os.path.join(PROJECT_ROOT, csv_file)) if not os.path.isabs(csv_file) else csv_file
         if not os.path.exists(csv_path):
@@ -148,9 +164,6 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         
         # Call LLM (Grok first, Gemini fallback)
         response = None
-        grok_api_key = os.getenv("GROQ_API_KEY1")
-        gemini_api_key = os.getenv("GEMINI_API_KEY1")
-        
         if grok_api_key:
             response = call_grok(prompt, grok_api_key)
         if not response and gemini_api_key:
@@ -253,9 +266,11 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         return False, f"Error: {str(e)}"
 
 if __name__ == "__main__":
-    # Ensure environment variables are set
-    if not os.getenv("GROQ_API_KEY1") and not os.getenv("GEMINI_API_KEY1"):
-        print("Error: Please set GROQ_API_KEY1 or GEMINI_API_KEY1 environment variable.")
+    # Ensure environment variables are loaded
+    grok_api_key = os.getenv("GROQ_API_KEY1")
+    gemini_api_key = os.getenv("GEMINI_API_KEY1")
+    if not grok_api_key and not gemini_api_key:
+        print(f"Error: Please set GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}.")
         sys.exit(1)
     
     # Example usage
