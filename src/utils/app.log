@@ -6,3 +6,282 @@
 2025-09-16 00:26:37 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
 2025-09-16 00:29:05 - AIAssistant - INFO - Received API query: where is india
 2025-09-16 00:29:20 - AIAssistant - DEBUG - API response for query 'where is india': India is a country located in South Asia. It is the seventh-largest country by land area and the second-most populous country in the world. India is bounded by the Indian Ocean to the south, the Arabian Sea to the west, and the Bay of Bengal to the east. It shares borders with several countries, including Pakistan to the west, China and Nepal to the north, Bhutan to the northeast, and Bangladesh and Myanmar to the east. The capital of India is New Delhi, and the country has a diverse range of cultures, languages, and landscapes.
+2025-09-16 12:17:43 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 12:17:43 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 12:17:43 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 12:17:43 - AIAssistant - INFO - Processing single query: None
+2025-09-16 12:17:43 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 12:17:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 12:17:44 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 12:17:44 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 12:17:58 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 12:17:58 - AIAssistant - INFO - User requested to quit
+2025-09-16 12:23:27 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 12:23:27 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 12:23:27 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 12:23:27 - AIAssistant - INFO - Processing single query: None
+2025-09-16 12:23:27 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 12:23:28 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 12:23:28 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 12:23:28 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 12:25:54 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 12:25:54 - AIAssistant - INFO - User requested to quit
+2025-09-16 12:26:20 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 12:26:20 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 12:26:20 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 12:26:20 - AIAssistant - INFO - Processing single query: None
+2025-09-16 12:26:20 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 12:26:21 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 12:26:21 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 12:26:21 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 12:28:44 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-16 12:28:44 - AIAssistant - ERROR - No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in C:\Users\ASUS\OneDrive\Desktop\everything\parth\.env.
+2025-09-16 12:31:02 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-16 12:31:02 - AIAssistant - ERROR - No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in C:\Users\ASUS\OneDrive\Desktop\everything\parth\.env.
+2025-09-16 12:31:42 - AIAssistant - INFO - Received API query: where is india
+2025-09-16 12:31:56 - AIAssistant - ERROR - Error processing query 'where is india': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-16 12:40:57 - AIAssistant - INFO - Received API query: where is india
+2025-09-16 12:41:05 - AIAssistant - DEBUG - API response for query 'where is india': India is a country located in South Asia. It is the seventh-largest country by land area and the second-most populous country in the world. India is bounded by the Indian Ocean to the south, the Arabian Sea to the west, and the Bay of Bengal to the east. It shares its land borders with Pakistan to the west, China, Nepal, and Bhutan to the north, and Bangladesh and Myanmar to the east. The capital of India is New Delhi.
+2025-09-16 12:41:27 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-16 12:41:27 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\ASUS\AppData\Local\Temp\tmpfdvp_ohd.csv with query: Create suitable visuals from my data.
+2025-09-16 12:41:27 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-16 12:41:27 - AIAssistant - DEBUG - CSV columns: ['User ID', 'Username', 'Platform', 'Post ID', 'Post Text', 'Post Timestamp', 'Likes/Reactions', 'Comments', 'Shares/Retweets', 'Hashtags', 'Mentions', 'Media Type', 'Media URL', 'Post URL', 'Location', 'Privacy Settings', 'User Followers', 'User Following', 'Account Creation Date', 'Account Verification', 'User Engagement', 'User Interactions', 'User Activity', 'User Bio', 'User Description 1', 'User Description 2', 'Server Post', 'User Language'], Sample data: [{'User ID': 101, 'Username': '@adventureSeeker', 'Platform': 'Instagram', 'Post ID': 82036, 'Post Text': '"Experiencing the thrill of a lifetime! #AdventureTime"', 'Post Timestamp': '30-07-2023 14:45', 'Likes/Reactions': 1500, 'Comments': 250, 'Shares/Retweets': 120, 'Hashtags': '#AdventureTime', 'Mentions': nan, 'Media Type': 'Image', 'Media URL': 'http://example.com/adventure.jpg', 'Post URL': 'http://instagram.com/adventureSeeker/82036', 'Location': 'Yosemite National Park', 'Privacy Settings': 'Public', 'User Followers': 15000, 'User Following': 500, 'Account Creation Date': '10-05-2019', 'Account Verification': 'Verified', 'User Engagement': 1870, 'User Interactions': 15700, 'User Activity': '3 posts per week', 'User Bio': 'Adventure enthusiast', 'User Description 1': 'Nature lover', 'User Description 2': 'Seeker of wanderlust ??', 'Server Post': 'California, USA', 'User Language': 'English'}, {'User ID': 215, 'Username': '@foodieTraveler', 'Platform': 'Twitter', 'Post ID': 12463, 'Post Text': '"Indulging in local delicacies! #FoodieTravels"', 'Post Timestamp': '30-07-2023 19:30', 'Likes/Reactions': 850, 'Comments': 70, 'Shares/Retweets': 50, 'Hashtags': '#FoodieTravels', 'Mentions': nan, 'Media Type': 'Text', 'Media URL': nan, 'Post URL': 'http://twitter.com/foodieTraveler/12463', 'Location': 'Bangkok, Thailand', 'Privacy Settings': 'Public', 'User Followers': 8000, 'User Following': 300, 'Account Creation Date': '15-09-2017', 'Account Verification': 'Not verified', 'User Engagement': 970, 'User Interactions': 8300, 'User Activity': '5 posts per week', 'User Bio': 'Culinary explorer', 'User Description 1': 'Street food connoisseur', 'User Description 2': 'Travel addict ??', 'Server Post': 'London, UK', 'User Language': 'English'}, {'User ID': 303, 'Username': '@wellnessJourney', 'Platform': 'Facebook', 'Post ID': 45982, 'Post Text': '"Finding peace and balance in nature!', 'Post Timestamp': '30-07-2023 08:15', 'Likes/Reactions': 680, 'Comments': 80, 'Shares/Retweets': 40, 'Hashtags': '#WellnessJourney', 'Mentions': nan, 'Media Type': 'Image', 'Media URL': 'http://example.com/wellness.jpg', 'Post URL': 'http://facebook.com/wellnessJourney/45982', 'Location': 'Bali, Indonesia', 'Privacy Settings': 'Public', 'User Followers': 6000, 'User Following': 200, 'Account Creation Date': '02-03-2020', 'Account Verification': 'Not verified', 'User Engagement': 800, 'User Interactions': 6200, 'User Activity': '2 posts per week', 'User Bio': 'Wellness enthusiast', 'User Description 1': 'Yogi in training', 'User Description 2': 'Mindfulness advocate', 'Server Post': 'San Francisco, USA', 'User Language': 'English'}]
+2025-09-16 12:41:27 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-16 12:41:27 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:41:28 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:41:28 - AIAssistant - INFO - Attempting LLM call #2
+2025-09-16 12:41:28 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:41:28 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:41:28 - AIAssistant - INFO - Attempting LLM call #3
+2025-09-16 12:41:28 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:41:29 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:41:29 - AIAssistant - WARNING - LLM parsing failed after all retries. Using fallback configuration.
+2025-09-16 12:41:29 - AIAssistant - INFO - Creating fallback dashboard configuration
+2025-09-16 12:41:29 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'User ID', 'y_field': 'Username', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['Post Timestamp', 'Account Creation Date', 'User ID', 'Username']}
+2025-09-16 12:41:29 - AIAssistant - INFO - Creating dashboard files manually
+2025-09-16 12:41:29 - AIAssistant - INFO - Dashboard files created at: C:\Users\ASUS\AppData\Local\Temp\powerbi_dashboard_1w1qpag8\auto_dashboard_20250916_124129
+Dashboard directory opened. Check README.md for details.
+2025-09-16 12:47:46 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-16 12:47:46 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\ASUS\AppData\Local\Temp\tmpvl72o9fz.csv with query: Create suitable visuals from my data.
+2025-09-16 12:47:46 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-16 12:47:46 - AIAssistant - DEBUG - CSV columns: ['User ID', 'Username', 'Platform', 'Post ID', 'Post Text', 'Post Timestamp', 'Likes/Reactions', 'Comments', 'Shares/Retweets', 'Hashtags', 'Mentions', 'Media Type', 'Media URL', 'Post URL', 'Location', 'Privacy Settings', 'User Followers', 'User Following', 'Account Creation Date', 'Account Verification', 'User Engagement', 'User Interactions', 'User Activity', 'User Bio', 'User Description 1', 'User Description 2', 'Server Post', 'User Language'], Sample data: [{'User ID': 101, 'Username': '@adventureSeeker', 'Platform': 'Instagram', 'Post ID': 82036, 'Post Text': '"Experiencing the thrill of a lifetime! #AdventureTime"', 'Post Timestamp': '30-07-2023 14:45', 'Likes/Reactions': 1500, 'Comments': 250, 'Shares/Retweets': 120, 'Hashtags': '#AdventureTime', 'Mentions': nan, 'Media Type': 'Image', 'Media URL': 'http://example.com/adventure.jpg', 'Post URL': 'http://instagram.com/adventureSeeker/82036', 'Location': 'Yosemite National Park', 'Privacy Settings': 'Public', 'User Followers': 15000, 'User Following': 500, 'Account Creation Date': '10-05-2019', 'Account Verification': 'Verified', 'User Engagement': 1870, 'User Interactions': 15700, 'User Activity': '3 posts per week', 'User Bio': 'Adventure enthusiast', 'User Description 1': 'Nature lover', 'User Description 2': 'Seeker of wanderlust ??', 'Server Post': 'California, USA', 'User Language': 'English'}, {'User ID': 215, 'Username': '@foodieTraveler', 'Platform': 'Twitter', 'Post ID': 12463, 'Post Text': '"Indulging in local delicacies! #FoodieTravels"', 'Post Timestamp': '30-07-2023 19:30', 'Likes/Reactions': 850, 'Comments': 70, 'Shares/Retweets': 50, 'Hashtags': '#FoodieTravels', 'Mentions': nan, 'Media Type': 'Text', 'Media URL': nan, 'Post URL': 'http://twitter.com/foodieTraveler/12463', 'Location': 'Bangkok, Thailand', 'Privacy Settings': 'Public', 'User Followers': 8000, 'User Following': 300, 'Account Creation Date': '15-09-2017', 'Account Verification': 'Not verified', 'User Engagement': 970, 'User Interactions': 8300, 'User Activity': '5 posts per week', 'User Bio': 'Culinary explorer', 'User Description 1': 'Street food connoisseur', 'User Description 2': 'Travel addict ??', 'Server Post': 'London, UK', 'User Language': 'English'}, {'User ID': 303, 'Username': '@wellnessJourney', 'Platform': 'Facebook', 'Post ID': 45982, 'Post Text': '"Finding peace and balance in nature!', 'Post Timestamp': '30-07-2023 08:15', 'Likes/Reactions': 680, 'Comments': 80, 'Shares/Retweets': 40, 'Hashtags': '#WellnessJourney', 'Mentions': nan, 'Media Type': 'Image', 'Media URL': 'http://example.com/wellness.jpg', 'Post URL': 'http://facebook.com/wellnessJourney/45982', 'Location': 'Bali, Indonesia', 'Privacy Settings': 'Public', 'User Followers': 6000, 'User Following': 200, 'Account Creation Date': '02-03-2020', 'Account Verification': 'Not verified', 'User Engagement': 800, 'User Interactions': 6200, 'User Activity': '2 posts per week', 'User Bio': 'Wellness enthusiast', 'User Description 1': 'Yogi in training', 'User Description 2': 'Mindfulness advocate', 'Server Post': 'San Francisco, USA', 'User Language': 'English'}]
+2025-09-16 12:47:46 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-16 12:47:46 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:47:47 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:47:47 - AIAssistant - INFO - Attempting LLM call #2
+2025-09-16 12:47:47 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:47:47 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:47:47 - AIAssistant - INFO - Attempting LLM call #3
+2025-09-16 12:47:47 - AIAssistant - WARNING - Grok API failed: No module named 'groq'
+2025-09-16 12:47:48 - AIAssistant - WARNING - Gemini API failed: 429 Quota exceeded for quota metric 'Generate Content API requests per minute' and limit 'GenerateContent request limit per minute for a region' of service 'generativelanguage.googleapis.com' for consumer 'project_number:48583328206'. [reason: "RATE_LIMIT_EXCEEDED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+metadata {
+  key: "quota_unit"
+  value: "1/min/{project}/{region}"
+}
+metadata {
+  key: "quota_metric"
+  value: "generativelanguage.googleapis.com/generate_content_requests"
+}
+metadata {
+  key: "quota_location"
+  value: "us-south1"
+}
+metadata {
+  key: "quota_limit"
+  value: "GenerateContentRequestsPerMinutePerProjectPerRegion"
+}
+metadata {
+  key: "quota_limit_value"
+  value: "0"
+}
+metadata {
+  key: "consumer"
+  value: "projects/48583328206"
+}
+, links {
+  description: "Request a higher quota limit."
+  url: "https://cloud.google.com/docs/quotas/help/request_increase"
+}
+]
+2025-09-16 12:47:48 - AIAssistant - WARNING - LLM parsing failed after all retries. Using fallback configuration.
+2025-09-16 12:47:48 - AIAssistant - INFO - Creating fallback dashboard configuration
+2025-09-16 12:47:48 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'User ID', 'y_field': 'Username', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['Post Timestamp', 'Account Creation Date', 'User ID', 'Username']}
+2025-09-16 12:47:48 - AIAssistant - INFO - Creating dashboard files manually
+2025-09-16 12:47:48 - AIAssistant - INFO - Dashboard files created at: C:\Users\ASUS\AppData\Local\Temp\powerbi_dashboard_a8ys1j_g\auto_dashboard_20250916_124748
+Dashboard directory opened. Check README.md for details.

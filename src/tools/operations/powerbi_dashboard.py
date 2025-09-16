@@ -12,7 +12,7 @@ import subprocess
 import platform
 
 # Load .env file from project root
-env_path = r"C:\Users\soham\OneDrive\Desktop\crew-ai-trial\.env"
+env_path = r"C:\Users\ASUS\OneDrive\Desktop\everything\parth\.env"
 if not os.path.exists(env_path):
     print(f"Error: .env file not found at {env_path}")
     sys.exit(1)
@@ -313,12 +313,13 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         if not pbi_installed:
             logger.warning("Power BI Desktop not found. Dashboard files will be created but may not open automatically.")
         
-        # Verify API keys
+        # Verify API keys (non-fatal; proceed with fallback if missing)
         grok_api_key = os.getenv("GROQ_API_KEY1")
         gemini_api_key = os.getenv("GEMINI_API_KEY1")
         if not grok_api_key and not gemini_api_key:
-            logger.error(f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}.")
-            return False, f"Error: No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}."
+            logger.warning(
+                f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}. Proceeding with fallback configuration."
+            )
 
         # Resolve CSV path
         csv_path = os.path.abspath(os.path.join(PROJECT_ROOT, csv_file)) if not os.path.isabs(csv_file) else csv_file
