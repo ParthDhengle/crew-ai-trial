@@ -24,3 +24,4 @@ knowledge/memory/short_term/*
 index.faiss
 index.pkl
 NOVA_firebase_credentials.json
+flutter_desktop
