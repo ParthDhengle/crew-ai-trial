@@ -1,10 +1,10 @@
 import os
 import json
 import warnings
-from ..firebase_client import get_user_profile, update_user_profile
 
 def parse_preferences(prefs_path: str = None) -> dict:
     """Load profile from Firestore."""
+    from ..firebase_client import get_user_profile
     return get_user_profile()
 
 def collect_preferences(prefs_path: str = None, get_user_input=None):
@@ -43,6 +43,7 @@ def collect_preferences(prefs_path: str = None, get_user_input=None):
                 value = get_user_input(f"{key}: ")
             updated_prefs[key] = value
     if updated_prefs != existing_prefs:
+        from ..firebase_client import update_user_profile
         update_user_profile(updated_prefs)
         print("\n✅ Preferences updated in Firestore!")
     else:

@@ -6,10 +6,6 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.docstore.in_memory import InMemoryDocstore
 import faiss
 from .common_functions.Find_project_root import find_project_root
-from .firebase_client import (
-	query_collection, add_kb_entry, search_kb, add_summary, get_summaries,
-	get_tasks, add_task, get_projects, add_project, get_user_profile
-)
 
 PROJECT_ROOT = find_project_root()
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "knowledge", "configs")
@@ -61,6 +57,7 @@ class MemoryManager:
 		texts = []
 		metadatas = []
 		# Knowledge Base (facts/notes)
+		from .firebase_client import query_collection, get_tasks, get_projects
 		kb = query_collection("knowledge_base")
 		for entry in kb:
 			texts.append(entry.get("content_md", ""))
@@ -103,10 +100,12 @@ class MemoryManager:
 			return "\n".join(truncated)
 		except Exception as e:
 			print(f"FAISS error: {e}. Fallback to Firestore KB search.")
+			from .firebase_client import search_kb
 			kb_matches = search_kb(query, k)
 			return "\n".join([m.get("content_md", "") for m in kb_matches])
 
 	def get_narrative_summary(self):
+		from .firebase_client import get_summaries
 		summaries = get_summaries()
 		if summaries:
 			latest = summaries[-1].get("summary_text", "")
@@ -118,6 +117,7 @@ class MemoryManager:
 		try:
 			# Facts/KB
 			for fact in extracted.get("facts", []):
+				from .firebase_client import add_kb_entry
 				add_kb_entry(
 					title="Extracted Fact",
 					content_md=fact.get("fact", ""),
@@ -126,6 +126,7 @@ class MemoryManager:
 				)
 			# Tasks
 			for task in extracted.get("tasks", []):
+				from .firebase_client import add_task
 				add_task(
 					title=task.get("title", ""),
 					description=task.get("description", ""),
@@ -133,12 +134,14 @@ class MemoryManager:
 				)
 			# Projects
 			for proj in extracted.get("projects", []):
+				from .firebase_client import add_project
 				add_project(
 					name=proj.get("name", ""),
 					description=proj.get("goal", "")
 				)
 			# Mood
 			if "mood" in extracted:
+				from .firebase_client import add_document
 				add_document(
 					"mood_logs",
 					{"mood": extracted["mood"], "date": date.today().isoformat()}
@@ -149,10 +152,12 @@ class MemoryManager:
 
 	def create_narrative_summary(self, history_summary):
 		narrative = f"Narrative: {history_summary[:200]}..."
+		from .firebase_client import add_summary
 		add_summary(date=date.today().isoformat(), summary_text=narrative)
 		return narrative
 
 	def get_user_profile(self):
+		from .firebase_client import get_user_profile
 		return get_user_profile()
 
 	def assemble_prompt_context(self, summarized_history, user_profile, narrative_summary, relevant_long_term):

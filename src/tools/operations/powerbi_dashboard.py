@@ -54,13 +54,13 @@ def check_powerbi_installation():
     if platform.system() != "Windows":
         logger.warning("Power BI Desktop is Windows-only.")
         return False, None
-    possible_paths = [
-        r"C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
-        r"C:\Program Files (x86)\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
+            possible_paths = [
+                r"C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
+                r"C:\Program Files (x86)\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
         os.path.expanduser(r"~\AppData\Local\Microsoft\WindowsApps\Microsoft.MicrosoftPowerBIDesktop_8wekyb3d8bbwe\PBIDesktop.exe")
-    ]
-    for path in possible_paths:
-        if os.path.exists(path):
+            ]   
+            for path in possible_paths:
+                if os.path.exists(path):
             logger.info(f"Power BI found at: {path}")
             return True, path
     # Agentic: Use LLM to generate safe registry query command
@@ -75,11 +75,11 @@ def check_powerbi_installation():
             if path_match:
                 path = path_match.group(1)
                 logger.info(f"Power BI found via registry: {path}")
-                return True, path
+                    return True, path
     except Exception as e:
         logger.error(f"Dynamic install check error: {str(e)}")
     logger.warning("Power BI Desktop not found.")
-    return False, None
+        return False, None
 
 def get_llm_visual_plan(dataset_path: str, user_query: str) -> dict:
     """Use LLM to analyze dataset and suggest visualizations."""
@@ -159,9 +159,9 @@ def powerbi_generate_dashboard(dataset_path: str, user_query: str) -> tuple[bool
         # If PBI_FUNCTIONS_AVAILABLE, use them to generate PBIX
         if PBI_FUNCTIONS_AVAILABLE:
             output_dir = tempfile.mkdtemp(prefix="pbi_")
-            dashboard_name = f"auto_dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            dashboard_path = os.path.join(output_dir, dashboard_name)
-            create_blank_dashboard(dashboard_path)
+        dashboard_name = f"auto_dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                dashboard_path = os.path.join(output_dir, dashboard_name)
+                    create_blank_dashboard(dashboard_path)
             add_csv_from_blob(dashboard_path, f"file://{dataset_path}", table_name="Data")
             # Add visuals based on plan
             for visual in plan.get('visuals', []):
@@ -174,7 +174,7 @@ def powerbi_generate_dashboard(dataset_path: str, user_query: str) -> tuple[bool
             return True, f"Dashboard generated and opened at {dashboard_path}"
         
         return True, "Power BI opened. Load data manually or install pywinauto for full automation."
-    except Exception as e:
+                    except Exception as e:
         logger.error(f"Power BI generation error: {str(e)}")
         return False, str(e)
 

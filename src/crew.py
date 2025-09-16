@@ -35,7 +35,7 @@ from .tools.long_term_rag_tool import LongTermRagTool
 from .chat_history import ChatHistory # Updated to Firebase
 from .common_functions.Find_project_root import find_project_root
 from .memory_manager import MemoryManager # Updated for KB
-from .firebase_client import get_user_profile # For profile
+# Deferred import inside methods to avoid circular imports during app startup
 from .utils.logger import setup_logger  # Added logger
 
 PROJECT_ROOT = find_project_root()

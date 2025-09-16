@@ -14,7 +14,6 @@ from uvicorn import Config, Server
 import asyncio
 from dotenv import load_dotenv # Import load_dotenv
 from .common_functions.Find_project_root import find_project_root
-from .firebase_client import get_user_profile # For profile
 from .common_functions.User_preference import collect_preferences
 from .utils.logger import setup_logger
 from fastapi import UploadFile, File, Form
@@ -126,6 +125,7 @@ async def process_query(request: QueryRequest):
 @app.get("/profile")
 async def get_profile():
     try:
+        from .firebase_client import get_user_profile
         profile = get_user_profile()
         if not profile:
             return {}
@@ -138,6 +138,7 @@ async def get_profile():
 @app.post("/profile")
 async def upsert_profile(p: Profile):
     try:
+        from .firebase_client import set_user_profile
         set_user_profile(
             name=p.name,
             email=p.email,
@@ -153,15 +154,13 @@ async def upsert_profile(p: Profile):
 
 
 # =================== TASKS ===================
-from .firebase_client import (
-    add_task, get_tasks, update_task, mark_task_complete,
-    add_chat_message, get_chat_history
-)
+# Firebase helpers will be imported within route handlers to avoid circular imports
 
 
 @app.get("/tasks")
 async def list_tasks(status: Optional[str] = None):
     try:
+        from .firebase_client import get_tasks
         return get_tasks(status=status)
     except Exception as e:
         logger.error(f"Error listing tasks: {e}")
@@ -171,6 +170,7 @@ async def list_tasks(status: Optional[str] = None):
 @app.post("/tasks")
 async def create_task(task: TaskCreate):
     try:
+        from .firebase_client import add_task
         task_id = add_task(
             title=task.title,
             description=task.description,
@@ -186,6 +186,7 @@ async def create_task(task: TaskCreate):
 @app.patch("/tasks/{task_id}")
 async def update_task_api(task_id: str, updates: TaskUpdate):
     try:
+        from .firebase_client import update_task
         ok = update_task(task_id, {k: v for k, v in updates.dict().items() if v is not None})
         if not ok:
             raise HTTPException(status_code=404, detail="Task not found or update failed")
@@ -200,6 +201,7 @@ async def update_task_api(task_id: str, updates: TaskUpdate):
 @app.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str):
     try:
+        from .firebase_client import mark_task_complete
         ok = mark_task_complete(task_id)
         if not ok:
             raise HTTPException(status_code=404, detail="Task not found or complete failed")
@@ -215,6 +217,7 @@ async def complete_task(task_id: str):
 @app.get("/chat_history")
 async def list_chat(session_id: Optional[str] = None):
     try:
+        from .firebase_client import get_chat_history
         return get_chat_history(session_id=session_id)
     except Exception as e:
         logger.error(f"Error fetching chat history: {e}")
@@ -224,6 +227,7 @@ async def list_chat(session_id: Optional[str] = None):
 @app.post("/chat_message")
 async def create_chat_message(msg: ChatMessage):
     try:
+        from .firebase_client import add_chat_message
         message_id = add_chat_message(role=msg.role, content=msg.content, session_id=msg.session_id)
         return {"id": message_id}
     except Exception as e:
@@ -233,7 +237,6 @@ async def create_chat_message(msg: ChatMessage):
 
 # =================== EVENTS ===================
 from .tools.operations.events.create_event import create_event as create_calendar_event
-from .tools.operations.powerbi_dashboard import powerbi_generate_dashboard
 
 
 @app.post("/events")
@@ -283,6 +286,8 @@ async def powerbi_generate(temp_path: str = Form(...), query: str = Form(""), au
             os.environ["PBI_AUTO_OPEN"] = "1"
         else:
             os.environ["PBI_AUTO_OPEN"] = "0"
+        # Lazy import to avoid module import errors at startup if PBI module has issues
+        from .tools.operations.powerbi_dashboard import powerbi_generate_dashboard
         ok, msg = powerbi_generate_dashboard(temp_path, query or "Create suitable visuals.")
         logger.info(f"Power BI generation result: {ok} - {msg}")  # Log result
         return {"ok": ok, "message": msg}

@@ -10,7 +10,7 @@ from datetime import datetime
 import google.generativeai as genai
 from .common_functions.Find_project_root import find_project_root
 import uuid
-from .firebase_client import add_chat_message, get_chat_history  # Updated imports
+"""Chat history utilities with deferred imports to avoid circular import issues."""
 from .utils.logger import setup_logger  # Added logger
 
 project_root = find_project_root()
@@ -32,6 +32,8 @@ class ChatHistory:
         if session_id is None:
             session_id = ChatHistory.get_session_id()
         # Fetch recent history (last 50 docs, filter to session if provided)
+        # Local import to avoid startup import issues
+        from .firebase_client import get_chat_history
         history_docs = get_chat_history(session_id)
         # Sort by timestamp and limit to last 20 turns (user/assistant pairs)
         history_docs.sort(key=lambda x: x.get('timestamp', ''))
@@ -52,6 +54,8 @@ class ChatHistory:
         if session_id is None:
             session_id = ChatHistory.get_session_id()
         for entry in history:
+            # Local import to avoid startup import issues
+            from .firebase_client import add_chat_message
             add_chat_message(
                 role=entry["role"],
                 content=entry["content"],

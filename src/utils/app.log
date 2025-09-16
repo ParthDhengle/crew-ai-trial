@@ -295,3 +295,26 @@ Dashboard directory opened. Check README.md for details.
 2025-09-16 20:12:47 - AIAssistant - INFO - Firebase initialized successfully.
 2025-09-16 20:12:50 - AIAssistant - INFO - Firebase initialized successfully.
 2025-09-16 20:14:03 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:26:40 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:48:51 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:49:57 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:51:10 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:52:31 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:53:32 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:54:53 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:56:10 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:56:20 - AIAssistant - ERROR - PBI import error: No module named 'PBI_dashboard_creator'
+2025-09-16 20:57:56 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:58:02 - AIAssistant - ERROR - PBI import error: No module named 'PBI_dashboard_creator'
+2025-09-16 20:59:47 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 20:59:55 - AIAssistant - ERROR - PBI import error: No module named 'PBI_dashboard_creator'
+2025-09-16 21:00:10 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:00:17 - AIAssistant - ERROR - PBI import error: No module named 'PBI_dashboard_creator'
+2025-09-16 21:00:32 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:00:39 - AIAssistant - ERROR - PBI import error: No module named 'PBI_dashboard_creator'
+2025-09-16 21:08:23 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:11:11 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:15:39 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:19:05 - AIAssistant - INFO - Firebase initialized successfully.
+2025-09-16 21:20:30 - AIAssistant - ERROR - Error updating profile: cannot import name 'set_user_profile' from 'src.firebase_client' (C:\Users\ASUS\OneDrive\Desktop\everything\parth\src\firebase_client.py)
+2025-09-16 21:21:00 - AIAssistant - ERROR - Error updating profile: cannot import name 'set_user_profile' from 'src.firebase_client' (C:\Users\ASUS\OneDrive\Desktop\everything\parth\src\firebase_client.py)
