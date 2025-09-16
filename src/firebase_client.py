@@ -2,7 +2,7 @@ import os
 import shutil
 from dotenv import load_dotenv
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore , auth
 from datetime import datetime, timedelta
 import json
 # Load environment variables
@@ -15,12 +15,86 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
+
 USER_ID = os.getenv("USER_ID", "parth")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_BASE = os.path.join(PROJECT_ROOT, "knowledge", "storage")
+
+def set_user_id(uid: str):
+    """Set the current USER_ID from auth UID."""
+    global USER_ID
+    USER_ID = uid
+
 def get_user_ref():
-    """Get users doc ref for current user."""
+    """Get users doc ref for current user (uses dynamic USER_ID)."""
     return db.collection("users").document(USER_ID)
+
+# === Auth Functions ===
+def create_user(email: str, password: str = None, display_name: str = None) -> dict:
+    """Create a new user with email/password. Returns user dict with uid."""
+    try:
+        user = auth.create_user(email=email, password=password, display_name=display_name)
+        # Auto-create profile doc
+        set_user_profile(user.uid, email, display_name=display_name)
+        print(f"✅ User created: UID {user.uid}")
+        return user._data
+    except Exception as e:
+        raise ValueError(f"Failed to create user: {e}")
+
+def sign_in_with_email(email: str, password: str) -> str:
+    """Sign in user and return ID token (for verification). For CLI, store in session/memory."""
+    try:
+        # Note: For CLI, this is server-side sim; in prod, client sends token.
+        # Here, we verify by getting user and generating custom token (simple flow).
+        user = auth.get_user_by_email(email)
+        custom_token = auth.create_custom_token(user.uid)
+        # In real CLI, send custom_token to client for id_token exchange; for now, return uid.
+        set_user_id(user.uid)
+        return user.uid
+    except auth.UserNotFoundError:
+        raise ValueError("User not found. Sign up first.")
+    except Exception as e:
+        raise ValueError(f"Sign-in failed: {e}")
+
+def verify_id_token(id_token: str) -> str:
+    """Verify ID token (for FastAPI endpoints). Returns UID."""
+    try:
+        decoded = auth.verify_id_token(id_token)
+        uid = decoded['uid']
+        set_user_id(uid)
+        return uid
+    except Exception as e:
+        raise ValueError(f"Token verification failed: {e}")
+
+def get_user_by_uid(uid: str) -> dict:
+    """Get user by UID."""
+    try:
+        user = auth.get_user(uid)
+        return user._data
+    except Exception as e:
+        raise ValueError(f"User fetch failed: {e}")
+
+# === Profile Functions (Updated to use auth UID) ===
+def get_user_profile() -> dict:
+    """Get user profile from Firestore (tied to USER_ID/UID)."""
+    return get_document("users", USER_ID, subcollection=False)
+
+def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC", 
+                      focus_hours: list = None, permissions: dict = None, integrations: dict = None) -> str:
+    """Create/update profile using UID as doc ID."""
+    set_user_id(uid)  # Ensure global USER_ID is set
+    data = {
+        "uid": uid, "email": email, "Name": display_name, "display_name": display_name,
+        "timezone": timezone, "focus_hours": focus_hours or [], 
+        "permissions": permissions or {}, "integrations": integrations or {},
+        "updated_at": datetime.now().isoformat()
+    }
+    return add_document("users", data, uid, subcollection=False)
+
+def update_user_profile(data: dict) -> bool:
+    """Update profile (uses current USER_ID)."""
+    return update_document("users", USER_ID, data, subcollection=False)
+
 # Generic CRUD
 def add_document(collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
     """Add doc to users/{user_id}/{collection}/{doc_id} or top-level collection."""
@@ -118,22 +192,6 @@ def delete_storage_path(storage_path: str) -> bool:
         return True
     except Exception:
         return False
-# Users (profile)
-def get_user_profile() -> dict:
-    """Get user profile."""
-    return get_document("users", USER_ID, subcollection=False)
-def update_user_profile(data: dict) -> bool:
-    """Update profile."""
-    return update_document("users", USER_ID, data, subcollection=False)
-def set_user_profile(name: str, email: str, timezone: str = "UTC", focus_hours: list = None,
-                    permissions: dict = None, integrations: dict = None) -> str:
-    """Create/update profile."""
-    data = {
-        "name": name, "email": email, "timezone": timezone,
-        "focus_hours": focus_hours or [], "permissions": permissions or {},
-        "integrations": integrations or {}, "updated_at": datetime.now().isoformat()
-    }
-    return add_document("users", data, USER_ID, subcollection=False)
 # Tasks
 def add_task(title: str, description: str = None, due_date: str = None, priority: str = "medium",
              related_files: list = None) -> str:

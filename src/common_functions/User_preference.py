@@ -4,7 +4,8 @@ import warnings
 from firebase_client import get_user_profile, update_user_profile
 
 def parse_preferences(prefs_path: str = None) -> dict:
-    """Load profile from Firestore."""
+    """Load profile from Firestore (auth-aware)."""
+    from firebase_client import get_user_profile  # Ensure import
     return get_user_profile()
 
 def collect_preferences(prefs_path: str = None, get_user_input=None):
@@ -27,6 +28,9 @@ def collect_preferences(prefs_path: str = None, get_user_input=None):
         "Current Focus": ["Finish studies", "Grow career skills", "Build side projects", "Explore & learn", "Health & balance"]
     }
     existing_prefs = parse_preferences()
+    if all(key in existing_prefs and existing_prefs[key] for key in pref_definitions):  # Check if complete
+        print("\n✅ Preferences already complete in Firestore.")
+        return
     updated_prefs = existing_prefs.copy()
     for key, options in pref_definitions.items():
         if key not in existing_prefs or not existing_prefs[key]:
@@ -43,6 +47,7 @@ def collect_preferences(prefs_path: str = None, get_user_input=None):
                 value = get_user_input(f"{key}: ")
             updated_prefs[key] = value
     if updated_prefs != existing_prefs:
+        from firebase_client import update_user_profile
         update_user_profile(updated_prefs)
         print("\n✅ Preferences updated in Firestore!")
     else:

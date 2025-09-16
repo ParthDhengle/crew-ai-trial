@@ -11,9 +11,10 @@ import traceback
 from uvicorn import Config, Server
 import asyncio
 from common_functions.Find_project_root import find_project_root
-from firebase_client import get_user_profile, set_user_profile
 from common_functions.User_preference import collect_preferences
 from utils.logger import setup_logger
+from firebase_client import create_user, sign_in_with_email, get_user_profile, set_user_profile,verify_id_token
+from firebase_admin import auth
 
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
@@ -40,8 +41,31 @@ class QueryRequest(BaseModel):
     query: str
 
 # API endpoint for processing queries
+@app.post("/auth/login")
+async def api_login(request: dict):  # Expect {"email": "...", "password": "..."}
+    try:
+        uid = sign_in_with_email(request["email"], request["password"])
+        # In real API, return custom token for client to exchange for ID token
+        custom_token = auth.create_custom_token(uid)
+        return {"uid": uid, "token": custom_token.decode()}  # Client exchanges for ID token
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+# Middleware for protected routes (e.g., /process_query)
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
+
+async def get_current_uid(token: str = Depends(security)):
+    try:
+        uid = verify_id_token(token.credentials)
+        return uid
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
 @app.post("/process_query")
-async def process_query(request: QueryRequest):
+async def process_query(request: QueryRequest , uid: str = Depends(get_current_uid)):
     logger.info(f"Received API query: {request.query}")
     if not request.query:
         logger.error("No query provided in API request")
@@ -55,7 +79,7 @@ async def process_query(request: QueryRequest):
         logger.error(f"Error processing query '{request.query}': {str(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+    
 # CLI-related functions
 REQUIRED_PROFILE_KEYS = [
     "Name", "Role", "Location", "Productive Time", "Reminder Type",
@@ -91,8 +115,35 @@ def get_user_input(prompt="💬 What can I help you with? "):
         logger.info("CLI input interrupted by user")
         return "quit"
 
+def authenticate_user(get_user_input=None):
+    """Simple CLI auth flow: signup or login."""
+    if get_user_input is None:
+        get_user_input = input
+    print("\n🔐 Authentication Required")
+    choice = get_user_input("Sign up (s) or Login (l)? ").lower()
+    email = get_user_input("Email: ")
+    if choice == 's':
+        password = get_user_input("Password: ")  # In prod, hash/secure this
+        display_name = get_user_input("Display Name: ")
+        try:
+            uid = create_user(email, password, display_name)
+            print(f"✅ Signed up! UID: {uid}")
+        except ValueError as e:
+            print(f"❌ Signup failed: {e}")
+            return None
+    else:  # login
+        password = get_user_input("Password: ")
+        try:
+            uid = sign_in_with_email(email, password)
+            print(f"✅ Logged in! UID: {uid}")
+        except ValueError as e:
+            print(f"❌ Login failed: {e}")
+            return None
+    return uid
+
 def load_or_create_profile():
     """Load or create user profile in Firestore."""
+    from firebase_client import get_user_profile
     logger.info("Loading or creating user profile")
     profile = get_user_profile()
     if not profile:
@@ -100,7 +151,7 @@ def load_or_create_profile():
         print("No profile found in Firestore. Setting up...")
         name = get_user_input("Your name: ")
         email = get_user_input("Your email: ")
-        set_user_profile(name, email)
+        set_user_profile(USER_ID, email, display_name=name)
         profile = get_user_profile()
         logger.info("Profile created in Firestore")
         print("✅ Profile created in Firestore.")
@@ -130,6 +181,10 @@ def run_single_query(user_query=None):
     logger.info(f"Processing single query: {user_query}")
     if not validate_environment():
         logger.error("Environment validation failed")
+        return False
+    uid = authenticate_user(get_user_input)  # Add auth here
+    if not uid:
+        print("❌ Auth failed. Exiting.")
         return False
     profile = load_or_create_profile()
     if not user_query:

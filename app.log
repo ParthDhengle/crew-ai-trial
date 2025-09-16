@@ -102,3 +102,85 @@
 2025-09-16 14:56:54 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
 2025-09-16 15:58:28 - AIAssistant - INFO - CLI input interrupted by user
 2025-09-16 15:58:28 - AIAssistant - INFO - User requested to quit
+2025-09-17 00:01:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:01:15 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:01:15 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:01:15 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:01:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:01:16 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:01:16 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 00:01:16 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 00:31:48 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:31:48 - AIAssistant - INFO - User requested to quit
+2025-09-17 00:32:03 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:32:03 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:32:03 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:32:03 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:32:03 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:32:03 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:32:10 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 00:32:18 - AIAssistant - DEBUG - Received CLI input: parthdhengle
+2025-09-17 00:32:23 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:32:43 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:32:43 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:32:43 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:32:43 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:32:43 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:32:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:32:47 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 00:33:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:33:29 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:33:44 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:33:44 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:33:44 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:33:44 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:33:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:33:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:33:54 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:34:11 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:34:17 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:34:24 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:44:44 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:44:44 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:44:44 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:44:44 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:44:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:44:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:44:48 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:44:57 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:45:03 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:45:06 - AIAssistant - DEBUG - Received CLI input: Parth
+2025-09-17 00:45:49 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:45:49 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:45:49 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:45:49 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:45:49 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:45:49 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:45:55 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:45:58 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:46:00 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:46:08 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:52:36 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:52:36 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:52:36 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:52:36 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:52:36 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:52:37 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:52:44 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:52:48 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:52:51 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:52:53 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:52:55 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 00:52:55 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 00:53:05 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:11 - AIAssistant - DEBUG - Received CLI input: pune india
+2025-09-17 00:53:13 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:15 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:34 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:36 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:38 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 00:53:41 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 00:53:43 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 00:53:45 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:50 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 00:53:50 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
