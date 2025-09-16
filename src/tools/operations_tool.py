@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Tuple
 import json
 import re
 # --- DYNAMIC IMPORTS FROM MODULARIZED OPERATION FILES ---
-from ..firebase_client import get_operations
+from ..utils.logger import setup_logger
 from .operations.events.create_event import create_event
 from .operations.events.delete_event import delete_event
 from .operations.events.read_event import read_event
@@ -12,6 +12,7 @@ from .operations.events.update_event import update_event
 from ..common_functions.Find_project_root import find_project_root
 
 PROJECT_ROOT =find_project_root()
+logger = setup_logger()
 
 class OperationsTool:
 	"""Dispatcher for your specified operations. Maps 'name' to funcs; validates via Firebase/json defs."""
@@ -30,7 +31,7 @@ class OperationsTool:
 
 	def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
 		"""Load op defs from Firebase (fallback json)."""
-		operations = get_operations() # List of dicts
+		# operations could be sourced from Firebase in future; currently using local JSON
 		param_defs = {}
 		try:
 			# Use operations.json instead of operations.txt for faster parsing
@@ -48,11 +49,11 @@ class OperationsTool:
 					"optional": optional_params
 				}
 			
-			print(f"✅ Loaded {len(param_defs)} operation definitions from operations.json")
+			logger.info(f"Loaded {len(param_defs)} operation definitions from operations.json")
 			return param_defs
 			
 		except Exception as e:
-			print(f"Error parsing operations.txt: {e}")
+			logger.error(f"Error parsing operations.json: {e}")
 			return {}
 		
 		return param_defs
@@ -152,14 +153,14 @@ Example: {"send_email": {"to": "user@example.com", "subject": "Meeting"}}"""
 				remaining_params = new_remaining
 				
 				if not remaining_params:
-					print("✅ All parameters collected successfully!")
+					logger.info("All parameters collected successfully")
 					break
 					
 			except KeyboardInterrupt:
-				print("\n❌ Parameter collection cancelled by user")
+				logger.warning("Parameter collection cancelled by user")
 				break
 			except Exception as e:
-				print(f"❌ Error collecting parameters: {e}")
+				logger.error(f"Error collecting parameters: {e}")
 				continue
 		
 		return collected_params

@@ -474,6 +474,48 @@
       "description": "Kills a running process.",
       "capabilities": "system_control",
       "safety": "confirm_required"
+    },
+    {
+      "name": "run_terminal_command",
+      "required_parameters": ["command"],
+      "optional_parameters": ["timeout", "shell"],
+      "description": "Executes a safe terminal command (whitelisted).",
+      "capabilities": "system_control",
+      "preview": "command preview",
+      "undo": "N/A",
+      "safety": "confirm_required=true"
+    },
+    {
+      "name": "monitor_processes",
+      "required_parameters": [],
+      "optional_parameters": ["filter_app"],
+      "description": "Monitors open processes/apps on PC.",
+      "capabilities": "system_read",
+      "preview": "N/A"
+    },
+    {
+      "name": "create_word_doc",
+      "required_parameters": ["content"],
+      "optional_parameters": ["path", "title"],
+      "description": "Creates/Edits Word document.",
+      "capabilities": "office_write",
+      "preview": "content summary"
+    },
+    {
+      "name": "create_ppt",
+      "required_parameters": ["slides"],
+      "optional_parameters": ["path", "title"],
+      "description": "Creates PPT with slides.",
+      "capabilities": "office_write",
+      "preview": "slides summary"
+    },
+    {
+      "name": "create_excel",
+      "required_parameters": ["data"],
+      "optional_parameters": ["path", "title"],
+      "description": "Creates Excel with data.",
+      "capabilities": "office_write",
+      "preview": "data summary"
     }
     
   ]

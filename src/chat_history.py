@@ -2,6 +2,7 @@
 # Now uses Firebase for storage, with session-based history (default to global session if none specified).
 # Limits to last 20 turns for token efficiency.
 # Summarization remains local via Gemini for speed.
+# Added: Logger integration for debug/info.
 
 import os
 import json
@@ -10,16 +11,21 @@ import google.generativeai as genai
 from .common_functions.Find_project_root import find_project_root
 import uuid
 from .firebase_client import add_chat_message, get_chat_history  # Updated imports
+from .utils.logger import setup_logger  # Added logger
 
 project_root = find_project_root()
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
+
+logger = setup_logger()  # Initialize logger
 
 class ChatHistory:
     @staticmethod
     def get_session_id():
         # Use a default session ID based on today + short UUID for persistence across runs.
         today = datetime.now().strftime('%Y-%m-%d')
-        return f"session_{today}_{uuid.uuid4().hex[:8]}"
+        session_id = f"session_{today}_{uuid.uuid4().hex[:8]}"
+        logger.debug(f"Generated session ID: {session_id}")  # Log session ID
+        return session_id
 
     @staticmethod
     def load_history(session_id: str = None):
@@ -38,7 +44,7 @@ class ChatHistory:
         # Ensure even number (trim if odd)
         if len(history) % 2 == 1:
             history = history[:-1]
-        print(f"Loaded {len(history)//2} turns from Firebase (session: {session_id}).")
+        logger.info(f"Loaded {len(history)//2} turns from Firebase (session: {session_id}).")  # Log load
         return history
 
     @staticmethod
@@ -51,7 +57,8 @@ class ChatHistory:
                 content=entry["content"],
                 session_id=session_id
             )
-        print(f"Saved history to Firebase (session: {session_id}).")
+        logger.info(f"Saved history to Firebase (session: {session_id}).")  # Log save
+        return True  # Added return for success check
 
     @staticmethod
     def summarize(history: list):
@@ -69,7 +76,8 @@ class ChatHistory:
             # Approximate token check (len / 0.75 ~ tokens)
             if len(summary) > 400:  # ~300 tokens
                 summary = summary[:400] + "... (truncated)"
+            logger.debug(f"History summarized: {summary[:100]}...")  # Log summary snippet
             return summary
         except Exception as e:
-            print(f"Error summarizing history: {e}. Returning default summary.")
+            logger.error(f"Error summarizing history: {e}. Returning default summary.")  # Log error
             return "History summary unavailable."

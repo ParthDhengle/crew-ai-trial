@@ -14,12 +14,14 @@ from uvicorn import Config, Server
 import asyncio
 from dotenv import load_dotenv # Import load_dotenv
 from .common_functions.Find_project_root import find_project_root
-from .firebase_client import get_user_profile, set_user_profile
+from .firebase_client import get_user_profile # For profile
 from .common_functions.User_preference import collect_preferences
 from .utils.logger import setup_logger
 from fastapi import UploadFile, File, Form
 import tempfile
 import shutil
+# New for WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 PROJECT_ROOT = find_project_root()
 load_dotenv(os.path.join(PROJECT_ROOT, '.env')) # Load .env file
@@ -91,6 +93,16 @@ class EventCreate(BaseModel):
     end: str
     attendees: Optional[List[str]] = None
     location: Optional[str] = None
+
+# New Schema for Office Ops
+class OfficeRequest(BaseModel):
+    app: str  # 'word', 'ppt', 'excel'
+    content: str
+    path: Optional[str] = None
+
+# New Schema for Monitoring
+class MonitorRequest(BaseModel):
+    filter: Optional[str] = None  # e.g., 'chrome'
 
 # API endpoint for processing queries
 @app.post("/process_query")
@@ -257,8 +269,10 @@ async def powerbi_upload(file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
             shutil.copyfileobj(file.file, tmp)
             saved_path = tmp.name
+        logger.info(f"Uploaded Power BI dataset: {saved_path}")  # Log upload
         return {"temp_path": saved_path}
     except Exception as e:
+        logger.error(f"Power BI upload error: {str(e)}")  # Log error
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -270,9 +284,70 @@ async def powerbi_generate(temp_path: str = Form(...), query: str = Form(""), au
         else:
             os.environ["PBI_AUTO_OPEN"] = "0"
         ok, msg = powerbi_generate_dashboard(temp_path, query or "Create suitable visuals.")
+        logger.info(f"Power BI generation result: {ok} - {msg}")  # Log result
         return {"ok": ok, "message": msg}
     except Exception as e:
+        logger.error(f"Power BI generation error: {str(e)}")  # Log error
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =================== NEW: OFFICE AUTOMATION ===================
+from .tools.operations.office.create_word import create_word_doc
+from .tools.operations.office.create_ppt import create_ppt
+from .tools.operations.office.create_excel import create_excel
+
+@app.post("/office/create")
+async def office_create(req: OfficeRequest):
+    try:
+        if req.app == 'word':
+            ok, msg = create_word_doc(req.content, req.path)
+        elif req.app == 'ppt':
+            ok, msg = create_ppt(req.content, req.path)  # Assume content is JSON slides
+        elif req.app == 'excel':
+            ok, msg = create_excel(req.content, req.path)  # Assume content is JSON data
+        else:
+            raise ValueError("Invalid app: word, ppt, excel only")
+        logger.info(f"Office create ({req.app}): {msg}")  # Log
+        return {"ok": ok, "message": msg}
+    except Exception as e:
+        logger.error(f"Office create error: {str(e)}")  # Log error
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =================== NEW: PC MONITORING ===================
+from .tools.operations.office.monitor_processes import monitor_processes as monitor_pc
+
+@app.post("/monitor")
+async def monitor_api(req: MonitorRequest):
+    try:
+        result = monitor_pc(filter_app=req.filter)
+        logger.info(f"Monitoring result: {result[:200]}...")  # Log snippet
+        return {"result": result}
+    except Exception as e:
+        logger.error(f"Monitoring error: {str(e)}")  # Log error
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New: WebSocket for real-time monitoring (e.g., push process updates)
+@app.websocket("/ws/monitor")
+async def websocket_monitor(websocket: WebSocket):
+    await websocket.accept()
+    logger.info("WebSocket connected for monitoring.")
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "start":
+                # Example: Push monitoring every 10s
+                import time
+                from .tools.operations.office.monitor_processes import monitor_processes
+                while True:
+                    result = monitor_processes()
+                    await websocket.send_text(result)
+                    time.sleep(10)
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected.")
+    except Exception as e:
+        logger.error(f"WebSocket error: {str(e)}")
+        await websocket.close()
 
 # CLI-related functions
 REQUIRED_PROFILE_KEYS = [

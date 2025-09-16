@@ -2,6 +2,7 @@
 # Refined workflow per requirements:
 # - Classifier now takes full inputs (query, file_content if provided, history, profile, op_names).
 # - Outputs JSON: mode, (for agentic: operations[list of {'name':str, 'parameters':dict}], user_summarized_requirements:str), (for direct: direct_response:str).
+# - For closed-ended mathematics questions, in addition to giving the solution in your final response, also explain how to arrive at the solution. Your reasoning should be structured and transparent to the reader.
 # - No separate planner: Operations generated directly in classifier for agentic.
 # - perform_operations now takes list of ops, executes sequentially, appends results to a single str (operation_results).
 # - Synthesizer only for agentic: Inputs summarized_requirements + op_results, outputs JSON (display_response, extracted_fact:list[str] for KB).
@@ -14,6 +15,9 @@
 # - ChatHistory now Firebase-backed.
 # - Brilliance: Added input sanitization, token-aware truncation in contexts, error-resilient parsing with json5 + regex cleanup.
 # - For file: Uses FileManagerTool for txt; code_execution for PDF (leverages available tool in system, but implemented inline via self.code_exec if needed).
+# - New: Integrated LLM command generation for desktop ops (e.g., generate safe shell commands).
+# - New: Monitoring integration via psutil in operations.
+# - Added logger throughout.
 import json
 import os
 import traceback
@@ -32,13 +36,19 @@ from .chat_history import ChatHistory # Updated to Firebase
 from .common_functions.Find_project_root import find_project_root
 from .memory_manager import MemoryManager # Updated for KB
 from .firebase_client import get_user_profile # For profile
+from .utils.logger import setup_logger  # Added logger
+
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
+
+logger = setup_logger()  # Initialize logger
+
 @CrewBase
 class AiAgent:
     agents: List[Agent]
     tasks: List[Task]
     def __init__(self):
+        logger.info("Initializing AiAgent")  # Log init
         # LLMs (refined: Removed unused planner/memory_extractor LLMs; kept essentials with fallbacks)
         self.classifier_llm = LLM(model="groq/llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY1"))
         self.classifier_fallback1_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY2"))
@@ -53,6 +63,7 @@ class AiAgent:
         self.summarizer_fallback2_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY1"))
         self.memory_manager = MemoryManager()
         super().__init__()
+
     # === Agents (refined: Removed planner, memory_extractor, direct_responder; kept classifier, synthesizer, summarizer) ===
     @agent
     def classifier(self) -> Agent:
@@ -76,41 +87,54 @@ class AiAgent:
     # === Internal Execution Helpers (unchanged) ===
     def _execute_task_with_fallbacks(self, agent, task, fallbacks):
         try:
-            return agent.execute_task(task)
+            result = agent.execute_task(task)
+            logger.debug(f"Task executed with {agent.llm.model}: {result[:100]}...")  # Log task result snippet
+            return result
         except (RateLimitError, APIError) as e:
+            logger.error(f"Error in task execution with {agent.llm.model}: {str(e)}")  # Log error
             if isinstance(e, APIError) and getattr(e, 'status_code', None) != 429:
                 raise e
             if not fallbacks:
-                print(f"Exhausted fallbacks for {agent.llm.model}. Returning error message.")
+                logger.error(f"Exhausted fallbacks for {agent.llm.model}. Returning error message.")  # Log fallback exhaust
                 return "Error: LLM request failed. Please try again later."
-            print(f"Rate limit or API error with {agent.llm.model}. Switching to fallback.")
+            logger.warning(f"Rate limit or API error with {agent.llm.model}. Switching to fallback.")  # Log fallback
             agent.llm = fallbacks[0]
             return self._execute_task_with_fallbacks(agent, task, fallbacks[1:])
+
     def _process_file(self, file_path: str) -> str:
         """Extract text from file (txt direct; PDF via simple code exec simulation - extend with libs if needed)."""
         if not file_path or not os.path.exists(file_path):
+            logger.warning(f"File not found: {file_path}")  # Log warning
             return ""
         ext = os.path.splitext(file_path)[1].lower()
         file_tool = FileManagerTool()
         if ext in ['.txt', '.doc', '.ppt']: # Assume text-readable
-            return file_tool._run(file_path)
+            content = file_tool._run(file_path)
+            logger.info(f"Processed file {file_path} as text.")  # Log
+            return content
         elif ext == '.pdf':
             # Basic PDF extraction (simulate with code_execution; in prod, use PyPDF2 or langchain)
             # For now, fallback to tool or placeholder
             try:
                 # Use code_execution tool if available, but inline simple read (non-PDF aware)
                 content = file_tool._run(file_path) # Will fail gracefully
+                logger.info(f"Processed PDF {file_path}.")  # Log
                 return f"PDF Content Extracted: {content[:2000]}..." # Truncate
-            except:
+            except Exception as e:
+                logger.error(f"PDF processing error for {file_path}: {str(e)}")  # Log error
                 return f"PDF file detected: {file_path} (full extraction pending lib integration)."
         else:
+            logger.warning(f"Unsupported file type {ext} for {file_path}")  # Log
             return f"Unsupported file type: {ext}. Only txt, pdf, doc, ppt supported."
         return ""
+
     # === Optimized Workflow (refined per requirements) ===
     def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None):
+        logger.info(f"Starting workflow for query: {user_query}")  # Log start
         # 1. Input Handling & Sanitization
         user_query = user_query.strip()
         if not user_query:
+            logger.error("Empty query provided")  # Log error
             return "No query provided."
        
         # Load from Firebase
@@ -130,8 +154,8 @@ class AiAgent:
             available_operations_content = "{}"
         try:
             available_operations = json.loads(available_operations_content.strip()).get("operations", [])
-        except json.JSONDecodeError:
-            print("Warning: Invalid operations JSON. Using empty list.")
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid operations JSON: {str(e)}")  # Log error
             available_operations = []
         op_names = "\n".join([op['name'] for op in available_operations])
        
@@ -163,8 +187,8 @@ class AiAgent:
                 cleaned = re.sub(r'```json|```|```|markdown', '', raw).strip()
                 try:
                     return json5.loads(cleaned)
-                except:
-                    pass
+                except Exception as e:
+                    logger.error(f"JSON parse error: {str(e)}")  # Log parse error
             # Fallback: Assume direct mode with error response
             return {'mode': 'direct', 'direct_response': f"Classification failed: {raw[:100]}... Please rephrase."}
        
@@ -204,7 +228,7 @@ class AiAgent:
                 extracted_facts = synth.get('extracted_fact', [])
                 if extracted_facts:
                     self.memory_manager.update_long_term({'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]})
-                    print(f"Added {len(extracted_facts)} facts to KB.")
+                    logger.info(f"Added {len(extracted_facts)} facts to KB.")  # Log KB update
        
         # 7. Save History (always)
         history.append({"role": "user", "content": user_query + (f" [File: {file_path}]" if file_path else "")})
@@ -216,9 +240,11 @@ class AiAgent:
             try:
                 narrative = self.memory_manager.create_narrative_summary(json.dumps(history[-5:]))
             except Exception as e:
-                print(f"Warning: Narrative summary failed: {e}")
+                logger.error(f"Warning: Narrative summary failed: {e}")  # Log error
        
+        logger.info(f"Workflow completed for query: {user_query}")  # Log end
         return final_response
+
     def perform_operations(self, operations: List[Dict[str, Any]]) -> str:
         """Execute list of operations sequentially, append results to a single string."""
         if not operations:
@@ -234,8 +260,10 @@ class AiAgent:
                 single_op = [{'name': name, 'parameters': params}]
                 result = ops_tool._run(single_op)
                 lines.append(f"Operation '{name}': {result}")
+                logger.info(f"Executed op {name}: {result[:100]}...")  # Log op result
             except Exception as e:
                 lines.append(f"Operation '{name}' failed: {str(e)}")
+                logger.error(f"Op {name} error: {str(e)}")  # Log error
        
         return "\n".join(lines)
     @crew

@@ -5,6 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from typing import Type
 import os
 import json
+from ..utils.logger import setup_logger
 
 from ..common_functions.Find_project_root import find_project_root
 
@@ -25,6 +26,7 @@ class LongTermRagTool(BaseTool):
     def _run(self, query: str, k: int = 5) -> str:
         """Perform semantic search on stored long-term memory."""
         try:
+            logger = setup_logger()
             # Find project root
             project_root = find_project_root()
 
@@ -48,7 +50,9 @@ class LongTermRagTool(BaseTool):
 
             # Perform similarity search
             results = vectorstore.similarity_search(query, k=k)
+            logger.info(f"LongTermMemorySearch returned {len(results)} results for query: {query}")
             return "\n".join([doc.page_content for doc in results])
 
         except Exception as e:
+            logger.error(f"Error in LongTermMemorySearch: {str(e)}")
             return f"❌ Error in LongTermMemorySearch: {str(e)}"

@@ -5,6 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from typing import Type, ClassVar, Optional
 import os
 import json
+from ..utils.logger import setup_logger
 
 from ..common_functions.Find_project_root import find_project_root
 
@@ -31,6 +32,7 @@ class RagTool(BaseTool):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.logger = setup_logger()
 
         if not RagTool.vectorstore:
             # Load operations file
@@ -59,7 +61,7 @@ class RagTool(BaseTool):
 
             # Build FAISS vectorstore
             RagTool.vectorstore = FAISS.from_texts(ops, embedder)
-            print(f"✅ RAG vectorstore initialized with {len(ops)} operations.")
+            self.logger.info(f"RAG vectorstore initialized with {len(ops)} operations")
 
     def _run(self, query: str, k: int = 5) -> str:
         """Perform semantic search on operations and return top matches."""
