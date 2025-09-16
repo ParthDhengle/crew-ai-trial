@@ -19,6 +19,9 @@ from firebase_admin import auth
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
 
+# Global for current authenticated UID (for CLI session)
+current_uid = None
+
 # Suppress Pydantic warnings
 if pydantic_version.startswith("2"):
     from pydantic import PydanticDeprecatedSince20
@@ -130,8 +133,7 @@ def authenticate_user(get_user_input=None):
         password = get_user_input("Password: ")  # In prod, hash/secure this
         display_name = get_user_input("Display Name: ")
         try:
-            user_data = create_user(email, password, display_name)  # Returns dict
-            uid = user_data['uid']  # Extract UID string
+            uid = create_user(email, password, display_name)
             print(f"✅ Signed up! UID: {uid}")
         except ValueError as e:
             print(f"❌ Signup failed: {e}")
@@ -156,7 +158,7 @@ def load_or_create_profile():
         print("No profile found in Firestore. Setting up...")
         name = get_user_input("Your name: ")
         email = get_user_input("Your email: ")
-        set_user_profile(USER_ID, email, display_name=name)  # Use global USER_ID (set via auth)
+        set_user_profile(current_uid, email, display_name=name)  # Use global current_uid
         profile = get_user_profile()
         logger.info("Profile created in Firestore")
         print("✅ Profile created in Firestore.")
@@ -183,19 +185,24 @@ def validate_environment():
         return False
 
 def run_single_query(user_query=None):
+    global current_uid  # Access global UID
     logger.info(f"Processing single query: {user_query}")
     if not validate_environment():
         logger.error("Environment validation failed")
         return False
-    uid = authenticate_user(get_user_input)  # Add auth here
-    if not uid:
-        print("❌ Auth failed. Exiting.")
-        return False
+    # Auth only if not already authenticated
+    if current_uid is None:
+        uid = authenticate_user(get_user_input)
+        if not uid:
+            print("❌ Auth failed. Exiting.")
+            return False
+        current_uid = uid  # Set global for session
     profile = load_or_create_profile()
     if not user_query:
         user_query = get_user_input()
     if user_query.lower() in ["quit", "exit", "q"]:
         logger.info("User requested to quit")
+        current_uid = None  # Reset on exit
         return False
     if user_query.lower() in ["help", "h"]:
         display_help()
@@ -225,6 +232,7 @@ async def run_server():
     await server.serve()
 
 def run_interactive():
+    global current_uid  # Ensure global access
     display_welcome()
     try:
         while True:
@@ -233,6 +241,7 @@ def run_interactive():
     except KeyboardInterrupt:
         logger.info("Interactive mode terminated by user")
         print("\n👋 Goodbye!")
+        current_uid = None  # Reset on exit
 
 def run():
     logger.info("Starting AI Assistant")
