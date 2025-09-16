@@ -133,22 +133,20 @@ class AiAgent:
         except json.JSONDecodeError:
             print("Warning: Invalid operations JSON. Using empty list.")
             available_operations = []
-        op_names = "\n".join([op['name'] for op in available_operations])
        
-        # Assemble inputs (token-aware: truncate history summary if long)
+        available_ops_info = "\n".join([f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}" for op in available_operations])
+        #Assemble inputs (token-aware: truncate history summary if long)
         full_history = json.dumps(history)
         if len(full_history) > 2000: # Rough token limit
             history_summary = ChatHistory.summarize(history)
             full_history = f"Summary: {history_summary}"
-       
         inputs = {
             'user_query': user_query,
             'file_content': file_content,
             'full_history': full_history,
-            'op_names': op_names,
+            'available_ops_info': available_ops_info,
             'user_profile': json.dumps(user_profile)
         }
-       
         # 2. Classification (single LLM call with all inputs)
         classify_task = self.classify_query()
         classify_task.description = classify_task.description.format(**inputs)

@@ -8,3 +8,97 @@
 2025-09-14 00:29:20 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Grow career skills", "integrations": {"email": "parthdhengle12@gmail.com"}, "Productive Time": "Morning", "updated_at": "2025-09-11T17:04:07.698024", "focus_hours": ["Morning"], "Mood Check": "Daily", "name": "Parth", "Name": "Parth Dhengle", "AI Tone": "Motivational", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "IST", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
 2025-09-14 00:30:08 - AIAssistant - INFO - CLI input interrupted by user
 2025-09-14 00:30:08 - AIAssistant - INFO - User requested to quit
+2025-09-16 09:32:08 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 09:32:08 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 09:32:08 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 09:32:08 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:32:08 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:32:08 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:32:08 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:32:08 - AIAssistant - WARNING - Missing profile fields: ['Name', 'Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-16 09:32:54 - AIAssistant - DEBUG - Received CLI input: Atharva Deo
+2025-09-16 09:32:57 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:10 - AIAssistant - DEBUG - Received CLI input: pune india
+2025-09-16 09:33:12 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:14 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:19 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:22 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:34 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-16 09:33:37 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:42 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:46 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:57 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:58 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:34:15 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-16 09:34:15 - AIAssistant - INFO - Processing query: what is my name for user Atharva Deo
+2025-09-16 09:34:45 - AIAssistant - DEBUG - Query response: Your name is Atharva Deo
+2025-09-16 09:34:45 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:34:45 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:34:45 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:34:45 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:34:45 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:38:29 - AIAssistant - DEBUG - Received CLI input: i am working on an project for stress relief which reduce human stress. analyze this and create me task accordingly
+2025-09-16 09:38:29 - AIAssistant - INFO - Processing query: i am working on an project for stress relief which reduce human stress. analyze this and create me task accordingly for user Atharva Deo
+2025-09-16 09:38:44 - AIAssistant - DEBUG - Query response: Attempted operations for Atharva Deo's stress reduction project: task creation (failed due to invalid parameters: task_name, task_type, deadline required), focus session start (not implemented), semantic search for stress relief techniques (not implemented), knowledge base entry creation (not implemented), and folder creation (not implemented). No operations succeeded; manual input or alternative methods needed for project setup.
+2025-09-16 09:38:44 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:38:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:38:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:38:44 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:38:44 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:47:18 - AIAssistant - DEBUG - Received CLI input: create a file using command line
+2025-09-16 09:47:18 - AIAssistant - INFO - Processing query: create a file using command line for user Atharva Deo
+2025-09-16 09:47:33 - AIAssistant - DEBUG - Query response: Attempted file.create operation: ❌ Not implemented. Since the file creation command is not available, I recommend using standard command-line methods like 'touch filename' (Linux/macOS) or 'echo. > filename' (Windows) to create a new file for your notes or project.
+2025-09-16 09:47:33 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:47:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:47:33 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:47:33 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:47:33 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 10:04:29 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 10:04:29 - AIAssistant - INFO - User requested to quit
+2025-09-16 10:04:47 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 10:04:47 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 10:04:47 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 10:04:47 - AIAssistant - INFO - Processing single query: None
+2025-09-16 10:04:47 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 10:04:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 10:04:47 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 10:04:47 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 10:04:52 - AIAssistant - DEBUG - Received CLI input: create a file using command line
+2025-09-16 10:04:52 - AIAssistant - INFO - Processing query: create a file using command line for user Atharva Deo
+2025-09-16 10:05:17 - AIAssistant - DEBUG - Query response: Performed run_command: Command execution is not implemented. To create a file named 'filename.txt' via command line, you can use 'touch filename.txt' (Unix/Linux/macOS) or 'echo.> filename.txt' (Windows). Since the operation failed, manual execution is required.
+2025-09-16 10:05:17 - AIAssistant - INFO - Processing single query: None
+2025-09-16 10:05:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 10:05:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 10:05:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 10:05:17 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 14:55:23 - AIAssistant - DEBUG - Received CLI input: tell me about my self
+2025-09-16 14:55:23 - AIAssistant - INFO - Processing query: tell me about my self for user Atharva Deo
+2025-09-16 14:55:30 - AIAssistant - ERROR - Error processing query 'tell me about my self': 'os_info'
+2025-09-16 14:55:30 - AIAssistant - INFO - Processing single query: None
+2025-09-16 14:55:30 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 14:55:30 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 14:55:30 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 14:55:31 - AIAssistant - WARNING - Missing profile fields: ['Name', 'Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-16 14:55:53 - AIAssistant - DEBUG - Received CLI input: Atharva deo
+2025-09-16 14:55:54 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:55:58 - AIAssistant - DEBUG - Received CLI input: pune
+2025-09-16 14:56:00 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:01 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:05 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-16 14:56:07 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:09 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:11 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 14:56:14 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 14:56:15 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:20 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:20 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-16 14:56:30 - AIAssistant - DEBUG - Received CLI input: tell me about my self
+2025-09-16 14:56:30 - AIAssistant - INFO - Processing query: tell me about my self for user Atharva deo
+2025-09-16 14:56:54 - AIAssistant - ERROR - Error processing query 'tell me about my self': 'os_info'
+2025-09-16 14:56:54 - AIAssistant - INFO - Processing single query: None
+2025-09-16 14:56:54 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 14:56:54 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 14:56:54 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 14:56:54 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-16 15:58:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 15:58:28 - AIAssistant - INFO - User requested to quit
