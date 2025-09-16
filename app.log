@@ -184,3 +184,40 @@
 2025-09-17 00:53:45 - AIAssistant - DEBUG - Received CLI input: 1
 2025-09-17 00:53:50 - AIAssistant - DEBUG - Received CLI input: 2
 2025-09-17 00:53:50 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 00:56:00 - AIAssistant - DEBUG - Received CLI input: tell me about myself
+2025-09-17 00:56:00 - AIAssistant - INFO - Processing query: tell me about myself for user Parth Dhengle
+2025-09-17 00:56:11 - AIAssistant - ERROR - Error processing query 'tell me about myself': 'os_info'
+2025-09-17 00:56:11 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:56:11 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:56:11 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:02:44 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 01:02:52 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 01:02:55 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:02:55 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:02:55 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:03:13 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-17 01:03:13 - AIAssistant - INFO - Processing query: what is my name for user Parth Dhengle
+2025-09-17 01:03:17 - AIAssistant - ERROR - Error processing query 'what is my name': 'os_info'
+2025-09-17 01:03:17 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:03:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:03:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:07:26 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:48 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:07:48 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:07:48 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:07:48 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:07:48 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:07:48 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:08:02 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 01:08:06 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 01:08:13 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:08:14 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:08:14 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:08:17 - AIAssistant - DEBUG - Received CLI input: tell me about myself
+2025-09-17 01:08:17 - AIAssistant - INFO - Processing query: tell me about myself for user Parth Dhengle
+2025-09-17 01:08:27 - AIAssistant - DEBUG - Query response: You are Parth Dhengle, a student from Pune, India, with a focus on growing your career skills. Your current productive time is in the morning, and you have a daily mood check. You are motivated by personal development and have a reminder type set to email. You are currently using a Windows 10 system and have various applications and tools available to you.
+2025-09-17 01:08:27 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:08:27 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:08:27 - AIAssistant - INFO - Firebase connected successfully

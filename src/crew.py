@@ -20,6 +20,7 @@ import traceback
 from typing import List, Dict, Any
 from datetime import date
 import json5
+import platform
 import re
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
@@ -140,12 +141,14 @@ class AiAgent:
         if len(full_history) > 2000: # Rough token limit
             history_summary = ChatHistory.summarize(history)
             full_history = f"Summary: {history_summary}"
+        os_info = f"{platform.system()} {platform.release()}"
         inputs = {
             'user_query': user_query,
             'file_content': file_content,
             'full_history': full_history,
             'available_ops_info': available_ops_info,
-            'user_profile': json.dumps(user_profile)
+            'user_profile': json.dumps(user_profile),
+            'os_info': os_info
         }
         # 2. Classification (single LLM call with all inputs)
         classify_task = self.classify_query()

@@ -13,7 +13,7 @@ import asyncio
 from common_functions.Find_project_root import find_project_root
 from common_functions.User_preference import collect_preferences
 from utils.logger import setup_logger
-from firebase_client import create_user, sign_in_with_email, get_user_profile, set_user_profile,verify_id_token
+from firebase_client import create_user, sign_in_with_email, get_user_profile, set_user_profile, verify_id_token
 from firebase_admin import auth
 
 PROJECT_ROOT = find_project_root()
@@ -36,15 +36,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic model for query input
+# Pydantic models
 class QueryRequest(BaseModel):
     query: str
 
-# API endpoint for processing queries
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+# API endpoint for auth
 @app.post("/auth/login")
-async def api_login(request: dict):  # Expect {"email": "...", "password": "..."}
+async def api_login(request: LoginRequest):  # Use Pydantic for validation
     try:
-        uid = sign_in_with_email(request["email"], request["password"])
+        uid = sign_in_with_email(request.email, request.password)
         # In real API, return custom token for client to exchange for ID token
         custom_token = auth.create_custom_token(uid)
         return {"uid": uid, "token": custom_token.decode()}  # Client exchanges for ID token
@@ -52,7 +56,7 @@ async def api_login(request: dict):  # Expect {"email": "...", "password": "..."
         raise HTTPException(status_code=401, detail=str(e))
 
 # Middleware for protected routes (e.g., /process_query)
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPBearer
 
 security = HTTPBearer()
@@ -63,9 +67,9 @@ async def get_current_uid(token: str = Depends(security)):
         return uid
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
 @app.post("/process_query")
-async def process_query(request: QueryRequest , uid: str = Depends(get_current_uid)):
+async def process_query(request: QueryRequest, uid: str = Depends(get_current_uid)):
     logger.info(f"Received API query: {request.query}")
     if not request.query:
         logger.error("No query provided in API request")
@@ -79,7 +83,7 @@ async def process_query(request: QueryRequest , uid: str = Depends(get_current_u
         logger.error(f"Error processing query '{request.query}': {str(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-    
+
 # CLI-related functions
 REQUIRED_PROFILE_KEYS = [
     "Name", "Role", "Location", "Productive Time", "Reminder Type",
@@ -126,7 +130,8 @@ def authenticate_user(get_user_input=None):
         password = get_user_input("Password: ")  # In prod, hash/secure this
         display_name = get_user_input("Display Name: ")
         try:
-            uid = create_user(email, password, display_name)
+            user_data = create_user(email, password, display_name)  # Returns dict
+            uid = user_data['uid']  # Extract UID string
             print(f"✅ Signed up! UID: {uid}")
         except ValueError as e:
             print(f"❌ Signup failed: {e}")
@@ -151,7 +156,7 @@ def load_or_create_profile():
         print("No profile found in Firestore. Setting up...")
         name = get_user_input("Your name: ")
         email = get_user_input("Your email: ")
-        set_user_profile(USER_ID, email, display_name=name)
+        set_user_profile(USER_ID, email, display_name=name)  # Use global USER_ID (set via auth)
         profile = get_user_profile()
         logger.info("Profile created in Firestore")
         print("✅ Profile created in Firestore.")
