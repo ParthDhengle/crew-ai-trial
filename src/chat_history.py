@@ -7,9 +7,9 @@ import os
 import json
 from datetime import datetime
 import google.generativeai as genai
-from common_functions.Find_project_root import find_project_root
+from .common_functions.Find_project_root import find_project_root
 import uuid
-from firebase_client import add_chat_message, get_chat_history  # Updated imports
+from .firebase_client import add_chat_message, get_chat_history  # Updated imports
 
 project_root = find_project_root()
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))

@@ -1,4 +1,4 @@
-from firebase_client import add_document  # For future; placeholder now
+from ....firebase_client import add_document  # For future; placeholder now
 
 def create_event(calendar_id: str, title: str, start: str, end: str, attendees: list = None, location: str = None) -> tuple[bool, str]:
     # Placeholder: In prod, integrate Google Calendar API via integrations in profile

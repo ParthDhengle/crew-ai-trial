@@ -6,7 +6,7 @@ from typing import Type
 import os
 import json
 
-from common_functions.Find_project_root import find_project_root
+from ..common_functions.Find_project_root import find_project_root
 
 
 class LongTermRagInput(BaseModel):

@@ -1,7 +1,7 @@
 import os
 import json
 import warnings
-from firebase_client import get_user_profile, update_user_profile
+from ..firebase_client import get_user_profile, update_user_profile
 
 def parse_preferences(prefs_path: str = None) -> dict:
     """Load profile from Firestore."""

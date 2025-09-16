@@ -1,0 +1,8 @@
+2025-09-16 00:25:11 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 00:25:11 - AIAssistant - INFO - Running in server mode
+2025-09-16 00:25:11 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-16 00:26:37 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 00:26:37 - AIAssistant - INFO - Running in server mode
+2025-09-16 00:26:37 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-16 00:29:05 - AIAssistant - INFO - Received API query: where is india
+2025-09-16 00:29:20 - AIAssistant - DEBUG - API response for query 'where is india': India is a country located in South Asia. It is the seventh-largest country by land area and the second-most populous country in the world. India is bounded by the Indian Ocean to the south, the Arabian Sea to the west, and the Bay of Bengal to the east. It shares borders with several countries, including Pakistan to the west, China and Nepal to the north, Bhutan to the northeast, and Bangladesh and Myanmar to the east. The capital of India is New Delhi, and the country has a diverse range of cultures, languages, and landscapes.

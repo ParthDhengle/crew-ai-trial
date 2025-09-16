@@ -24,14 +24,14 @@ import re
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from litellm.exceptions import RateLimitError, APIError
-from tools.file_manager_tool import FileManagerTool
-from tools.operations_tool import OperationsTool
-from tools.rag_tool import RagTool
-from tools.long_term_rag_tool import LongTermRagTool
-from chat_history import ChatHistory # Updated to Firebase
-from common_functions.Find_project_root import find_project_root
-from memory_manager import MemoryManager # Updated for KB
-from firebase_client import get_user_profile # For profile
+from .tools.file_manager_tool import FileManagerTool
+from .tools.operations_tool import OperationsTool
+from .tools.rag_tool import RagTool
+from .tools.long_term_rag_tool import LongTermRagTool
+from .chat_history import ChatHistory # Updated to Firebase
+from .common_functions.Find_project_root import find_project_root
+from .memory_manager import MemoryManager # Updated for KB
+from .firebase_client import get_user_profile # For profile
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase

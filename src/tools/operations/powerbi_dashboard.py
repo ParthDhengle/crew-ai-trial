@@ -459,7 +459,7 @@ Return only the JSON, no explanation.
         # Try to open the dashboard
         success_message = f"Dashboard files created at: {dashboard_path}"
         
-        if pbi_installed:
+        if pbi_installed and os.getenv("PBI_AUTO_OPEN", "1") == "1":
             try:
                 # Try to open with Power BI if available
                 pbip_file = os.path.join(dashboard_path, f"{dashboard_name}.pbip")
