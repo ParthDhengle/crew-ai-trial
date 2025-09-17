@@ -395,3 +395,52 @@
 2025-09-17 21:22:28 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
 2025-09-17 21:22:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
 
+2025-09-17 23:21:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 23:21:15 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 23:21:15 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 23:21:15 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:21:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:21:15 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:21:38 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 23:21:56 - AIAssistant - DEBUG - Received CLI input: parthdhengle.spot@gmail.com
+2025-09-17 23:22:00 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 23:22:08 - AIAssistant - DEBUG - Received CLI input: Parth spot
+2025-09-17 23:22:09 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 23:22:09 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 23:22:13 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:18 - AIAssistant - DEBUG - Received CLI input: japan
+2025-09-17 23:22:20 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:22 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 23:22:24 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 23:22:26 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 23:22:27 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:29 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:31 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:32 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 23:22:34 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:34 - AIAssistant - DEBUG - User profile loaded: {"uid": "7ld8w3dvSzQfiNwbUDKELAHn5Fs2", "Current Focus": "Health & balance", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T23:22:09.206297", "focus_hours": [], "Name": "Parth spot", "Mood Check": "None", "AI Tone": "Motivational", "Role": "Other", "timezone": "UTC", "Location": "japan", "Top Task Type": "Study", "display_name": "Parth spot", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle.spot@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Delete", "Top Motivation": "Health"}
+2025-09-17 23:22:51 - AIAssistant - DEBUG - Received CLI input: what is the weather today??
+2025-09-17 23:22:51 - AIAssistant - INFO - Processing query: what is the weather today?? for user Parth spot
+2025-09-17 23:23:17 - AIAssistant - DEBUG - Query response: Performed web_search: Current weather in Japan today includes sunny skies with a high of 25°C in Tokyo and scattered showers in Osaka with 22°C. Overall, conditions vary by region but are generally mild.
+2025-09-17 23:23:17 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:23:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:23:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:23:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 23:23:17 - AIAssistant - DEBUG - User profile loaded: {"uid": "7ld8w3dvSzQfiNwbUDKELAHn5Fs2", "Current Focus": "Health & balance", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T23:22:09.206297", "focus_hours": [], "Name": "Parth spot", "Mood Check": "None", "AI Tone": "Motivational", "Role": "Other", "timezone": "UTC", "Location": "japan", "Top Task Type": "Study", "display_name": "Parth spot", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle.spot@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Delete", "Top Motivation": "Health"}
+2025-09-17 23:28:19 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 23:28:19 - AIAssistant - INFO - User requested to quit
+2025-09-17 23:28:34 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 23:28:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 23:28:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 23:28:34 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:28:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:28:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:28:36 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:14 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:34 - AIAssistant - INFO - Starting AI Assistant
+2025-09-18 00:21:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 00:21:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 00:21:34 - AIAssistant - INFO - Processing single query: None
+2025-09-18 00:21:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 00:21:34 - AIAssistant - INFO - Firebase connected successfully

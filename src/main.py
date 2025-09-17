@@ -15,12 +15,31 @@ from common_functions.User_preference import collect_preferences
 from utils.logger import setup_logger
 from firebase_client import create_user, sign_in_with_email, get_user_profile, set_user_profile, verify_id_token
 from firebase_admin import auth
+from fastapi import Body
+from pydantic import BaseModel
+from typing import Optional, List
 
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
 
 # Global for current authenticated UID (for CLI session)
 current_uid = None
+class TaskRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+    deadline: Optional[str] = None  # ISO string
+    priority: str = "Medium"
+    tags: Optional[List[str]] = None
+
+class UpdateTaskRequest(BaseModel):
+    status: Optional[str] = None
+    title: Optional[str] = None
+    # Add other fields as needed
+
+class OperationRequest(BaseModel):
+    name: str
+    parameters: dict
+
 
 # Suppress Pydantic warnings
 if pydantic_version.startswith("2"):
@@ -86,6 +105,99 @@ async def process_query(request: QueryRequest, uid: str = Depends(get_current_ui
         logger.error(f"Error processing query '{request.query}': {str(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.post("/auth/login")
+async def api_login(request: LoginRequest):
+    try:
+        uid = sign_in_with_email(request.email, request.password)
+        custom_token = auth.create_custom_token(uid)
+        # Client will exchange custom_token for ID token via Firebase SDK
+        return {"uid": uid, "custom_token": custom_token.decode()}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+# New: Signup endpoint
+@app.post("/auth/signup")
+async def api_signup(request: LoginRequest):
+    try:
+        uid = create_user(request.email, request.password, request.email)  # Use email as display_name
+        custom_token = auth.create_custom_token(uid)
+        return {"uid": uid, "custom_token": custom_token.decode()}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Protected: Process query (unchanged, but add session_id)
+class QueryRequest(BaseModel):
+    query: str
+    session_id: Optional[str] = None
+
+@app.post("/process_query")
+async def process_query(request: QueryRequest, uid: str = Depends(get_current_uid)):
+    # Set global USER_ID for Firebase ops
+    global current_uid
+    current_uid = uid
+    try:
+        crew_instance = AiAgent()
+        final_response = crew_instance.run_workflow(request.query, session_id=request.session_id)
+        # Queue a mock op for demo (in real, crew does this)
+        from firebase_client import queue_operation
+        queue_operation("process_query", {"query": request.query})
+        return {"result": final_response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New Endpoints for Tasks (CRUD)
+@app.post("/tasks")
+async def create_task(request: TaskRequest, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import add_task
+    task_id = add_task(
+        title=request.title, description=request.description, due_date=request.deadline,
+        priority=request.priority, related_files=request.tags  # Reuse tags as files for now
+    )
+    return {"task_id": task_id}
+
+@app.get("/tasks")
+async def get_tasks(status: Optional[str] = None, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import get_tasks_by_user
+    return get_tasks_by_user(status)
+
+@app.put("/tasks/{task_id}")
+async def update_task(task_id: str, request: UpdateTaskRequest, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import update_task_by_user
+    return update_task_by_user(task_id, request.dict(exclude_unset=True))
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: str, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import delete_task_by_user
+    return delete_task_by_user(task_id)
+
+# New Endpoints for Operations (Queue/Status)
+@app.post("/operations")
+async def queue_operation(request: OperationRequest, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import queue_operation
+    op_id = queue_operation(request.name, request.parameters)
+    return {"op_id": op_id}
+
+@app.get("/operations")
+async def get_operations(status: Optional[str] = None, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import get_operations_queue
+    return get_operations_queue(status)
+
+@app.put("/operations/{op_id}/status")
+async def update_op_status(op_id: str, status: str, result: Optional[str] = None, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import update_operation_status
+    return update_operation_status(op_id, status, result)
+
+
+
+
 
 # CLI-related functions
 REQUIRED_PROFILE_KEYS = [

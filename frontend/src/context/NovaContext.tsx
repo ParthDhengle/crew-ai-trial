@@ -1,291 +1,257 @@
+// frontend/src/context/NovaContext.tsx
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import type { 
-  ChatSession, 
-  ChatMessage, 
-  SchedulerTask, 
-  AgentOp,
-  NovaRole,
-  Integration 
-} from '@/api/types';
+import { useAuth, UserProfile } from '@/hooks/useAuth';
+import { collection, onSnapshot, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
+import axios from 'axios';
+import type { ChatMessage, ChatSession, SchedulerTask, AgentOp, Integration, NovaRole } from '@/api/types';
 
-/**
- * Nova AI Assistant - Global State Management
- * 
- * Provides centralized state management for the Nova UI with mock data
- * for development and easy integration with Electron backend.
- */
-
-type NovaState = {
-  // Chat state
+interface NovaState {
+  view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
   currentSession: ChatSession | null;
   sessions: ChatSession[];
-  isTyping: boolean;
-  
-  // Scheduler state  
+  messages: ChatMessage[];  // For current session
   tasks: SchedulerTask[];
-  
-  // Agent operations
   operations: AgentOp[];
-  
-  // UI state
-  view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
-  isMiniMode: boolean;
-  sidebarCollapsed: boolean;
-  
-  // User preferences
+  integrations: Integration[];
   role: NovaRole;
   voiceEnabled: boolean;
   selectedModel: string;
-  
-  // Integrations
-  integrations: Integration[];
-};
+  alwaysOnTop: boolean;
+  sidebarCollapsed: boolean;
+  isTyping: boolean;
+}
 
-type NovaAction = 
+type NovaAction =
   | { type: 'SET_VIEW'; payload: NovaState['view'] }
-  | { type: 'SET_MINI_MODE'; payload: boolean }
-  | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
-  | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
-  | { type: 'SET_SESSIONS'; payload: ChatSession[] }
   | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
-  | { type: 'SET_TYPING'; payload: boolean }
+  | { type: 'SET_SESSIONS'; payload: ChatSession[] }
+  | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
+  | { type: 'SET_MESSAGES'; payload: ChatMessage[] }
+  | { type: 'SET_TASKS'; payload: SchedulerTask[] }
   | { type: 'ADD_TASK'; payload: SchedulerTask }
   | { type: 'UPDATE_TASK'; payload: { id: string; updates: Partial<SchedulerTask> } }
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'SET_OPERATIONS'; payload: AgentOp[] }
+  | { type: 'SET_INTEGRATIONS'; payload: Integration[] }
   | { type: 'SET_ROLE'; payload: NovaRole }
   | { type: 'SET_VOICE_ENABLED'; payload: boolean }
-  | { type: 'SET_INTEGRATIONS'; payload: Integration[] };
-
-// Mock data for development
-const mockSessions: ChatSession[] = [
-  {
-    id: 'session-1',
-    title: 'Project Planning Discussion',
-    summary: 'Discussed Q4 project timeline and resource allocation',
-    createdAt: Date.now() - 86400000,
-    updatedAt: Date.now() - 3600000,
-    messages: [
-      {
-        id: 'msg-1',
-        content: "Hey Nova, I need help planning my Q4 projects. Can you help me organize my tasks?",
-        role: 'user',
-        timestamp: Date.now() - 86400000,
-      },
-      {
-        id: 'msg-2', 
-        content: "Of course! I'd be happy to help you plan your Q4 projects. Let me analyze your current workload and suggest an optimal timeline. I can also create a structured task breakdown for you.",
-        role: 'assistant',
-        timestamp: Date.now() - 86390000,
-        actions: [
-          { type: 'accept_schedule', label: 'Create Schedule', payload: {} },
-          { type: 'run_operation', label: 'Analyze Workload', payload: { operation: 'workload_analysis' } }
-        ]
-      },
-      {
-        id: 'msg-3',
-        content: "That sounds perfect. I have about 15 hours per week available for project work.",
-        role: 'user', 
-        timestamp: Date.now() - 86300000,
-      },
-    ]
-  },
-  {
-    id: 'session-2',
-    title: 'Email Management',
-    summary: 'Set up automated email responses and sorting rules',
-    createdAt: Date.now() - 172800000,
-    updatedAt: Date.now() - 7200000,
-    messages: [
-      {
-        id: 'msg-4',
-        content: "Can you help me set up some email automation rules?",
-        role: 'user',
-        timestamp: Date.now() - 172800000,
-      },
-      {
-        id: 'msg-5',
-        content: "Absolutely! I can help you create email filters, automated responses, and priority sorting. What type of emails would you like to automate first?",
-        role: 'assistant', 
-        timestamp: Date.now() - 172750000,
-      }
-    ]
-  }
-];
-
-const mockTasks: SchedulerTask[] = [
-  {
-    id: 'task-1',
-    title: 'Prepare Q4 presentation',
-    description: 'Create slides for quarterly review meeting with stakeholders',
-    deadline: '2024-10-15T14:00:00Z',
-    priority: 'High',
-    status: 'todo',
-    tags: ['presentation', 'quarterly'],
-    isAgenticTask: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-2', 
-    title: 'Code review for API updates',
-    description: 'Review pull requests for authentication service improvements',
-    deadline: '2024-10-12T17:00:00Z',
-    priority: 'Medium',
-    status: 'inprogress', 
-    tags: ['development', 'api'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-3',
-    title: 'Team standup notes',
-    description: 'Document key decisions and action items from daily standups',
-    deadline: '2024-10-11T09:30:00Z', 
-    priority: 'Low',
-    status: 'done',
-    tags: ['documentation'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
-
-const mockIntegrations: Integration[] = [
-  { id: 'email', name: 'Email', enabled: true, status: 'connected', lastSync: Date.now() - 300000 },
-  { id: 'calendar', name: 'Calendar', enabled: false, status: 'disconnected' },
-  { id: 'smartwatch', name: 'Smartwatch', enabled: false, status: 'disconnected' },
-  { id: 'device', name: 'Device Activity', enabled: true, status: 'connected', lastSync: Date.now() - 600000 },
-];
+  | { type: 'SET_SELECTED_MODEL'; payload: string }
+  | { type: 'SET_ALWAYS_ON_TOP'; payload: boolean }
+  | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
+  | { type: 'SET_TYPING'; payload: boolean };
 
 const initialState: NovaState = {
-  currentSession: mockSessions[0],
-  sessions: mockSessions,
-  isTyping: false,
-  tasks: mockTasks,
-  operations: [],
   view: 'chat',
-  isMiniMode: false,
-  sidebarCollapsed: false,
-  role: 'friend',
+  currentSession: null,
+  sessions: [],
+  messages: [],
+  tasks: [],
+  operations: [],
+  integrations: [],
+  role: 'guide',
   voiceEnabled: true,
   selectedModel: 'whisper-base',
-  integrations: mockIntegrations,
+  alwaysOnTop: false,
+  sidebarCollapsed: false,
+  isTyping: false,
 };
 
-function novaReducer(state: NovaState, action: NovaAction): NovaState {
-  // Move const outside switch
-  let updatedSessions = state.sessions;
-  let updatedCurrentSession = state.currentSession;
-
+const novaReducer = (state: NovaState, action: NovaAction): NovaState => {
   switch (action.type) {
     case 'SET_VIEW':
       return { ...state, view: action.payload };
-    
-    case 'SET_MINI_MODE':
-      return { ...state, isMiniMode: action.payload };
-    
-    case 'SET_SIDEBAR_COLLAPSED':
-      return { ...state, sidebarCollapsed: action.payload };
-      
-    case 'ADD_MESSAGE':
-      const { sessionId, message } = action.payload;
-      updatedSessions = state.sessions.map(session => 
-        session.id === sessionId 
-          ? { ...session, messages: [...session.messages, message], updatedAt: Date.now() }
-          : session
-      );
-      updatedCurrentSession = state.currentSession?.id === sessionId
-        ? { ...state.currentSession, messages: [...state.currentSession.messages, message] }
-        : state.currentSession;
-      return {
-        ...state,
-        sessions: updatedSessions,
-        currentSession: updatedCurrentSession
-      };
-    
-    case 'SET_SESSIONS':
-      return { ...state, sessions: action.payload };
-      
     case 'SET_CURRENT_SESSION':
       return { ...state, currentSession: action.payload };
-      
-    case 'SET_TYPING':
-      return { ...state, isTyping: action.payload };
-      
+    case 'SET_SESSIONS':
+      return { ...state, sessions: action.payload };
+    case 'ADD_MESSAGE':
+      if (state.currentSession?.id === action.payload.sessionId) {
+        return { ...state, messages: [...state.messages, action.payload.message] };
+      }
+      return state;
+    case 'SET_MESSAGES':
+      return { ...state, messages: action.payload };
+    case 'SET_TASKS':
+      return { ...state, tasks: action.payload };
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.payload] };
-      
     case 'UPDATE_TASK':
       return {
         ...state,
-        tasks: state.tasks.map(task => 
-          task.id === action.payload.id 
-            ? { ...task, ...action.payload.updates, updatedAt: new Date().toISOString() }
-            : task
-        )
+        tasks: state.tasks.map(t => t.id === action.payload.id ? { ...t, ...action.payload.updates } : t),
       };
-      
     case 'DELETE_TASK':
-      return { ...state, tasks: state.tasks.filter(task => task.id !== action.payload) };
-      
+      return { ...state, tasks: state.tasks.filter(t => t.id !== action.payload) };
     case 'SET_OPERATIONS':
       return { ...state, operations: action.payload };
-      
-    case 'SET_ROLE':
-      return { ...state, role: action.payload };
-      
-    case 'SET_VOICE_ENABLED':
-      return { ...state, voiceEnabled: action.payload };
-      
     case 'SET_INTEGRATIONS':
       return { ...state, integrations: action.payload };
-      
+    case 'SET_ROLE':
+      return { ...state, role: action.payload };
+    case 'SET_VOICE_ENABLED':
+      return { ...state, voiceEnabled: action.payload };
+    case 'SET_SELECTED_MODEL':
+      return { ...state, selectedModel: action.payload };
+    case 'SET_ALWAYS_ON_TOP':
+      return { ...state, alwaysOnTop: action.payload };
+    case 'SET_SIDEBAR_COLLAPSED':
+      return { ...state, sidebarCollapsed: action.payload };
+    case 'SET_TYPING':
+      return { ...state, isTyping: action.payload };
     default:
       return state;
   }
-}
+};
 
-const NovaContext = createContext<{
+interface NovaContextType {
   state: NovaState;
   dispatch: React.Dispatch<NovaAction>;
-} | null>(null);
+  sendMessage: (message: string, sessionId?: string) => Promise<void>;
+  createTask: (task: Omit<SchedulerTask, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<SchedulerTask>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  // Add more as needed
+}
 
-export function NovaProvider({ children }: { children: React.ReactNode }) {
+const NovaContext = createContext<NovaContextType | undefined>(undefined);
+
+export const NovaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(novaReducer, initialState);
+  const { profile, idToken, loading } = useAuth();
 
-  // Simulate some dynamic updates for demo
+  // Sync profile to state on load
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Randomly update agent operations for demo
-      if (Math.random() > 0.8) {
-        const mockOps: AgentOp[] = [
-          {
-            id: `op-${Date.now()}`,
-            title: 'Processing email batch',
-            desc: 'Categorizing and prioritizing incoming messages',
-            status: 'running',
-            progress: Math.floor(Math.random() * 100),
-            startTime: Date.now() - Math.random() * 60000,
-          }
-        ];
-        dispatch({ type: 'SET_OPERATIONS', payload: mockOps });
-      }
-    }, 10000);
+    if (profile && !loading) {
+      dispatch({ type: 'SET_ROLE', payload: profile.role });
+      dispatch({ type: 'SET_VOICE_ENABLED', payload: profile.voiceEnabled });
+      dispatch({ type: 'SET_SELECTED_MODEL', payload: profile.selectedModel });
+      dispatch({ type: 'SET_ALWAYS_ON_TOP', payload: profile.alwaysOnTop });
+    }
+  }, [profile, loading]);
 
-    return () => clearInterval(interval);
-  }, []);
+  // Real-time listeners
+  useEffect(() => {
+    if (!idToken || loading) return;
 
-  return (
-    <NovaContext.Provider value={{ state, dispatch }}>
-      {children}
-    </NovaContext.Provider>
-  );
-}
+    // Listen to tasks
+    const tasksQuery = query(collection(db, 'tasks'), where('owner_id', '==', profile?.uid));
+    const unsubscribeTasks = onSnapshot(tasksQuery, (snap) => {
+      const tasksData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as SchedulerTask));
+      dispatch({ type: 'SET_TASKS', payload: tasksData });
+    });
 
-export function useNova() {
+    // Listen to operations
+    const opsQuery = query(collection(db, 'operations_queue'), where('user_id', '==', profile?.uid));
+    const unsubscribeOps = onSnapshot(opsQuery, (snap) => {
+      const opsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AgentOp));
+      dispatch({ type: 'SET_OPERATIONS', payload: opsData });
+    });
+
+    // Listen to chat sessions (group by session_id)
+    const messagesQuery = query(collection(db, 'chat_history'), where('user_id', '==', profile?.uid), orderBy('timestamp'));
+    const unsubscribeMessages = onSnapshot(messagesQuery, (snap) => {
+      const allMessages = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
+      // Group into sessions (simple: last 20 as current, others as history)
+      const currentMessages = allMessages.slice(-20);
+      dispatch({ type: 'SET_MESSAGES', payload: currentMessages });
+      // Derive sessions (mock simple grouping; enhance with aggregation)
+      const sessions = allMessages.reduce((acc: ChatSession[], msg, idx) => {
+        if (idx % 10 === 0) {  // Every 10 msgs a "session"
+          acc.push({ id: `sess-${idx}`, title: `Chat ${idx/10 +1}`, messages: [msg], createdAt: Date.now(), updatedAt: Date.now() });
+        }
+        return acc;
+      }, []);
+      dispatch({ type: 'SET_SESSIONS', payload: sessions });
+    });
+
+    return () => {
+      unsubscribeTasks();
+      unsubscribeOps();
+      unsubscribeMessages();
+    };
+  }, [idToken, profile?.uid, loading]);
+
+  // Send message to backend
+  const sendMessage = async (message: string, sessionId?: string) => {
+    if (!idToken) throw new Error('Not authenticated');
+    dispatch({ type: 'SET_TYPING', payload: true });
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/process_query', 
+        { query: message, session_id: sessionId },
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      const aiResponse: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        content: response.data.result,
+        role: 'assistant',
+        timestamp: Date.now(),
+      };
+      // Save to Firestore (client-side)
+      await addDoc(collection(db, 'chat_history'), {
+        ...aiResponse,
+        user_id: profile?.uid,
+        session_id: sessionId || 'default',
+        timestamp: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Send message failed:', error);
+    } finally {
+      dispatch({ type: 'SET_TYPING', payload: false });
+    }
+  };
+
+  // Task CRUD (via backend API)
+  const createTask = async (task: Omit<SchedulerTask, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!idToken) throw new Error('Not authenticated');
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/tasks', task, 
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      // Listener will update state
+    } catch (error) {
+      console.error('Create task failed:', error);
+    }
+  };
+
+  const updateTask = async (id: string, updates: Partial<SchedulerTask>) => {
+    if (!idToken) throw new Error('Not authenticated');
+    try {
+      await axios.put(`http://127.0.0.1:8000/tasks/${id}`, updates, 
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+    } catch (error) {
+      console.error('Update task failed:', error);
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    if (!idToken) throw new Error('Not authenticated');
+    try {
+      await axios.delete(`http://127.0.0.1:8000/tasks/${id}`, 
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+    } catch (error) {
+      console.error('Delete task failed:', error);
+    }
+  };
+
+  const value = {
+    state,
+    dispatch,
+    sendMessage,
+    createTask,
+    updateTask,
+    deleteTask,
+  };
+
+  if (loading) return <div>Loading...</div>;  // Or spinner
+
+  return <NovaContext.Provider value={value}>{children}</NovaContext.Provider>;
+};
+
+export const useNova = () => {
   const context = useContext(NovaContext);
-  if (!context) {
-    throw new Error('useNova must be used within a NovaProvider');
-  }
+  if (!context) throw new Error('useNova must be used within NovaProvider');
   return context;
-}
+};

@@ -355,3 +355,30 @@ def queue_operation(op_name: str, params: dict) -> str:
         "created_at": datetime.now().isoformat()
     }
     return add_document("operations_queue", data)
+
+# Add to end of file
+def get_tasks_by_user(status: str = None) -> list:
+    """Get user's tasks (filtered by status)."""
+    filters = [("owner_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
+    return query_collection("tasks", filters=filters)
+
+def update_task_by_user(task_id: str, data: dict) -> bool:
+    """Update user's task."""
+    data["updated_at"] = datetime.now().isoformat()
+    return update_document("tasks", task_id, data)
+
+def delete_task_by_user(task_id: str) -> bool:
+    """Delete user's task."""
+    return delete_document("tasks", task_id)
+
+def get_operations_queue(status: str = None) -> list:
+    """Get user's operation queue."""
+    filters = [("user_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
+    return query_collection("operations_queue", filters=filters)
+
+def update_operation_status(op_id: str, status: str, result: str = None) -> bool:
+    """Update op status (e.g., running -> success)."""
+    data = {"status": status, "updated_at": datetime.now().isoformat()}
+    if result:
+        data["result"] = result
+    return update_document("operations_queue", op_id, data)
