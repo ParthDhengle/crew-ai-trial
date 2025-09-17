@@ -4,33 +4,25 @@ from typing import List, Dict, Any, Tuple
 import json
 import re
 from common_functions.Find_project_root import find_project_root
-from firebase_client import get_operations # For defs
+from .operations.document_processor import document_summarize, document_translate
+from firebase_client import get_operations  # For defs
 
 PROJECT_ROOT = find_project_root()
 
-# Dynamic imports for your ops (placeholders in subdirs)
-# Structure: tools/operations/{op}.py or {category}/{action}.py
+# Dynamic imports for your ops
 from .operations.web_search import web_search
-from .operations.translate import translate_text # Renamed for clarity
+from .operations.translate import translate_text
 from .operations.summarization import summarize_text
-from .operations.ragsearch import rag_search # Uses rag_tool internally
-
-
-
-
-
-
-
-
+from .operations.ragsearch import rag_search
 from .operations.file_search import file_search
 from .operations.app_opening import open_app
 from .operations.run_terminal_command import run_command
 from .operations.events.create_event import create_event
 from .operations.tasks.create_task import create_task
-from .operations.tasks.read_task import read_task # list/read
+from .operations.tasks.read_task import read_task
 from .operations.tasks.update_task import update_task
-# Note: Added mark_complete as per JSON
 from .operations.tasks.mark_complete import mark_complete
+
 class OperationsTool:
     """Dispatcher for your specified operations. Maps 'name' to funcs; validates via Firebase/json defs."""
 
@@ -45,21 +37,21 @@ class OperationsTool:
             "file_search": file_search,
             "app_opening": open_app,
             "run_terminal_command": run_command,
-            # Calendar (matches JSON)
+            # Calendar
             "calendar.create_event": create_event,
-            # Tasks (matches JSON: task.create, task.list, etc.)
+            # Tasks
             "task.create": create_task,
             "task.list": read_task,
             "task.update": update_task,
             "task.mark_complete": mark_complete,
-            # Note: No delete in JSON; ragsearch as custom (not in JSON, but kept for workflow)
-
-
+            # Document processing
+            "document_summarize": document_summarize,
+            "document_translate": document_translate,
         }
 
     def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
         """Load op defs from Firebase (fallback json)."""
-        operations = get_operations() # List of dicts
+        operations = get_operations()
         param_defs = {}
         for op in operations:
             name = op.get("name", "")
@@ -86,7 +78,7 @@ class OperationsTool:
         return True, "Valid", []
 
     def _run(self, operations: List[Dict[str, Any]]) -> str:
-        """Exec ops sequentially; append results. Handles missing params via placeholders (no AI extract for simplicity)."""
+        """Exec ops sequentially; append results. Handles missing params via placeholders."""
         if not operations:
             return "No ops provided."
         lines = []

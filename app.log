@@ -297,3 +297,101 @@
 2025-09-17 01:20:44 - AIAssistant - INFO - Firebase connected successfully
 2025-09-17 01:20:44 - AIAssistant - INFO - Loading or creating user profile
 2025-09-17 01:20:44 - AIAssistant - DEBUG - User profile loaded: {"uid": "6tkvZi4D6zPD7CucbIwmT0FUgZv2", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T01:18:53.030447", "focus_hours": [], "Name": "Parth2004", "Mood Check": "Daily", "AI Tone": "Casual", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "wani maharashtra india", "Top Task Type": "Personal", "display_name": "Parth2004", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle2004@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-17 20:16:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:16:15 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:16:15 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:16:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:16:16 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:17:09 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 20:18:43 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:18:48 - AIAssistant - DEBUG - Received CLI input: atharvadeo
+2025-09-17 20:18:51 - AIAssistant - DEBUG - Received CLI input: Atharva
+2025-09-17 20:18:53 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 20:18:53 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 20:18:57 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:18:59 - AIAssistant - DEBUG - Received CLI input: Pune
+2025-09-17 20:19:03 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 20:19:09 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:12 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:24 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 20:19:26 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:19:27 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:19:30 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 20:19:34 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:38 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 20:19:38 - AIAssistant - DEBUG - User profile loaded: {"uid": "ZvSOs2HnstYaLphRNwKDchN8oBm1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T20:18:52.847791", "focus_hours": [], "Name": "Atharva", "Mood Check": "None", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Personal", "display_name": "Atharva", "Reminder Type": "None", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Mark as Overdue", "Top Motivation": "Career Growth"}
+2025-09-17 20:19:38 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user Atharva
+2025-09-17 20:19:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 20:43:59 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:43:59 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:43:59 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:43:59 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:44:01 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:44:06 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 20:45:08 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:45:12 - AIAssistant - DEBUG - Received CLI input: atharvadeo
+2025-09-17 20:46:54 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:46:54 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:46:54 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:46:54 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:50:46 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:50:46 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:50:46 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:50:46 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:50:46 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:53:13 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 20:53:21 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:53:24 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 20:53:26 - AIAssistant - DEBUG - Received CLI input: atharva
+2025-09-17 20:53:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 20:53:28 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 20:53:29 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:33 - AIAssistant - DEBUG - Received CLI input: Pune
+2025-09-17 20:53:34 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:35 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:37 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:39 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:40 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:41 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:42 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:43 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:44 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:44 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 20:53:44 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 20:53:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 21:15:26 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:15:26 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:15:26 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:15:26 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:15:28 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:15:28 - AIAssistant - DEBUG - Received CLI input: 
+2025-09-17 21:15:31 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:15:35 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:16:21 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:16:21 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:16:21 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:16:21 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:16:22 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:17:20 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:17:26 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 21:17:29 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:17:32 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 21:17:32 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 21:17:32 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 21:18:04 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 21:22:03 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:22:03 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:22:03 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:22:03 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:22:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:22:15 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:22:22 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 21:22:25 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:22:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 21:22:28 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 21:22:28 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 21:22:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
