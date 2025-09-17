@@ -516,7 +516,14 @@
       "description": "Creates Excel with data.",
       "capabilities": "office_write",
       "preview": "data summary"
-    }
-    
+    },
+    {
+  "name": "search_files",
+  "required_parameters": ["query"],
+  "optional_parameters": ["path", "use_semantic"],
+  "description": "Searches for files (PDF, DOCX, TXT) using keywords or semantic content matching.",
+  "capabilities": "file_search",
+  "preview": "list of files with paths, titles, and content snippets"
+  }  
   ]
 }
