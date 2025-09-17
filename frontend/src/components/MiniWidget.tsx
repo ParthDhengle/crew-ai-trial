@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowControls } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
-import { useAuth } from '@/hooks/useAuth';  // New: For idToken
+import { useAuth } from '@/hooks/useAuth';
 import type { ChatMessage } from '@/api/types';
 
 interface MiniWidgetProps {
@@ -42,17 +42,17 @@ export default function MiniWidget({
   const [miniMessage, setMiniMessage] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);  // New: Typing indicator
+  const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { expand, close } = useWindowControls();
   const { state, dispatch } = useNova();
-  const { idToken } = useAuth();  // New: For backend calls
+  const { idToken } = useAuth();
 
   // Last 3 messages for preview
   const previewMessages = state.currentSession?.messages.slice(-3) || [];
 
-  // Handle expand with loading state
+  // FIXED: Handle expand with delayed reset
   const handleExpand = async () => {
     if (miniMessage.trim()) {
       console.log('Mini send:', miniMessage);
@@ -63,13 +63,11 @@ export default function MiniWidget({
     setIsExpanding(true);
     try {
       console.log('MINI: Button clicked—awaiting IPC expand...');
-      await expand();
-      console.log('MINI: IPC expand complete—window should switch');
-      // FIXED: Reset immediately after success
-      setIsExpanding(false);
+      const result = await expand();
+      console.log('MINI: IPC expand complete:', result);
+      setTimeout(() => setIsExpanding(false), 600); // FIXED: Delay reset
     } catch (error) {
       console.error('MINI: Expand failed:', error);
-      // Reset loading state on error
       setIsExpanding(false);
     }
   };
@@ -77,11 +75,9 @@ export default function MiniWidget({
   // Handle close
   const handleClose = () => {
     console.log('MINI: Close button clicked');
-    // Send specific mini close
     if (window.api) {
-      (window as any).api.miniClose?.();  // Use miniClose
+      (window as any).api.miniClose?.();
     } else {
-      // Fallback for development
       window.close();
     }
   };
@@ -89,7 +85,6 @@ export default function MiniWidget({
   // FIXED: Handle quick send with backend integration
   const handleQuickSend = async () => {
     if (!miniMessage.trim()) {
-      // If no message, just expand
       await handleExpand();
       return;
     }
@@ -120,18 +115,16 @@ export default function MiniWidget({
     }
 
     setMiniMessage('');
-    setIsTyping(true);  // New: Show typing
+    setIsTyping(true);
 
     try {
-      // Real backend call
       const aiContent = await window.api.sendMessage(miniMessage, state.currentSession?.id, idToken);
       console.log('MINI: Backend response:', aiContent);
       
-      // Add AI response locally
       if (state.currentSession) {
         const aiResponse: ChatMessage = {
           id: `msg-${Date.now()}-ai`,
-          content: aiContent,
+          content: aiContent.trim(),
           role: 'assistant',
           timestamp: Date.now(),
         };
@@ -146,7 +139,6 @@ export default function MiniWidget({
       }
     } catch (error) {
       console.error('MINI: Send failed:', error);
-      // Add error message
       if (state.currentSession) {
         const errorMsg: ChatMessage = {
           id: `msg-${Date.now()}-error`,
@@ -167,7 +159,6 @@ export default function MiniWidget({
       setIsTyping(false);
     }
 
-    // FIXED: Expand after send (or optional)
     await handleExpand();
   };
 
@@ -177,7 +168,6 @@ export default function MiniWidget({
     };
 
     window.addEventListener('focus', handleFocus);
-    // Reset on mount
     setIsExpanding(false);
 
     return () => window.removeEventListener('focus', handleFocus);
@@ -201,7 +191,6 @@ export default function MiniWidget({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Loading Overlay */}
       {isExpanding && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -215,7 +204,6 @@ export default function MiniWidget({
         </motion.div>
       )}
 
-      {/* Draggable Header */}
       <div 
         className="titlebar bg-background/90 flex items-center justify-between px-3 py-2 text-sm font-medium text-foreground border-b border-border/50 sticky top-0 z-10 flex-shrink-0"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
@@ -234,19 +222,17 @@ export default function MiniWidget({
           className="flex items-center gap-1" 
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          {/* Expand Button */}
           <Button
             size="sm"
             variant="ghost"
             onClick={handleExpand}
-            disabled={isExpanding || isTyping}  // New: Disable during typing
+            disabled={isExpanding || isTyping}
             className="w-6 h-6 p-0 hover:bg-primary/20"
             title="Expand to full chat"
           >
             <Maximize2 size={12} />
           </Button>
 
-          {/* Close Button */}
           <Button
             size="sm"
             variant="ghost"
@@ -257,7 +243,6 @@ export default function MiniWidget({
             <X size={12} />
           </Button>
 
-          {/* Menu */}
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="ghost" className="w-6 h-6 p-0">
@@ -283,7 +268,6 @@ export default function MiniWidget({
         </div>
       </div>
 
-      {/* Messages Preview */}
       <ScrollArea className="flex-1 px-3 py-2 max-w-full" ref={scrollRef}>
         <div className="space-y-2 max-w-full">
           {previewMessages.length === 0 ? (
@@ -339,7 +323,6 @@ export default function MiniWidget({
             </AnimatePresence>
           )}
 
-          {/* Typing indicator */}
           {state.isTyping && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -361,7 +344,6 @@ export default function MiniWidget({
         </div>
       </ScrollArea>
 
-      {/* Mini Input */}
       <div className="border-t border-border/50 p-2 bg-background/50 sticky bottom-0 z-10 flex-shrink-0 max-w-full">
         <div className="flex gap-1">
           <Input
@@ -388,7 +370,6 @@ export default function MiniWidget({
           </Button>
         </div>
 
-        {/* Status indicators */}
         <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground max-w-full">
           <div className="flex items-center gap-2">
             {state.voiceEnabled && (
@@ -413,7 +394,6 @@ export default function MiniWidget({
         </div>
       </div>
 
-      {/* Activity pulse if operations are running */}
       {state.operations.length > 0 && (
         <motion.div
           className="absolute inset-0 rounded-xl bg-primary/5 pointer-events-none"
@@ -425,14 +405,12 @@ export default function MiniWidget({
   );
 }
 
-// Keyboard shortcuts handler
 export function useMiniWidgetKeyboard() {
   const { expand } = useWindowControls();
   const { dispatch } = useNova();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl/Cmd + Space to toggle mini/full
       if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
         event.preventDefault();
         if (window.api) {
@@ -442,7 +420,6 @@ export function useMiniWidgetKeyboard() {
         }
       }
       
-      // Escape to close
       if (event.code === 'Escape') {
         if (window.api) {
           (window as any).api.windowClose?.();
@@ -455,7 +432,6 @@ export function useMiniWidgetKeyboard() {
   }, [expand, dispatch]);
 }
 
-// CSS variables for styling
 export const miniWidgetStyles = `
   :root {
     --nova-widget-bg: rgba(5, 6, 10, 0.95);

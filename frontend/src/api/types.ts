@@ -94,7 +94,7 @@ declare global {
       speak(text: string, voiceId?: string): Promise<void>;
 
       // Chat & AI
-      sendMessage: (message: string, sessionId?: string) => Promise<AiResponse>;
+      sendMessage: (message: string, sessionId?: string, idToken?: string) => Promise<AiResponse>;
       onMessageStream(cb: (message: ChatMessage) => void): Unsubscribe;
       
       // Agentic operations

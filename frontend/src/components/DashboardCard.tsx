@@ -52,6 +52,7 @@ export default function DashboardCard({ className = '' }: DashboardCardProps) {
     };
     fetchData();
   }, [idToken, dispatch]);
+  
 
   // Calculate today's stats
   const today = new Date().toDateString();

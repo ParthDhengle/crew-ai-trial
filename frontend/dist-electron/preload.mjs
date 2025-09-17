@@ -25,6 +25,18 @@ contextBridge.exposeInMainWorld('api', {
       throw error;
     }
   },
+  // NEW: Handle minimize-widget from blur
+  minimizeWidget: async () => {
+    console.log('RENDERER: Calling minimizeWidget...');
+    try {
+      const result = await ipcRenderer.invoke('requestMinimize');
+      console.log('RENDERER: minimizeWidget succeeded:', result);
+      return result;
+    } catch (error) {
+      console.error('RENDERER: minimizeWidget failed:', error);
+      throw error;
+    }
+  },
   setAlwaysOnTop: (flag) => ipcRenderer.invoke('setAlwaysOnTop', flag),
   // Window controls with proper error handling
   windowMinimize: () => {
@@ -49,7 +61,6 @@ contextBridge.exposeInMainWorld('api', {
       console.error('RENDERER: windowClose failed:', error);
     }
   },
-  // NEW: Mini window specific close
   miniClose: () => {
     try {
       ipcRenderer.send("mini:close");
@@ -68,7 +79,7 @@ contextBridge.exposeInMainWorld('api', {
   listLocalModels: () => ipcRenderer.invoke('listLocalModels'),
   // Text-to-speech
   speak: (text, voiceId) => ipcRenderer.invoke('speak', text, voiceId),
-  // Chat functionality - Updated: Real API with token
+  // Chat functionality
   sendMessage: async (message, sessionId, idToken) => {
     if (!idToken) throw new Error('No auth token');
     const response = await fetch('http://localhost:8000/process_query', {
@@ -93,7 +104,7 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('agent-ops-update', (event, ops) => cb(ops));
     return () => ipcRenderer.removeAllListeners('agent-ops-update');
   },
-  // Task management - New: Real API
+  // Task management
   createTask: async (task, idToken) => {
     const response = await fetch('http://localhost:8000/tasks', {
       method: 'POST',
@@ -127,7 +138,7 @@ contextBridge.exposeInMainWorld('api', {
     if (!response.ok) throw new Error(await response.text());
     return await response.json();
   },
-  // Chat sessions - TODO: Implement API
+  // Chat sessions
   getChatSessions: () => ipcRenderer.invoke('getChatSessions'),
   getChatSession: (id) => ipcRenderer.invoke('getChatSession', id),
   deleteChatSession: (id) => ipcRenderer.invoke('deleteChatSession', id),
@@ -138,7 +149,7 @@ contextBridge.exposeInMainWorld('api', {
   getIntegrations: () => ipcRenderer.invoke('getIntegrations'),
   // Export functionality
   exportDashboardPDF: (payload) => ipcRenderer.invoke('exportDashboardPDF', payload),
-  // User preferences - New: Real API
+  // User preferences
   getUserPreferences: async (idToken) => {
     const response = await fetch('http://localhost:8000/profile', {
       headers: { 'Authorization': `Bearer ${idToken}` },
@@ -167,7 +178,6 @@ contextBridge.exposeInMainWorld('api', {
   // Window state detection
   isElectron: true,
   isMiniMode: typeof window !== 'undefined' && window.isMiniMode,
-  // New: Auth status for Electron
   setAuthStatus: (status) => ipcRenderer.send('auth-status', status),
 });
 
