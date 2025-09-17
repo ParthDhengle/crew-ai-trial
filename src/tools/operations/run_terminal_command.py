@@ -22,3 +22,5 @@ def run_command(command: str):
         return {"success": True, "output": result.stdout.strip(), "error": ""}
     except subprocess.CalledProcessError as e:
         return {"success": False, "output": e.stdout.strip(), "error": e.stderr.strip()}
+
+
