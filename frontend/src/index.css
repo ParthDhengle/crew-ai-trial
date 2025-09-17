@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Nova AI Assistant Design System - Dark Cyan Premium Theme
+All colors MUST be HSL. Local-first, privacy-focused design language.
+*/
+@layer base {
+  :root {
+    /* Nova Theme - Dark Cyan Premium */
+    --nova-bg: 225 33% 3%; /* #05060A */
+    --nova-cyan: 184 100% 39%; /* #00B7C7 */
+    --nova-accent: 185 100% 27%; /* #007F8A */
+    --nova-text: 184 43% 93%; /* #E6F7F8 */
+    --nova-muted: 197 25% 15%; /* #1a2930 */
+    --nova-surface: 225 33% 6%; /* Slightly lighter surface */
+    --nova-border: 197 25% 20%; /* Border variant */
+    --nova-glass: 184 100% 39% / 0.1; /* Glassmorphism */
+    /* Shadcn compatibility - mapped to Nova theme */
+    --background: var(--nova-bg);
+    --foreground: var(--nova-text);
+    --card: var(--nova-surface);
+    --card-foreground: var(--nova-text);
+    --popover: var(--nova-surface);
+    --popover-foreground: var(--nova-text);
+    --primary: var(--nova-cyan);
+    --primary-foreground: var(--nova-bg);
+    --secondary: var(--nova-muted);
+    --secondary-foreground: var(--nova-text);
+    --muted: var(--nova-muted);
+    --muted-foreground: 184 20% 65%;
+    --accent: var(--nova-accent);
+    --accent-foreground: var(--nova-text);
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--nova-text);
+    --border: var(--nova-border);
+    --input: var(--nova-border);
+    --ring: var(--nova-cyan);
+    --radius: 0.75rem;
+    /* Nova Sidebar Theme */
+    --sidebar-background: var(--nova-surface);
+    --sidebar-foreground: var(--nova-text);
+    --sidebar-primary: var(--nova-cyan);
+    --sidebar-primary-foreground: var(--nova-bg);
+    --sidebar-accent: var(--nova-accent);
+    --sidebar-accent-foreground: var(--nova-text);
+    --sidebar-border: var(--nova-border);
+    --sidebar-ring: var(--nova-cyan);
+    /* Nova Gradients & Effects */
+    --gradient-nova: linear-gradient(135deg, hsl(var(--nova-cyan) / 0.8), hsl(var(--nova-accent) / 0.6));
+    --gradient-glass: linear-gradient(135deg, hsl(var(--nova-glass)), hsl(var(--nova-accent) / 0.05));
+    --shadow-nova: 0 20px 40px -10px hsl(var(--nova-cyan) / 0.3);
+    --shadow-glow: 0 0 30px hsl(var(--nova-cyan) / 0.4);
+    /* Animations */
+    --transition-nova: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  /* Nova is dark-first by design - single theme */
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  /* Override for mini mode transparency */
+  [data-mini] {
+    --background: transparent;
+    --nova-bg: transparent;
+  }
+  [data-mini] body {
+    background: transparent !important;
+  }
+  [data-mini] #root {
+    background: transparent;
+  }
+  /* Nova glassmorphism utilities */
+  .glass-nova {
+    @apply backdrop-blur-md bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10;
+  }
+ 
+  .glow-nova {
+    box-shadow: 0 0 20px hsl(var(--nova-cyan) / 0.3);
+  }
+ 
+  .glow-nova-strong {
+    box-shadow: var(--shadow-glow);
+  }
+  /* Nova animations */
+  .animate-nova-fade-in {
+    animation: nova-fade-in 0.3s ease-out forwards;
+  }
+  .animate-nova-scale-in {
+    animation: nova-scale-in 0.2s ease-out forwards;
+  }
+  .animate-nova-slide-up {
+    animation: nova-slide-up 0.4s var(--transition-bounce) forwards;
+  }
+  [data-mini] {
+    --background: transparent;
+    --nova-bg: transparent;
+  }
+  [data-mini] html,
+  [data-mini] body,
+  [data-mini] #root {
+    background: transparent !important;
+    overflow: hidden !important; /* FIXED: No x/y scroll at all */
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  [data-mini] .glass-nova {
+    backdrop-filter: blur(20px) !important; /* Ensure glass effect without BG */
+    background: transparent !important; /* No fill, pure blur */
+  }
+}
+@layer components {
+  /* Nova component variants */
+  .btn-nova {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-2xl font-medium transition-all duration-300;
+    @apply hover:scale-105 hover:shadow-lg hover:shadow-primary/25 active:scale-95;
+  }
+  .btn-nova-ghost {
+    @apply bg-transparent border border-primary/20 text-primary rounded-2xl font-medium transition-all duration-300;
+    @apply hover:bg-primary/10 hover:border-primary/40 hover:scale-105 active:scale-95;
+  }
+  .card-nova {
+    @apply glass-nova rounded-xl p-6 transition-all duration-300;
+    @apply hover:bg-gradient-to-br hover:from-white/5 hover:to-white/[0.02];
+  }
+  .input-nova {
+    @apply bg-background/50 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200;
+  }
+  .sidebar-nova {
+    @apply bg-gradient-to-b from-background to-muted/20 border-r border-border backdrop-blur-sm;
+  }
+  /* 🖥️ Custom Titlebar for Electron (frameless window) */
+  .titlebar {
+    -webkit-app-region: drag;
+    height: 32px; /* Standard titlebar height */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+  }
+  .nova-mini-widget {
+  position: fixed !important; /* Ensure Electron override */
+  z-index: 9999;
+}
+  .titlebar-controls {
+    display: flex;
+    gap: 4px;
+  }
+  .titlebar-controls button {
+    -webkit-app-region: no-drag;
+    width: 46px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: hsl(var(--nova-text));
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+  .titlebar-controls button:hover {
+    background-color: hsl(var(--nova-muted));
+    border-radius: 4px;
+  }
+}
+/* Nova keyframes */
+@keyframes nova-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nova-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes nova-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nova-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--nova-cyan) / 0.3); }
+  50% { box-shadow: 0 0 30px hsl(var(--nova-cyan) / 0.5), 0 0 40px hsl(var(--nova-cyan) / 0.2); }
+}
