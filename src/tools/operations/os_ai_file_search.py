@@ -38,6 +38,14 @@ class OSFileSearcher:
                     text = f.read()
             else:
                 return ''
+            if not isinstance(text, str):
+                print(f"Non-string text extracted from {file_path}: {type(text)}")
+                return ''
+            text = ''.join(c for c in text if c.isprintable() or c.isspace())
+            if not text.strip():
+                print(f"No valid text after cleaning from {file_path}")
+                return ''
+            print(f"Extracted {len(text)} characters from {file_path}")
             return text
         except Exception as e:
             print(f"Error extracting text from {file_path}: {e}")
@@ -57,13 +65,14 @@ class OSFileSearcher:
     def build_index(self, root_dir: str, save_path: str = None) -> None:
         """
         Recursively find supported files, extract text, generate embeddings, and build FAISS index.
-        Similar to repo's indexing logic.
         """
-        # Find all supported files recursively
+        exclude_dirs = ['AppData', 'Program Files', 'Windows', '.cache', '.local']
         file_paths = []
         for ext in SUPPORTED_EXTS:
             pattern = os.path.join(root_dir, '**', f'*{ext}')
-            file_paths.extend(glob.glob(pattern, recursive=True))
+            for path in glob.glob(pattern, recursive=True):
+                if not any(exclude in path for exclude in exclude_dirs):
+                    file_paths.append(path)
 
         embeddings = []
         metadata = []
@@ -76,7 +85,7 @@ class OSFileSearcher:
             chunks = self.chunk_text(text)
             title = os.path.basename(file_path)
             for chunk in chunks:
-                if not chunk.strip():  # Skip empty chunks
+                if not chunk.strip():
                     print(f"Skipping empty chunk in {file_path}")
                     continue
                 try:
@@ -88,12 +97,11 @@ class OSFileSearcher:
                     continue
 
         if embeddings:
-            self.index = faiss.IndexFlatIP(self.dimension)  # Inner product for cosine similarity
+            self.index = faiss.IndexFlatIP(self.dimension)
             self.index.add(np.array(embeddings).astype('float32'))
             self.file_metadata = metadata
             print(f"Indexed {len(metadata)} chunks from {len(set([m[0] for m in metadata]))} files.")
 
-            # Save index and metadata if path provided
             if save_path:
                 faiss.write_index(self.index, save_path + '_index.faiss')
                 with open(save_path + '_metadata.pkl', 'wb') as f:
@@ -119,7 +127,7 @@ class OSFileSearcher:
             raise ValueError("Index not built. Call build_index() first.")
 
         query_embedding = self.model.encode([query])
-        scores, indices = self.index.search(query_embedding.astype('float32'), top_k * 10)  # Oversample and filter
+        scores, indices = self.index.search(query_embedding.astype('float32'), top_k * 10)
 
         results = []
         seen_files = set()
@@ -132,7 +140,7 @@ class OSFileSearcher:
                     'path': file_path,
                     'title': title,
                     'snippet': snippet,
-                    'relevance_score': float(score)  # Normalized 0-1
+                    'relevance_score': float(score)
                 })
                 seen_files.add(file_path)
                 if len(results) >= top_k:
@@ -148,9 +156,8 @@ class OSFileSearcher:
         pattern = os.path.join(root_dir, '**', f'*{query}*')
         matches = glob.glob(pattern, recursive=True)
 
-        # Filter to supported files and check content if needed
         results = []
-        for match in matches[:top_k * 2]:  # Oversample
+        for match in matches[:top_k * 2]:
             if any(match.endswith(ext) for ext in SUPPORTED_EXTS):
                 text = self.extract_text_from_file(match)
                 if query.lower() in text.lower() or query.lower() in match.lower():
@@ -158,30 +165,29 @@ class OSFileSearcher:
                         'path': match,
                         'title': os.path.basename(match),
                         'snippet': text[:100] + '...' if text else 'No preview',
-                        'relevance_score': 1.0  # Binary match
+                        'relevance_score': 1.0
                     })
                     if len(results) >= top_k:
                         break
 
         return results
 
-# Example integration for your AI OS assistant
-def ai_assistant_file_query(query: str, root_dir: str = os.path.expanduser('~'), use_semantic: bool = True, top_k: int = 5):
+def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.expanduser('~'), 'Downloads'), use_semantic: bool = True, top_k: int = 5):
     """
     High-level function for your AI assistant to handle file queries.
     Determines if query is semantic (e.g., contains phrases) or keyword-based.
     """
     searcher = OSFileSearcher()
     
-    # Assume index is built or loaded; in production, check if exists
-    index_path = 'file_index.faiss'
-    metadata_path = 'file_metadata.pkl'
+    index_path = os.path.join(os.path.expanduser('~'), '.ai_assistant', 'file_index.faiss')
+    metadata_path = os.path.join(os.path.expanduser('~'), '.ai_assistant', 'file_metadata.pkl')
     if os.path.exists(index_path):
         searcher.load_index(index_path, metadata_path)
     else:
-        searcher.build_index(root_dir, 'file_index')
+        os.makedirs(os.path.join(os.path.expanduser('~'), '.ai_assistant'), exist_ok=True)
+        searcher.build_index(root_dir, os.path.join(os.path.expanduser('~'), '.ai_assistant', 'file_index'))
     
-    if use_semantic and len(query.split()) > 2:  # Heuristic for semantic queries
+    if use_semantic and len(query.split()) > 2:
         results = searcher.semantic_search(query, top_k)
     else:
         results = searcher.keyword_search(query, root_dir, top_k)
@@ -190,7 +196,7 @@ def ai_assistant_file_query(query: str, root_dir: str = os.path.expanduser('~'),
 
 if __name__ == "__main__":
     # Example: Semantic search
-    test_dir = r"C:\Users\parth\Downloads"
+    test_dir = os.path.join(os.path.expanduser('~'), 'Downloads')  # Dynamic Downloads folder
     results = ai_assistant_file_query("document about NLP", root_dir=test_dir, top_k=3)
     for res in results:
         print(f"Found: {res['title']} at {res['path'][:50]}... (Score: {res['relevance_score']:.2f})")
