@@ -1,30 +1,42 @@
+// src/App.tsx
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { NovaProvider } from "@/context/NovaContext";
-import MiniWidget from "@/components/MiniWidget"; // Assume this exists
-import MainLayout from "@/components/MainLayout"; // NEW: Import MainLayout
-import SchedulerKanban from "@/components/SchedulerKanban"; // Assume this exists
-import DashboardCard from "@/components/DashboardCard"; // Assume this exists
-import Settings from "@/components/Settings"; // Assume this exists
-import { useNova } from "@/context/NovaContext";
+import { NovaProvider, useNova } from "@/context/NovaContext";
+import MiniWidget from "@/components/MiniWidget";
+import MainLayout from "@/components/MainLayout";
 import NotFound from "./pages/NotFound";
+import { useAuth } from "./hooks/useAuth";
+import AuthModal from "./components/Auth";
+
 const queryClient = new QueryClient();
+
 function AppContent() {
   const { state } = useNova();
-  // FIXED: Detect mini ONLY via URL/global (Electron prod) or ?mini (dev). Ignore state.isMiniMode to avoid override after IPC switch.
+  const { user, loading } = useAuth();
+  const [showAuth, setShowAuth] = useState(!user && !loading);
+
+  // Mini-mode detection (Electron mini window)
   const urlParams = new URLSearchParams(window.location.search);
-  const isMiniFromUrl = urlParams.get('mini') === 'true';
-  const isMiniFromGlobal = typeof window !== 'undefined' && (window as any).isMiniMode;
+  const isMiniFromUrl = urlParams.get("mini") === "true";
+  const isMiniFromGlobal =
+    typeof window !== "undefined" && (window as any).isMiniMode;
   const isMini = isMiniFromUrl || isMiniFromGlobal;
-  if (isMini) {
-    return <MiniWidget unreadCount={2} />;
-  }
-  // FIXED: Removed redundant state.isMiniMode check—lets full UI render in mainWindow.
-  return <MainLayout />;
+
+  if (loading) return <div>Loading...</div>;
+  if (isMini) return <MiniWidget unreadCount={2} />;
+
+  return (
+    <>
+      <MainLayout />
+      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+    </>
+  );
 }
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -43,4 +55,5 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
 export default App;

@@ -1,3 +1,4 @@
+// frontend/src/components/AgentOpsPanel.tsx
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,30 +10,13 @@ import {
   Loader2,
   ChevronUp,
   ChevronDown,
-  Play,
-  Pause,
-  Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { useAgentOps } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
 import type { AgentOp } from '@/api/types';
-
-/**
- * Nova Agent Operations Panel - Live queue of agentic operations
- * 
- * Features:
- * - Real-time operation queue display
- * - Progress tracking with visual indicators
- * - Operation cancellation
- * - Status icons and color coding
- * - Elapsed time tracking
- * - Collapsible design
- * - Streaming updates from Electron backend
- */
 
 interface AgentOpsPanelProps {
   className?: string;
@@ -43,71 +27,43 @@ export default function AgentOpsPanel({
   className = '',
   collapsible = true 
 }: AgentOpsPanelProps) {
-  const { operations, cancelOperation } = useAgentOps();
-  const { state, dispatch } = useNova();
+  const { state } = useNova();  // ✅ Real operations from Firestore
+  const operations = state.operations || [];
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  // Get status icon and color
+  // Status icon + color
   const getStatusDisplay = (status: AgentOp['status']) => {
     switch (status) {
       case 'pending':
-        return { 
-          icon: Clock, 
-          color: 'text-yellow-400', 
-          bgColor: 'bg-yellow-400/10',
-          label: 'Pending' 
-        };
+        return { icon: Clock, color: 'text-yellow-400', bgColor: 'bg-yellow-400/10', label: 'Pending' };
       case 'running':
-        return { 
-          icon: Loader2, 
-          color: 'text-primary animate-spin', 
-          bgColor: 'bg-primary/10',
-          label: 'Running' 
-        };
+        return { icon: Loader2, color: 'text-primary animate-spin', bgColor: 'bg-primary/10', label: 'Running' };
       case 'success':
-        return { 
-          icon: CheckCircle, 
-          color: 'text-green-400', 
-          bgColor: 'bg-green-400/10',
-          label: 'Success' 
-        };
+        return { icon: CheckCircle, color: 'text-green-400', bgColor: 'bg-green-400/10', label: 'Success' };
       case 'failed':
-        return { 
-          icon: AlertCircle, 
-          color: 'text-red-400', 
-          bgColor: 'bg-red-400/10',
-          label: 'Failed' 
-        };
+        return { icon: AlertCircle, color: 'text-red-400', bgColor: 'bg-red-400/10', label: 'Failed' };
       default:
-        return { 
-          icon: Clock, 
-          color: 'text-muted-foreground', 
-          bgColor: 'bg-muted/10',
-          label: 'Unknown' 
-        };
+        return { icon: Clock, color: 'text-muted-foreground', bgColor: 'bg-muted/10', label: 'Unknown' };
     }
   };
 
   // Format elapsed time
   const formatElapsedTime = (startTime?: number) => {
     if (!startTime) return '0s';
-    
     const elapsed = Date.now() - startTime;
     const seconds = Math.floor(elapsed / 1000);
     const minutes = Math.floor(seconds / 60);
-    
-    if (minutes > 0) {
-      return `${minutes}m ${seconds % 60}s`;
-    }
-    return `${seconds}s`;
+    return minutes > 0 ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
   };
 
-  // Handle operation cancellation
-  const handleCancel = (operationId: string) => {
-    cancelOperation(operationId);
+  // Cancel handler (call API if needed)
+  const handleCancel = async (operationId: string) => {
+    // If you have a Firestore action, call it here:
+    // await updateOperationStatus(operationId, 'cancelled');
+    console.log(`Cancel op ${operationId}`);
   };
 
-  // No operations state
+  // Empty state
   if (operations.length === 0) {
     return (
       <div className={`w-full h-full flex flex-col bg-background/50 ${className}`}>
@@ -121,12 +77,8 @@ export default function AgentOpsPanel({
         <div className="flex-1 flex items-center justify-center text-center p-6">
           <div className="space-y-3">
             <Bot size={32} className="mx-auto text-muted-foreground opacity-50" />
-            <div className="text-sm text-muted-foreground">
-              No active operations
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Agent tasks will appear here when running
-            </div>
+            <div className="text-sm text-muted-foreground">No active operations</div>
+            <div className="text-xs text-muted-foreground">Agent tasks will appear here when running</div>
           </div>
         </div>
       </div>
@@ -146,11 +98,8 @@ export default function AgentOpsPanel({
           <div className="flex items-center gap-2">
             <Bot size={16} className="text-primary" />
             <span className="font-medium text-sm">Agent Operations</span>
-            <Badge variant="secondary" className="text-xs">
-              {operations.length}
-            </Badge>
+            <Badge variant="secondary" className="text-xs">{operations.length}</Badge>
           </div>
-          
           {collapsible && (
             <Button
               size="sm"
@@ -164,7 +113,7 @@ export default function AgentOpsPanel({
         </div>
       </div>
 
-      {/* Operations List */}
+      {/* List */}
       <AnimatePresence>
         {!isCollapsed && (
           <motion.div
@@ -175,130 +124,57 @@ export default function AgentOpsPanel({
           >
             <ScrollArea className="h-full">
               <div className="p-4 space-y-3">
-                {operations.map((operation, index) => {
-                  const statusDisplay = getStatusDisplay(operation.status);
+                {operations.map((op, index) => {
+                  const statusDisplay = getStatusDisplay(op.status);
                   const StatusIcon = statusDisplay.icon;
-                  
                   return (
                     <motion.div
-                      key={operation.id}
+                      key={op.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.1 }}
                       className={`card-nova p-4 ${statusDisplay.bgColor} border border-white/5`}
                     >
-                      {/* Operation Header */}
+                      {/* Header */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div className={`mt-0.5 ${statusDisplay.color}`}>
                             <StatusIcon size={16} />
                           </div>
-                          
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">
-                              {operation.title}
-                            </div>
-                            
-                            {operation.desc && (
-                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {operation.desc}
-                              </div>
-                            )}
-                            
+                            <div className="font-medium text-sm truncate">{op.title}</div>
+                            {op.desc && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{op.desc}</div>}
                             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                              <Badge 
-                                variant="outline" 
-                                className={`${statusDisplay.color} border-current`}
-                              >
+                              <Badge variant="outline" className={`${statusDisplay.color} border-current`}>
                                 {statusDisplay.label}
                               </Badge>
-                              
                               <span className="flex items-center gap-1">
-                                <Clock size={10} />
-                                {formatElapsedTime(operation.startTime)}
+                                <Clock size={10} /> {formatElapsedTime(op.startTime)}
                               </span>
                             </div>
                           </div>
                         </div>
-
-                        {/* Cancel Button */}
-                        {(operation.status === 'pending' || operation.status === 'running') && (
+                        {(op.status === 'pending' || op.status === 'running') && (
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleCancel(operation.id)}
+                            onClick={() => handleCancel(op.id)}
                             className="w-6 h-6 p-0 text-muted-foreground hover:text-destructive shrink-0"
-                            aria-label="Cancel operation"
                           >
                             <X size={12} />
                           </Button>
                         )}
                       </div>
 
-                      {/* Progress Bar */}
-                      {operation.status === 'running' && typeof operation.progress === 'number' && (
+                      {/* Progress */}
+                      {op.status === 'running' && typeof op.progress === 'number' && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">Progress</span>
-                            <span className="text-primary font-medium">{operation.progress}%</span>
+                            <span className="text-primary font-medium">{op.progress}%</span>
                           </div>
-                          <Progress 
-                            value={operation.progress} 
-                            className="h-2 bg-white/5"
-                          />
-                        </div>
-                      )}
-
-                      {/* Indeterminate Progress for Running Operations */}
-                      {operation.status === 'running' && typeof operation.progress !== 'number' && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Processing...</div>
-                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-gradient-to-r from-primary to-accent"
-                              animate={{
-                                x: ['-100%', '100%'],
-                              }}
-                              transition={{
-                                repeat: Infinity,
-                                duration: 1.5,
-                                ease: 'linear',
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action Buttons for Completed Operations */}
-                      {operation.status === 'success' && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            className="text-xs h-7"
-                          >
-                            View Results
-                          </Button>
-                        </div>
-                      )}
-
-                      {operation.status === 'failed' && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            className="text-xs h-7"
-                          >
-                            Retry
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            className="text-xs h-7"
-                          >
-                            View Error
-                          </Button>
+                          <Progress value={op.progress} className="h-2 bg-white/5" />
                         </div>
                       )}
                     </motion.div>
@@ -310,7 +186,7 @@ export default function AgentOpsPanel({
         )}
       </AnimatePresence>
 
-      {/* Quick Stats Footer */}
+      {/* Footer Stats */}
       <div className="p-4 border-t border-border bg-background/80">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
