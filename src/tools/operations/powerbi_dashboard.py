@@ -11,14 +11,6 @@ from dotenv import load_dotenv
 import subprocess
 import platform
 
-# Load .env file from project root
-env_path = r"C:\Users\soham\OneDrive\Desktop\crew-ai-trial\.env"
-if not os.path.exists(env_path):
-    print(f"Error: .env file not found at {env_path}")
-    sys.exit(1)
-load_dotenv(env_path)
-print(f"Loaded .env file from {env_path}")
-
 # Suppress syntax warnings from PBI_dashboard_creator
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
@@ -78,10 +70,23 @@ except ImportError:
         return logger
 
     def find_project_root():
-        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+        while current_dir != os.path.dirname(current_dir):  # Stop at root
+            if os.path.basename(current_dir) == 'crew-ai-trial':
+                return current_dir
+            current_dir = os.path.dirname(current_dir)
+        raise FileNotFoundError("Could not find project root 'crew-ai-trial'")
 
 logger = setup_logger()
 PROJECT_ROOT = find_project_root()
+
+# Load .env file dynamically from project root
+env_path = os.path.join(PROJECT_ROOT, '.env')
+if not os.path.exists(env_path):
+    logger.error(f".env file not found at {env_path}")
+    sys.exit(1)
+load_dotenv(env_path)
+logger.info(f"Loaded .env file from {env_path}")
 
 def check_powerbi_installation():
     """Check if Power BI Desktop is installed on the system."""
@@ -240,8 +245,6 @@ def create_simple_dashboard_files(output_dir: str, dashboard_name: str, df: pd.D
     
     # Create a simple Power BI project structure
     # Note: This creates a basic structure, but actual Power BI functionality requires proper PBIP format
-    
-    # Create data model file
     model_bim = {
         "name": dashboard_name,
         "tables": [
@@ -317,10 +320,10 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         grok_api_key = os.getenv("GROQ_API_KEY1")
         gemini_api_key = os.getenv("GEMINI_API_KEY1")
         if not grok_api_key and not gemini_api_key:
-            logger.error(f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}.")
-            return False, f"Error: No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}."
+            logger.error(f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}")
+            return False, f"Error: No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}"
 
-        # Resolve CSV path
+        # Resolve CSV path relative to project root
         csv_path = os.path.abspath(os.path.join(PROJECT_ROOT, csv_file)) if not os.path.isabs(csv_file) else csv_file
         if not os.path.exists(csv_path):
             logger.error(f"CSV file not found: {csv_path}")
@@ -385,7 +388,7 @@ Return only the JSON, no explanation.
         response = None
         plan = None
         
-        for attempt in range(3):  # Increased retries
+        for attempt in range(3):
             logger.info(f"Attempting LLM call #{attempt + 1}")
             
             if grok_api_key and not response:
@@ -430,7 +433,6 @@ Return only the JSON, no explanation.
             try:
                 dashboard_path = os.path.join(output_dir, dashboard_name)
                 
-                # Check if create_blank_dashboard is a function
                 if callable(create_blank_dashboard):
                     create_blank_dashboard(dashboard_path)
                     logger.info("Created blank dashboard using PBI functions")
@@ -487,11 +489,11 @@ if __name__ == "__main__":
     grok_api_key = os.getenv("GROQ_API_KEY1")
     gemini_api_key = os.getenv("GEMINI_API_KEY1")
     if not grok_api_key and not gemini_api_key:
-        print(f"Error: Please set GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}.")
+        print(f"Error: Please set GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}")
         sys.exit(1)
     
     # Example usage
-    test_csv = r"C:\Users\soham\OneDrive\Desktop\sales_data_sample.csv"
+    test_csv = os.path.join(PROJECT_ROOT, "sales_data.csv")  # Relative to project root
     test_query = "Generate Power BI dashboard showing bar chart and line chart."
     success, result = powerbi_generate_dashboard(test_csv, test_query)
     print(f"Success: {success}")
