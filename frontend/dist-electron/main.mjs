@@ -121,7 +121,7 @@ function createMiniWindow() {
   miniWindow.on('closed', () => {
     miniWindow = null;
   });
-  // Auto-minimize when focus is lost
+  // FIXED: Auto-minimize when focus is lost - Only if main is NOT visible (prevent fallback after expand)
   miniWindow.on('blur', () => {
     if (mainWindow && !mainWindow.isVisible()) {
       miniWindow.webContents.send('minimize-widget');
@@ -256,6 +256,34 @@ ipcMain.on("mini:close", () => {
   // If mini closes and main isn't visible, quit the app
   if (!mainWindow || !mainWindow.isVisible()) {
     app.quit();
+  }
+});
+
+// NEW: Listen for auth success from renderer - FIXED: Initialize window visibility
+ipcMain.on('auth-status', (event, isAuthenticated) => {
+  console.log('MAIN: Received auth-status:', isAuthenticated);
+  if (isAuthenticated) {
+    // After login: Show mini, hide main (start in mini)
+    if (miniWindow) {
+      miniWindow.show();
+      miniWindow.focus();
+      console.log('MAIN: Showing mini after auth');
+    }
+    if (mainWindow) {
+      mainWindow.hide();
+      console.log('MAIN: Hiding main after auth');
+    }
+  } else {
+    // Before login: Show main for auth, hide mini
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+      console.log('MAIN: Showing main for auth');
+    }
+    if (miniWindow) {
+      miniWindow.hide();
+      console.log('MAIN: Hiding mini during auth');
+    }
   }
 });
 

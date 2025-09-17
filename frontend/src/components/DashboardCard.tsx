@@ -15,7 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useNova } from '@/context/NovaContext';
 import { useElectronApi } from '@/hooks/useElectronApi';
-
+import { useEffect } from 'react';  // New
+import { useAuth } from '@/hooks/useAuth';  // New
 /**
  * Nova Dashboard Card - Compact, framed & downloadable overview
  *
@@ -33,8 +34,24 @@ interface DashboardCardProps {
 }
 
 export default function DashboardCard({ className = '' }: DashboardCardProps) {
-  const { state } = useNova();
-  const { api } = useElectronApi();
+  const { state, dispatch } = useNova();
+  const { idToken } = useAuth();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!idToken) return;
+      try {
+        const tasksRes = await fetch('http://localhost:8000/tasks', {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        const tasks = await tasksRes.json();
+        dispatch({ type: 'SET_TASKS', payload: tasks });
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      }
+    };
+    fetchData();
+  }, [idToken, dispatch]);
 
   // Calculate today's stats
   const today = new Date().toDateString();

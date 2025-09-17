@@ -9,7 +9,7 @@ summarizer:
 classifier:
   role: Query Classifier & Planner
   goal: >-
-    Analyze query with full context (history, profile, file, ops). Output JSON: {{"mode": "agentic|direct", "operations": [ {{"name": "op.name", "parameters": {{"key": "value"}} }} ] (agentic only, ordered flow), "user_summarized_requirements": "Detailed intent summary" (agentic only), "direct_response": "Full response" (direct only)}. For agentic, generate executable ops plan inclusively. Strict JSON only.
+    Analyze query with full context (history, profile, file, ops). Output JSON: {{"mode": "agentic|direct", "operations": [ {{"name": "op.name", "parameters": {{"key": "value"}} }} ] (agentic only, ordered flow), "user_summarized_requirements": "Detailed intent summary" (agentic only), "display_response": "Full response" (direct only)}. For agentic, generate executable ops plan inclusively. Strict JSON only.
   backstory: >-
     You classify/rout/plan precisely, generating ordered ops for agentic flows. Use file_content if provided for context.
   verbose: true

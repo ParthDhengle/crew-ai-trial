@@ -11,7 +11,7 @@ import {
   Send,
   User,
   Bot,
-  Minimize2 // Added for close functionality
+  Minimize2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowControls } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
+import { useAuth } from '@/hooks/useAuth';  // New: For idToken
+import type { ChatMessage } from '@/api/types';
 
 interface MiniWidgetProps {
   className?: string;
@@ -40,10 +42,12 @@ export default function MiniWidget({
   const [miniMessage, setMiniMessage] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);  // New: Typing indicator
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { expand, close } = useWindowControls();
   const { state, dispatch } = useNova();
+  const { idToken } = useAuth();  // New: For backend calls
 
   // Last 3 messages for preview
   const previewMessages = state.currentSession?.messages.slice(-3) || [];
@@ -74,17 +78,15 @@ export default function MiniWidget({
   const handleClose = () => {
     console.log('MINI: Close button clicked');
     // Send specific mini close
-    // Send specific mini close event
     if (window.api) {
-      // Use electron's ipcRenderer to send mini:close event
-      (window as any).api.windowClose?.();
+      (window as any).api.miniClose?.();  // Use miniClose
     } else {
       // Fallback for development
       window.close();
     }
   };
 
-  // Handle quick send
+  // FIXED: Handle quick send with backend integration
   const handleQuickSend = async () => {
     if (!miniMessage.trim()) {
       // If no message, just expand
@@ -92,14 +94,19 @@ export default function MiniWidget({
       return;
     }
 
-    console.log('MINI: Sending quick message:', miniMessage);
+    if (!idToken) {
+      console.error('MINI: No auth token for send');
+      return;
+    }
+
+    console.log('MINI: Sending quick message to backend:', miniMessage);
     
-    // Add message to current session
+    // Add local user message
     if (state.currentSession) {
-      const newMessage = {
+      const newMessage: ChatMessage = {
         id: `msg-${Date.now()}`,
         content: miniMessage,
-        role: 'user' as const,
+        role: 'user',
         timestamp: Date.now(),
       };
       
@@ -113,7 +120,54 @@ export default function MiniWidget({
     }
 
     setMiniMessage('');
-    // Then expand to show full chat
+    setIsTyping(true);  // New: Show typing
+
+    try {
+      // Real backend call
+      const aiContent = await window.api.sendMessage(miniMessage, state.currentSession?.id, idToken);
+      console.log('MINI: Backend response:', aiContent);
+      
+      // Add AI response locally
+      if (state.currentSession) {
+        const aiResponse: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          content: aiContent,
+          role: 'assistant',
+          timestamp: Date.now(),
+        };
+        
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: {
+            sessionId: state.currentSession.id,
+            message: aiResponse
+          }
+        });
+      }
+    } catch (error) {
+      console.error('MINI: Send failed:', error);
+      // Add error message
+      if (state.currentSession) {
+        const errorMsg: ChatMessage = {
+          id: `msg-${Date.now()}-error`,
+          content: 'Sorry, message send failed. Try again.',
+          role: 'assistant',
+          timestamp: Date.now(),
+        };
+        
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: {
+            sessionId: state.currentSession.id,
+            message: errorMsg
+          }
+        });
+      }
+    } finally {
+      setIsTyping(false);
+    }
+
+    // FIXED: Expand after send (or optional)
     await handleExpand();
   };
 
@@ -185,7 +239,7 @@ export default function MiniWidget({
             size="sm"
             variant="ghost"
             onClick={handleExpand}
-            disabled={isExpanding}
+            disabled={isExpanding || isTyping}  // New: Disable during typing
             className="w-6 h-6 p-0 hover:bg-primary/20"
             title="Expand to full chat"
           >
@@ -211,7 +265,7 @@ export default function MiniWidget({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExpand} disabled={isExpanding}>
+              <DropdownMenuItem onClick={handleExpand} disabled={isExpanding || isTyping}>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Full Chat
               </DropdownMenuItem>

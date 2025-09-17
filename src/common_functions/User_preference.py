@@ -2,7 +2,20 @@ import os
 import json
 import warnings
 from firebase_client import get_user_profile, update_user_profile
-
+REQUIRED_PROFILE_KEYS = [
+    "Name",
+    "Role",
+    "Location",
+    "Productive Time",
+    "Reminder Type",
+    "Top Task Type",
+    "Missed Task Handling",
+    "Top Motivation",
+    "AI Tone",
+    "Break Reminder",
+    "Mood Check",
+    "Current Focus"
+]
 def parse_preferences(prefs_path: str = None) -> dict:
     """Load profile from Firestore (auth-aware)."""
     from firebase_client import get_user_profile  # Ensure import

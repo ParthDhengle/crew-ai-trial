@@ -35,10 +35,7 @@ declare global {
       speak(text: string, voiceId?: string): Promise<void>;
 
       // Chat & AI
-      sendMessage(
-        message: string,
-        sessionId?: string
-      ): Promise<{ sessionId: string }>;
+      sendMessage: (message: string, sessionId?: string) => Promise<AiResponse>;
       onMessageStream(cb: (message: unknown) => void): () => void;
 
       // Agent Ops

@@ -444,3 +444,38 @@
 2025-09-18 00:21:34 - AIAssistant - INFO - Processing single query: None
 2025-09-18 00:21:34 - AIAssistant - INFO - Validating Firebase connectivity
 2025-09-18 00:21:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 00:59:13 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:26 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 00:59:26 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 00:59:26 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 00:59:26 - AIAssistant - INFO - Processing single query: None
+2025-09-18 00:59:26 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 00:59:26 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 00:59:29 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 00:59:43 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 00:59:47 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 00:59:47 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:04 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 01:05:04 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 01:05:04 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 01:05:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 01:05:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 01:05:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 01:05:14 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 01:05:19 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 01:05:20 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 01:05:21 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:21 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 01:05:27 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-18 01:05:27 - AIAssistant - INFO - Processing query: what is my name for user Parth Dhengle
+2025-09-18 01:05:38 - AIAssistant - DEBUG - Query response: Your name is Parth Dhengle.
+2025-09-18 01:05:38 - AIAssistant - INFO - Processing single query: None
+2025-09-18 01:05:38 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 01:05:38 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 01:05:38 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:38 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 01:18:59 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 01:18:59 - AIAssistant - INFO - User requested to quit
+2025-09-18 01:19:21 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000

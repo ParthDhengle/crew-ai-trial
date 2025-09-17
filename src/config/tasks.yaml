@@ -4,9 +4,9 @@ classify_query:
   description: |
     Inputs: Query: {user_query} | File (if any): {file_content} | History: {full_history} | Profile: {user_profile} | Available ops: {available_ops_info} | OS: {os_info}
     Classify: 'direct' (simple aid, no ops) or 'agentic' (needs ops execution).
-    For direct: Provide full, accurate direct_response using context.
+    For direct: Provide full, accurate display_response using context.
     For agentic: Generate ordered operations [ {{"name": "op1", "parameters": {{"param": "value"}} }} , ... ] (use available ops, plan logical flow). Summarize intent: user_summarized_requirements (detailed, from history/profile/query/file).
-    Output STRICT JSON only: {{"mode": "agentic|direct", "operations": [ ... ], "user_summarized_requirements": "..." }} or {{"mode": "direct", "direct_response": "..." }}. No extra text.
+    Output STRICT JSON only: {{"mode": "agentic|direct", "operations": [ ... ], "user_summarized_requirements": "..." }} or {{"mode": "direct", "display_response": "..." }}. No extra text.
   expected_output: "Strict JSON object."
   agent: classifier
 

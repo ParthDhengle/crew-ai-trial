@@ -15,6 +15,11 @@ export type AgentOp = {
   startTime?: number;
   endTime?: number;
 };
+export interface AiResponse {
+  mode: string;
+  display_response: string;
+  [key: string]: any; // optional, in case backend adds more fields
+}
 
 export type SchedulerTask = {
   id: string;
@@ -84,12 +89,12 @@ declare global {
       transcribeStop(sessionId: string): Promise<void>;
       transcribeStream(sessionId: string, onTranscript: (text: string, partial: boolean) => void): void;
       listLocalModels(): Promise<string[]>;
-
+      setAuthStatus: (status: boolean) => void;
       // TTS (only on user request)
       speak(text: string, voiceId?: string): Promise<void>;
 
       // Chat & AI
-      sendMessage(message: string, sessionId?: string): Promise<{ sessionId: string }>;
+      sendMessage: (message: string, sessionId?: string) => Promise<AiResponse>;
       onMessageStream(cb: (message: ChatMessage) => void): Unsubscribe;
       
       // Agentic operations
@@ -130,5 +135,6 @@ declare global {
       onThemeChange(cb: (theme: 'dark' | 'light') => void): Unsubscribe;
       getAppVersion(): Promise<string>;
     };
+    isMiniMode?: boolean;
   }
 }

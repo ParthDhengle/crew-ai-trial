@@ -1,7 +1,7 @@
 # Updated src/crew.py
 # Refined workflow per requirements:
 # - Classifier now takes full inputs (query, file_content if provided, history, profile, op_names).
-# - Outputs JSON: mode, (for agentic: operations[list of {'name':str, 'parameters':dict}], user_summarized_requirements:str), (for direct: direct_response:str).
+# - Outputs JSON: mode, (for agentic: operations[list of {'name':str, 'parameters':dict}], user_summarized_requirements:str), (for direct: display_response:str).
 # - No separate planner: Operations generated directly in classifier for agentic.
 # - perform_operations now takes list of ops, executes sequentially, appends results to a single str (operation_results).
 # - Synthesizer only for agentic: Inputs summarized_requirements + op_results, outputs JSON (display_response, extracted_fact:list[str] for KB).
@@ -64,7 +64,7 @@ class AiAgent:
     @agent
     def summarizer(self) -> Agent:
         return Agent(config=self.agents_config['summarizer'], llm=self.summarizer_llm, verbose=True)
-    # === Tasks (refined: Removed generate_direct_response, plan_execution, extract_memory; updated classify_query, synthesize_response; kept summarize_history) ===
+    # === Tasks (refined: Removed generate_display_response, plan_execution, extract_memory; updated classify_query, synthesize_response; kept summarize_history) ===
     @task
     def classify_query(self) -> Task:
         return Task(config=self.tasks_config['classify_query'])
@@ -167,14 +167,14 @@ class AiAgent:
                 except:
                     pass
             # Fallback: Assume direct mode with error response
-            return {'mode': 'direct', 'direct_response': f"Classification failed: {raw[:100]}... Please rephrase."}
+            return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
        
         classification = parse_json_with_retry(classification_raw)
        
         # 3. Mode Routing
         mode = classification.get('mode', 'direct')
         if mode == 'direct':
-            final_response = classification.get('direct_response', 'No response generated.')
+            final_response = classification.get('display_response', 'No response generated.')
         else: # agentic
             # Validate operations structure
             operations = classification.get('operations', [])
