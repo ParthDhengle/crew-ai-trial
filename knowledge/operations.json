@@ -53,6 +53,34 @@
       "capabilities": "system_control",
       "preview": "command validation",
       "undo": "N/A"
+    },
+    {
+      "name": "open_app",
+      "required_parameters": ["app_name"],
+      "optional_parameters": [],
+      "description": "Opens a Windows application by name. Matches against installed apps (Start Menu, Desktop, PATH executables, Registry, UWP apps) and user-defined aliases. If no exact app is found, falls back to web search. Supports auto-launch based on similarity score.",
+      "capabilities": "system_control",
+      "preview": "launch validation & app search",
+      "undo": "N/A"
+    },
+    {
+      "name": "search_mail",
+      "required_parameters": ["semantic_query"],
+      "optional_parameters": ["limit"],
+      "description": "Searches recent Gmail messages and extracts up to 10 semantically relevant chunks using TF-IDF similarity. Useful for finding important info from recent emails when exact keyword matches are not available.",
+      "capabilities": "communication",
+      "preview": "semantic email search & chunk extraction",
+      "undo": "N/A"
+    },
+    {
+      "name": "send_mail",
+      "required_parameters": ["to", "subject", "body"],
+      "optional_parameters": [],
+      "description": "Compose and send an email to the given recipient. If the user only provides a draft or short notes, the LLM must refine or fully write the email body in a professional, complete format according to the user’s needs before sending.",
+      "capabilities": "communication",
+      "preview": "AI-assisted email writing & sending",
+      "undo": "Cannot be undone once email is sent"
     }
+
   ]
 }
