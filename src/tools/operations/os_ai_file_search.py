@@ -196,8 +196,8 @@ def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.exp
 
 
 
-if __name__ == "__main__":
-    query = "document related to parth dhengle"
-    results = ai_assistant_file_query(query, use_semantic=True, top_k=3)
-    for res in results:
-        print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")
+# if __name__ == "__main__":
+#     query = "document related to parth dhengle"
+#     results = ai_assistant_file_query(query, use_semantic=True, top_k=3)
+#     for res in results:
+#         print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")

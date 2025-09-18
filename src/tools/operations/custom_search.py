@@ -90,8 +90,8 @@ def document_translate(file_path: str, query: str, target_lang: str) -> tuple[bo
         return False, f"Error during translation: {str(e)}"
 
 # Test the function
-if __name__ == "__main__":
-    query = "information about kevin hearts from wikipedia"
-    success, result = custom_search(query=query, num_results="5", site_restrict="wikipedia.org")  # Test with string num_results
-    print(f"Success: {success}")
-    print(result)
+# if __name__ == "__main__":
+#     query = "information about kevin hearts from wikipedia"
+#     success, result = custom_search(query=query, num_results="5", site_restrict="wikipedia.org")  # Test with string num_results
+#     print(f"Success: {success}")
+#     print(result)

@@ -1,6 +1,4 @@
 import os
-import json
-import re
 from typing import Tuple, Type, Optional
 from pydantic import BaseModel, Field, PrivateAttr
 from crewai.tools import BaseTool

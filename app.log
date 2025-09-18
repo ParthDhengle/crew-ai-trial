@@ -747,3 +747,24 @@
 2025-09-18 13:48:39 - AIAssistant - INFO - Firebase connected successfully
 2025-09-18 13:48:39 - AIAssistant - INFO - Loading or creating user profile
 2025-09-18 13:48:39 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 19:13:06 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-18 19:13:33 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 19:13:33 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 19:13:33 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 19:13:33 - AIAssistant - INFO - Processing single query: None
+2025-09-18 19:13:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 19:13:35 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 19:16:19 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 19:16:27 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 19:16:30 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 19:16:31 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 19:16:32 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 19:16:41 - AIAssistant - DEBUG - Received CLI input: What is ai
+2025-09-18 19:16:41 - AIAssistant - INFO - Processing query: What is ai for user atharva
+2025-09-18 19:16:52 - AIAssistant - ERROR - Error processing query 'What is ai': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-18 19:16:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 19:16:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 19:16:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 19:16:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 19:16:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
