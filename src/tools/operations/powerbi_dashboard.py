@@ -11,43 +11,13 @@ from dotenv import load_dotenv
 import subprocess
 import platform
 
-# Suppress syntax warnings from PBI_dashboard_creator
+# Suppress syntax warnings (no longer from PBI_dashboard_creator)
 warnings.filterwarnings("ignore", category=SyntaxWarning)
+from common_functions.Find_project_root import find_project_root
+# No sys.path adjustment needed for standalone, as we're removing PBI import
 
-# Adjust sys.path for standalone execution
-if __name__ == "__main__":
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-# Try to import PBI functions with better error handling
+# PBI functions are unavailable; always use manual fallback
 PBI_FUNCTIONS_AVAILABLE = False
-try:
-    import PBI_dashboard_creator
-    
-    # Check if functions are available
-    required_functions = ['create_blank_dashboard', 'add_csv_from_blob', 'add_card', 'add_slicer', 'add_text_box']
-    available_functions = dir(PBI_dashboard_creator)
-    
-    print(f"Available PBI functions: {available_functions}")
-    
-    missing_functions = [func for func in required_functions if func not in available_functions]
-    if missing_functions:
-        print(f"Warning: Missing PBI functions: {missing_functions}")
-        PBI_FUNCTIONS_AVAILABLE = False
-    else:
-        # Import the functions
-        from PBI_dashboard_creator import (
-            create_blank_dashboard,
-            add_csv_from_blob,
-            add_card,
-            add_slicer,
-            add_text_box
-        )
-        PBI_FUNCTIONS_AVAILABLE = True
-        print("Successfully imported PBI functions")
-        
-except ImportError as e:
-    print(f"Warning: Could not import PBI_dashboard_creator: {str(e)}")
-    PBI_FUNCTIONS_AVAILABLE = False
 
 # Absolute imports to avoid relative import issues
 try:
@@ -68,14 +38,6 @@ except ImportError:
             console_handler.setFormatter(formatter)
             logger.addHandler(console_handler)
         return logger
-
-    def find_project_root():
-        current_dir = os.path.abspath(os.path.dirname(__file__))
-        while current_dir != os.path.dirname(current_dir):  # Stop at root
-            if os.path.basename(current_dir) == 'crew-ai-trial':
-                return current_dir
-            current_dir = os.path.dirname(current_dir)
-        raise FileNotFoundError("Could not find project root 'crew-ai-trial'")
 
 logger = setup_logger()
 PROJECT_ROOT = find_project_root()
@@ -428,35 +390,9 @@ Return only the JSON, no explanation.
         output_dir = tempfile.mkdtemp(prefix="powerbi_dashboard_")
         dashboard_name = f"auto_dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # Try to create dashboard using PBI functions if available
-        if PBI_FUNCTIONS_AVAILABLE:
-            try:
-                dashboard_path = os.path.join(output_dir, dashboard_name)
-                
-                if callable(create_blank_dashboard):
-                    create_blank_dashboard(dashboard_path)
-                    logger.info("Created blank dashboard using PBI functions")
-                    
-                    # Add CSV data
-                    try:
-                        add_csv_from_blob(dashboard_path, f"file://{csv_path}", table_name="DataTable")
-                        logger.info("Added CSV data to dashboard")
-                    except Exception as e:
-                        logger.warning(f"add_csv_from_blob failed: {str(e)}")
-                    
-                    # Add visuals and other components
-                    # (Implementation would continue here if PBI functions work)
-                    
-                else:
-                    logger.error("create_blank_dashboard is not callable")
-                    raise Exception("create_blank_dashboard is not a callable function")
-                    
-            except Exception as e:
-                logger.warning(f"PBI functions failed: {str(e)}. Creating manual dashboard files.")
-                dashboard_path = create_simple_dashboard_files(output_dir, dashboard_name, df, plan, query)
-        else:
-            # Create dashboard files manually
-            dashboard_path = create_simple_dashboard_files(output_dir, dashboard_name, df, plan, query)
+        # Always create dashboard files manually (PBI functions unavailable)
+        dashboard_path = create_simple_dashboard_files(output_dir, dashboard_name, df, plan, query)
+        logger.info("Created manual dashboard files (PBI automation unavailable).")
         
         # Try to open the dashboard
         success_message = f"Dashboard files created at: {dashboard_path}"

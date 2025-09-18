@@ -479,3 +479,271 @@
 2025-09-18 01:18:59 - AIAssistant - INFO - CLI input interrupted by user
 2025-09-18 01:18:59 - AIAssistant - INFO - User requested to quit
 2025-09-18 01:19:21 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-18 09:45:38 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 09:45:46 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 09:45:46 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 09:45:46 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 09:45:46 - AIAssistant - INFO - Processing single query: None
+2025-09-18 09:45:46 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 09:45:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 09:45:50 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 09:46:03 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 09:46:07 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 09:46:07 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 09:46:07 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 09:47:00 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 09:47:00 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 09:47:11 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 09:47:11 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 09:47:11 - AIAssistant - ERROR - Failed to initialize Groq client: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 09:47:11 - AIAssistant - ERROR - Error in document_translate: Failed to initialize Groq client. Please check your API key: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 09:47:29 - AIAssistant - DEBUG - Query response: Performed operations: custom_search (failed due to missing Google API keys), search_files (no PDF files found for 'machine learning'), document_translate (failed due to Groq client initialization error), run_command (failed due to incorrect syntax). Unable to complete Wikipedia search, file search, translation, or renaming due to configuration and execution errors.
+2025-09-18 09:47:29 - AIAssistant - INFO - Processing single query: None
+2025-09-18 09:47:29 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 09:47:29 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 09:47:29 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 09:47:29 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 09:59:16 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 09:59:16 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 09:59:16 - AIAssistant - ERROR - Error in document_translate: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:01:34 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 10:01:34 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:01:34 - AIAssistant - ERROR - Error in document_translate: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:02:57 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 10:02:57 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:02:57 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:02:57 - AIAssistant - INFO - Processing document: C:\Users\Parth Dhengle\Downloads\ML_text.txt with query: translate the document to French
+2025-09-18 10:02:57 - AIAssistant - INFO - Successfully extracted text from text file: C:\Users\Parth Dhengle\Downloads\ML_text.txt
+2025-09-18 10:02:57 - AIAssistant - WARNING - Groq API unavailable; using basic fallback processing.
+2025-09-18 10:02:57 - AIAssistant - INFO - Successfully translated document: C:\Users\Parth Dhengle\Downloads\ML_text.txt
+2025-09-18 10:15:42 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:15:42 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:15:50 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 10:15:50 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:15:50 - AIAssistant - ERROR - Failed to initialize Groq client: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:15:50 - AIAssistant - ERROR - Error in document_translate: Failed to initialize Groq client. Please check your API key: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:16:04 - AIAssistant - DEBUG - Query response: Performed operations: custom_search (failed due to missing API keys), search_files (no PDF files found in Documents folder), document_translate (failed due to Groq client initialization error), run_command (failed to rename file as it did not exist). All operations encountered errors: unable to search Wikipedia, no machine learning PDFs found, translation not possible, and file rename unsuccessful.
+2025-09-18 10:16:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:16:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:16:04 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:16:04 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:16:04 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:19:13 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:19:17 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:19:17 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:19:17 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:19:17 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:19:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:19:18 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:19:20 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:19:29 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 10:19:34 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 10:19:35 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:19:35 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:20:31 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:20:31 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:20:40 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 10:20:40 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:20:41 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:20:41 - AIAssistant - INFO - Processing document: top matching file path with query: AI ethics
+2025-09-18 10:20:41 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:20:52 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for AI ethics articles, but encountered an error: '<' not supported between instances of 'int' and 'str'. Searched Documents folder for machine learning PDFs, but no files were found. Attempted to translate the top matching file to Spanish and save as 'AI_Ethics_ES.pdf', but both operations failed due to file not found errors. No AI ethics or machine learning files were processed successfully.
+2025-09-18 10:20:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:20:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:20:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:20:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:20:53 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:25:04 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:25:04 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:26:00 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:26:04 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:26:04 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:26:04 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:26:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:26:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:26:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:26:18 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:26:23 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 10:26:26 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 10:26:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:26:27 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:26:31 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:26:31 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:26:41 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 10:26:41 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:26:42 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:26:42 - AIAssistant - INFO - Processing document: top matching file path with query: machine learning
+2025-09-18 10:26:42 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:26:52 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics', yielding multiple relevant entries on AI ethics topics. Semantically searched Documents folder for 'machine learning' PDFs, but no files were found. Translation and renaming operations failed due to missing file. Recommendation: Ensure Documents folder contains PDFs related to machine learning for successful processing, and verify file paths.
+2025-09-18 10:26:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:26:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:26:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:26:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:26:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:27:12 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:27:12 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:32:38 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:32:43 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:32:43 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:32:43 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:32:43 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:32:43 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:32:46 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:32:50 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:33:12 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:33:16 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:33:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:33:17 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:34:19 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 10:34:19 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user atharva
+2025-09-18 10:34:35 - AIAssistant - INFO - Running document_translate for file: top matching file from search_files operation to es
+2025-09-18 10:34:35 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:34:36 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:34:36 - AIAssistant - INFO - Processing document: top matching file from search_files operation with query: machine learning
+2025-09-18 10:34:36 - AIAssistant - ERROR - File not found: top matching file from search_files operation
+2025-09-18 10:34:53 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics': Found multiple relevant articles, including 'Ethics of artificial intelligence', 'Generative artificial intelligence', and 'Regulation of artificial intelligence'. Searched Documents folder for PDF files on 'machine learning' using semantic search: No files found. Translation and renaming operations failed due to missing file.
+2025-09-18 10:34:53 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:34:53 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:34:53 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:34:53 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:34:53 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:36:16 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthong. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 10:36:16 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthong. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user atharva
+2025-09-18 10:36:31 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 10:36:31 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:36:32 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:36:32 - AIAssistant - INFO - Processing document: top matching file path with query: AI ethics
+2025-09-18 10:36:32 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:36:45 - AIAssistant - DEBUG - Query response: Performed custom_search (found Wikipedia articles on AI ethics), search_files (no matching files found), document_translate (failed due to missing file), and run_command (failed due to missing file). No PDF files related to AI ethics were found in Documents folder, so translation and renaming could not be completed.
+2025-09-18 10:36:45 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:36:45 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:36:45 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:36:45 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:36:45 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:38:03 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthon. Translate the top matching file to Spanish.
+2025-09-18 10:38:03 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthon. Translate the top matching file to Spanish. for user atharva
+2025-09-18 10:38:20 - AIAssistant - INFO - Running document_translate for file: top_matching_file.pdf to Spanish
+2025-09-18 10:38:20 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:38:20 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:38:20 - AIAssistant - INFO - Processing document: top_matching_file.pdf with query: hackathon
+2025-09-18 10:38:20 - AIAssistant - ERROR - File not found: top_matching_file.pdf
+2025-09-18 10:38:39 - AIAssistant - DEBUG - Query response: Performed custom_search: Found recent Wikipedia articles on AI ethics, including topics like ethics of AI, conferences, and key figures. Performed search_files: No files matching 'hackathon' were found in the Documents folder. Performed document_translate: Translation could not proceed due to no matching file found. Key insight: No relevant PDF files available for semantic search or translation, suggesting a need to acquire or create content related to 'hackathon' in AI ethics context.
+2025-09-18 10:38:39 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:38:39 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:38:40 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:38:40 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:38:40 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:46:40 - AIAssistant - DEBUG - Received CLI input: document related to parth dhengle
+2025-09-18 10:46:40 - AIAssistant - INFO - Processing query: document related to parth dhengle for user atharva
+2025-09-18 10:47:15 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 10:47:30 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:47:35 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:47:35 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:47:35 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:47:35 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:47:35 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:47:38 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:47:39 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:47:48 - AIAssistant - DEBUG - Received CLI input: atharva20051@gail.com
+2025-09-18 10:47:55 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:48:09 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:48:14 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:48:14 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:48:14 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:48:14 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:48:14 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:48:15 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:48:16 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:48:23 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:48:26 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:48:26 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:48:27 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:48:54 - AIAssistant - DEBUG - Received CLI input: find me document related to parth dhengle in my downloads.
+2025-09-18 10:48:54 - AIAssistant - INFO - Processing query: find me document related to parth dhengle in my downloads. for user atharva
+2025-09-18 10:49:14 - AIAssistant - DEBUG - Query response: Performed search_files: No files matching 'parth dhengle' were found in your downloads folder.
+2025-09-18 10:49:14 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:49:14 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:49:14 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:49:14 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:49:14 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:50:11 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:50:11 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:50:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:50:34 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:50:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:50:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:50:34 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:50:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:50:35 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:51:14 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:51:20 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:55:12 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:55:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:55:13 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:56:15 - AIAssistant - DEBUG - Received CLI input: find me document related to parth dhengle from "C:\Users\Parth Dhengle\Downloads"
+2025-09-18 10:56:15 - AIAssistant - INFO - Processing query: find me document related to parth dhengle from "C:\Users\Parth Dhengle\Downloads" for user atharva
+2025-09-18 10:56:48 - AIAssistant - DEBUG - Query response: Performed search_files: No files related to 'Parth Dhengle' were found in the downloads folder using semantic content matching.
+2025-09-18 10:56:48 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:56:48 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:56:48 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:56:48 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:56:48 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 11:02:52 - AIAssistant - DEBUG - Received CLI input: sgx
+2025-09-18 11:02:52 - AIAssistant - INFO - Processing query: sgx for user atharva
+2025-09-18 11:02:56 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 11:03:11 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 11:03:17 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 11:03:17 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 11:03:17 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 11:03:17 - AIAssistant - INFO - Processing single query: None
+2025-09-18 11:03:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 11:03:18 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 11:04:00 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 11:04:02 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 11:04:07 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-18 13:36:17 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:36:32 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:36:32 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:36:32 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:36:32 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:36:32 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:37:54 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 13:38:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:38:33 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:38:33 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:38:33 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:38:33 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:38:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:41:40 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:41:47 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:41:47 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:41:47 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:41:47 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:41:47 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:41:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:41:55 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 13:42:07 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 13:42:12 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 13:42:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:42:12 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 13:42:46 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 13:42:46 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user Parth Dhengle
+2025-09-18 13:42:56 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 13:42:56 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 13:42:56 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 13:42:56 - AIAssistant - INFO - Processing document: top matching file path with query: machine learning
+2025-09-18 13:42:56 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 13:43:12 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics', yielding 5 relevant results including topics like AI ethics, machine ethics, and generative AI ethics. Searched for 'machine learning' PDF files in Documents folder but found none. Translation and rename operations failed due to missing file. Key insights: Wikipedia provides comprehensive AI ethics coverage, but no local machine learning PDFs were available for processing.
+2025-09-18 13:43:12 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:43:12 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:43:12 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:43:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:43:12 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 13:48:20 - AIAssistant - DEBUG - Received CLI input: give me information abouyt contry india
+2025-09-18 13:48:20 - AIAssistant - INFO - Processing query: give me information abouyt contry india for user Parth Dhengle
+2025-09-18 13:48:38 - AIAssistant - DEBUG - Query response: Performed custom_search: India is officially the Republic of India, located in South Asia. It is the seventh-largest country by area and the most populous country since 2023, with over 1.4 billion people. Key facts: capital is New Delhi; government is a federal republic; official languages include Hindi and English; consists of 28 states and 8 union territories. This information can support your career growth by enhancing your general knowledge and cultural awareness.
+2025-09-18 13:48:38 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:48:38 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:48:39 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:48:39 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:48:39 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}

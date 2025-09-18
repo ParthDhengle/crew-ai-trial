@@ -172,7 +172,7 @@ class OSFileSearcher:
 
         return results
 
-def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.expanduser('~'), 'Downloads'), use_semantic: bool = True, top_k: int = 5):
+def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.expanduser('~'), 'Downloads'), use_semantic: bool = True, top_k: int = 3):
     """
     High-level function for your AI assistant to handle file queries.
     Determines if query is semantic (e.g., contains phrases) or keyword-based.
@@ -194,10 +194,10 @@ def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.exp
     
     return results
 
+
+
 if __name__ == "__main__":
-    # Example: Semantic search
-    test_dir = os.path.join(os.path.expanduser('~'), 'Downloads')  # Dynamic Downloads folder
-    results = ai_assistant_file_query("document about NLP", root_dir=test_dir, top_k=3)
+    query = "document related to parth dhengle"
+    results = ai_assistant_file_query(query, use_semantic=True, top_k=3)
     for res in results:
-        print(f"Found: {res['title']} at {res['path'][:50]}... (Score: {res['relevance_score']:.2f})")
-        print(f"Preview: {res['snippet']}\n")
+        print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")

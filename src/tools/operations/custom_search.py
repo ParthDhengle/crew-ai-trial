@@ -13,7 +13,7 @@ def custom_search(query: str, num_results: int = 10, site_restrict: str = None) 
     
     Args:
         query (str): The search query string.
-        num_results (int, optional): Number of results to return (default: 10).
+        num_results (int or str): Number of results to return (default: 10).
         site_restrict (str, optional): Restrict search to a specific site (e.g., 'example.com').
     
     Returns:
@@ -26,6 +26,13 @@ def custom_search(query: str, num_results: int = 10, site_restrict: str = None) 
         if not api_key or not cse_id:
             return False, "Missing GOOGLE_CUSTOM_SEARCH_API_KEY or GOOGLE_CSE_ID in environment variables."
         
+        # Convert num_results to int if it's a string (fixes the type comparison error)
+        if isinstance(num_results, str):
+            try:
+                num_results = int(num_results)
+            except ValueError:
+                num_results = 10  # Default fallback
+        
         # Build the Custom Search service
         service = build("customsearch", "v1", developerKey=api_key)
         
@@ -33,7 +40,7 @@ def custom_search(query: str, num_results: int = 10, site_restrict: str = None) 
         search_params = {
             "q": query,
             "cx": cse_id,
-            "num": min(num_results, 10)  # API limits to 10 results per request
+            "num": min(num_results, 10)  # Now both are integers
         }
         if site_restrict:
             search_params["siteSearch"] = site_restrict
@@ -66,9 +73,25 @@ def custom_search(query: str, num_results: int = 10, site_restrict: str = None) 
     except Exception as e:
         return False, f"Error during search: {str(e)}"
 
+def document_translate(file_path: str, query: str, target_lang: str) -> tuple[bool, str]:
+    """
+    Enhanced document translate function with proper file validation.
+    """
+    try:
+        # Validate file exists first
+        if not os.path.exists(file_path) or file_path == "top matching file path":
+            return False, f"File not found: {file_path}. Please provide a valid file path."
+        
+        # Add your translation logic here
+        # This is a placeholder - implement your actual translation logic
+        return True, f"Translation functionality not yet implemented for {file_path}"
+        
+    except Exception as e:
+        return False, f"Error during translation: {str(e)}"
+
 # Test the function
 if __name__ == "__main__":
-    query = "information about keven hearts from wikipedia"
-    success, result = custom_search(query=query, num_results=5)  # Reduced for brevity
+    query = "information about kevin hearts from wikipedia"
+    success, result = custom_search(query=query, num_results="5", site_restrict="wikipedia.org")  # Test with string num_results
     print(f"Success: {success}")
     print(result)

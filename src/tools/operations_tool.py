@@ -1,65 +1,76 @@
 # src/tools/operations_tool.py
 import os
-from typing import List, Dict, Any, Tuple
 import json
+from typing import List, Dict, Any, Tuple
 import re
 from common_functions.Find_project_root import find_project_root
 from .operations.document_processor import document_summarize, document_translate
-from firebase_client import get_operations  # For defs
+from firebase_client import get_operations  # For defs; fallback to JSON
 
 PROJECT_ROOT = find_project_root()
 
-# Dynamic imports for your ops
-from .operations.web_search import web_search
-from .operations.translate import translate_text
-from .operations.summarization import summarize_text
-from .operations.ragsearch import rag_search
-from .operations.file_search import file_search
-from .operations.app_opening import open_app
-from .operations.run_terminal_command import run_command
-from .operations.events.create_event import create_event
-from .operations.tasks.create_task import create_task
-from .operations.tasks.read_task import read_task
-from .operations.tasks.update_task import update_task
-from .operations.tasks.mark_complete import mark_complete
+# Dynamic imports for active ops only
+from .operations.custom_search import custom_search
+from .operations.powerbi_dashboard import powerbi_generate_dashboard
+from .operations.os_ai_file_search import ai_assistant_file_query  # For search_files wrapper
+from .operations.run_terminal_command import run_command  # Note: returns dict, so wrap it
 
 class OperationsTool:
-    """Dispatcher for your specified operations. Maps 'name' to funcs; validates via Firebase/json defs."""
+    """Dispatcher for active operations only. Maps 'name' to funcs; validates via Firebase/json defs."""
 
     def __init__(self):
         self.param_definitions = self._parse_operations()
         self.operation_map = {
-            # Direct ops
-            "web_search": web_search,
-            "translate": translate_text,
-            "summarization": summarize_text,
-            "ragsearch": rag_search,
-            "file_search": file_search,
-            "app_opening": open_app,
-            "run_terminal_command": run_command,
-            # Calendar
-            "calendar.create_event": create_event,
-            # Tasks
-            "task.create": create_task,
-            "task.list": read_task,
-            "task.update": update_task,
-            "task.mark_complete": mark_complete,
-            # Document processing
+            # Active ops only
+            "custom_search": custom_search,
             "document_summarize": document_summarize,
             "document_translate": document_translate,
+            "powerbi_generate_dashboard": powerbi_generate_dashboard,
+            # File search wrapper
+            "search_files": self._search_files_wrapper,
+            # Command wrapper (converts dict to tuple)
+            "run_command": self._run_command_wrapper,
         }
 
     def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
         """Load op defs from Firebase (fallback json)."""
-        operations = get_operations()
+        try:
+            operations = get_operations()
+        except:
+            # Fallback to local JSON
+            json_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.json")
+            with open(json_path, "r") as f:
+                data = json.load(f)
+                operations = data.get("operations", [])
         param_defs = {}
         for op in operations:
             name = op.get("name", "")
             required = op.get("required_parameters", [])
             optional = op.get("optional_parameters", [])
             param_defs[name] = {"required": required, "optional": optional}
-        print(f"✅ Loaded {len(param_defs)} ops from Firebase/json")
+        print(f"✅ Loaded {len(param_defs)} active ops from Firebase/JSON")
         return param_defs
+
+    def _search_files_wrapper(self, query: str, path: str = None, use_semantic: bool = True) -> Tuple[bool, str]:
+        """Wrapper for search_files to match op signature (returns tuple[bool, str])."""
+        try:
+            root_dir = path or os.path.join(os.path.expanduser('~'), 'Downloads')
+            results = ai_assistant_file_query(query, root_dir, use_semantic)
+            result_str = json.dumps(results, indent=2) if results else "No files found."
+            return True, f"Search results for '{query}':\n{result_str}"
+        except Exception as e:
+            return False, f"Error in search_files: {str(e)}"
+
+    def _run_command_wrapper(self, command: str) -> Tuple[bool, str]:
+        """Wrapper for run_command to convert dict return to tuple[bool, str]."""
+        try:
+            result_dict = run_command(command)
+            if result_dict["success"]:
+                return True, f"Command '{command}' executed successfully.\nOutput: {result_dict['output']}"
+            else:
+                return False, f"Command '{command}' failed.\nError: {result_dict['error']}\nOutput: {result_dict['output']}"
+        except Exception as e:
+            return False, f"Error in run_command: {str(e)}"
 
     def _validate_params(self, operation_name: str, provided_params: dict) -> tuple[bool, str, List[str]]:
         """Validate params against defs."""
@@ -86,7 +97,7 @@ class OperationsTool:
             name = op.get("name")
             params = op.get("parameters", {})
             if name not in self.operation_map:
-                lines.append(f"❌ {name}: Not implemented.")
+                lines.append(f"❌ {name}: Not implemented (inactive).")
                 continue
             is_valid, msg, missing = self._validate_params(name, params)
             if missing:
