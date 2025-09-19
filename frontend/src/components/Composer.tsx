@@ -1,10 +1,11 @@
+// frontend/src/components/Composer.tsx (complete with fixes)
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Send, 
-  Mic, 
-  MicOff, 
-  Paperclip, 
+import {
+  Send,
+  Mic,
+  MicOff,
+  Paperclip,
   FileText,
   Smile,
   X,
@@ -24,19 +25,19 @@ interface ComposerProps {
   maxLength?: number;
 }
 
-export default function Composer({ 
+export default function Composer({
   className = '',
   placeholder = 'Message Nova...',
-  maxLength = 4000 
+  maxLength = 4000
 }: ComposerProps) {
   const { state, dispatch } = useNova();
   const { idToken, user } = useAuth();
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showRolePrefills, setShowRolePrefills] = useState(false);
-  
+ 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+ 
   const {
     isRecording,
     transcript,
@@ -45,7 +46,6 @@ export default function Composer({
     stopRecording,
   } = useVoiceTranscription();
 
-  // Update message when transcript changes
   useEffect(() => {
     if (transcript && !isPartial) {
       dispatch({
@@ -55,65 +55,59 @@ export default function Composer({
     }
   }, [transcript, isPartial, state.draftMessage, dispatch]);
 
-  // Auto-resize textarea
   useEffect(() => {
-  const textarea = textareaRef.current;
-  if (textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
-  }
-}, [state.draftMessage]);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+    }
+  }, [state.draftMessage]);
 
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('nova_draft');
+    if (savedDraft) {
+      dispatch({ type: 'SET_DRAFT', payload: savedDraft });
+      localStorage.removeItem('nova_draft');
+    }
+  }, []);
 
-  // Handle message sending (real API call)
   const handleSend = async () => {
     if (!state.draftMessage.trim() && attachments.length === 0) return;
-  
-  const newMessage: ChatMessage = {
-    id: `msg-${Date.now()}`,
-    content: state.draftMessage.trim(),
-    role: 'user',
-    timestamp: Date.now(),
-  };
-
+ 
+    const newMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      content: state.draftMessage.trim(),
+      role: 'user',
+      timestamp: Date.now(),
+    };
     if (state.currentSession) {
-      dispatch({ 
-        type: 'ADD_MESSAGE', 
+      dispatch({
+        type: 'ADD_MESSAGE',
         payload: { sessionId: state.currentSession.id, message: newMessage }
       });
     }
-
-    dispatch({ type: 'SET_DRAFT', payload: '' });  // Clear draft
+    dispatch({ type: 'SET_DRAFT', payload: '' });
     setAttachments([]);
     dispatch({ type: 'SET_TYPING', payload: true });
-
     try {
-      // ✅ Call FastAPI backend
       const response = await fetch("http://127.0.0.1:8000/process_query", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`,  // ✅ Firebase token for auth
+          "Authorization": `Bearer ${idToken}`,
         },
-        body: JSON.stringify({
-          query: newMessage.content,
-          session_id: state.currentSession?.id || null,
-        }),
+        body: JSON.stringify({ query: newMessage.content, session_id: state.currentSession?.id || null }),
       });
-
       if (!response.ok) {
         throw new Error(`Backend error: ${response.status}`);
       }
-
       const data = await response.json();
-
       const aiMessage: ChatMessage = {
         id: `msg-${Date.now()}-ai`,
         content: data.result || "No response received",
         role: 'assistant',
         timestamp: Date.now(),
       };
-
       if (state.currentSession) {
         dispatch({
           type: 'ADD_MESSAGE',
@@ -121,7 +115,7 @@ export default function Composer({
         });
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('Send error:', error);
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now()}-error`,
         content: '⚠️ Sorry, something went wrong. Please try again.',
@@ -136,18 +130,15 @@ export default function Composer({
     }
   };
 
-  // File select
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setAttachments(prev => [...prev, ...files].slice(0, 5));
   };
 
-  // Remove attachment
   const removeAttachment = (index: number) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Shortcuts
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
@@ -159,7 +150,6 @@ export default function Composer({
     }
   };
 
-  // Voice toggle
   const handleVoiceToggle = () => {
     if (isRecording) {
       stopRecording();
@@ -171,7 +161,6 @@ export default function Composer({
   return (
     <div className={`p-4 bg-background/80 backdrop-blur-sm ${className}`}>
       <div className="max-w-4xl mx-auto">
-        {/* Voice Transcript */}
         <AnimatePresence>
           {isRecording && transcript && (
             <motion.div
@@ -191,8 +180,6 @@ export default function Composer({
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Attachments */}
         <AnimatePresence>
           {attachments.length > 0 && (
             <motion.div
@@ -226,8 +213,6 @@ export default function Composer({
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Input Area */}
         <div className="glass-nova rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
           <div className="relative">
             <Textarea
@@ -240,7 +225,6 @@ export default function Composer({
               maxLength={maxLength}
             />
           </div>
-
           <div className="flex items-center justify-between p-3 border-t border-border/30">
             <div className="flex items-center gap-1">
               <Button
@@ -264,7 +248,6 @@ export default function Composer({
                 </Button>
               )}
             </div>
-
             <Button
               onClick={handleSend}
               disabled={!state.draftMessage.trim() && attachments.length === 0}
@@ -285,8 +268,6 @@ export default function Composer({
             </Button>
           </div>
         </div>
-
-        {/* Hidden File Input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -295,8 +276,6 @@ export default function Composer({
           onChange={handleFileSelect}
           accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
         />
-
-        {/* Quick Tips */}
         <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground gap-4">
           <span>Ctrl+Enter to send</span>
           <span>•</span>
@@ -307,16 +286,6 @@ export default function Composer({
             Local voice processing
           </span>
         </div>
-
-        {/* Hidden File Input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileSelect}
-          accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
-        />
       </div>
     </div>
   );

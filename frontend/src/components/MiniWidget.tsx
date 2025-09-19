@@ -1,3 +1,4 @@
+// frontend/src/components/MiniWidget.tsx (complete with fixes)
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -43,16 +44,14 @@ export default function MiniWidget({
   const [isExpanding, setIsExpanding] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
   const { expand } = useWindowControls();
   const { state, dispatch } = useNova();
   const { idToken } = useAuth();
 
-  // Last 3 messages for preview
   const previewMessages = state.currentSession?.messages.slice(-3) || [];
 
-  // Handle expand
   const handleExpand = async () => {
+    localStorage.setItem('nova_draft', state.draftMessage);
     setIsExpanding(true);
     try {
       await expand();
@@ -63,7 +62,6 @@ export default function MiniWidget({
     }
   };
 
-  // Handle close
   const handleClose = () => {
     if (window.api) {
       (window as any).api.miniClose?.();
@@ -72,20 +70,18 @@ export default function MiniWidget({
     }
   };
 
-  // ✅ Create new chat session
   const handleNewChat = () => {
     const newSession = {
       id: `session-${Date.now()}`,
       title: "New Chat",
       messages: [] as ChatMessage[],
       createdAt: Date.now(),
-      updatedAt: Date.now(), 
+      updatedAt: Date.now(),
     };
     dispatch({ type: 'ADD_SESSION', payload: newSession });
     dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
   };
 
-  // ✅ Quick send to backend
   const handleQuickSend = async () => {
     const message = state.draftMessage.trim();
     if (!message) {
@@ -103,7 +99,7 @@ export default function MiniWidget({
       type: 'ADD_MESSAGE',
       payload: { sessionId: state.currentSession.id, message: userMessage }
     });
-    dispatch({ type: 'SET_DRAFT', payload: '' });  // Clear draft
+    dispatch({ type: 'SET_DRAFT', payload: '' });
     setIsTyping(true);
     try {
       const aiContent = await window.api.sendMessage(
@@ -128,13 +124,18 @@ export default function MiniWidget({
     }
   };
 
-  // Scroll preview
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth'
     });
   }, [previewMessages]);
+
+  useEffect(() => {
+    if (!state.currentSession) {
+      handleNewChat();
+    }
+  }, [state.currentSession]);
 
   return (
     <motion.div
@@ -146,7 +147,6 @@ export default function MiniWidget({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Expanding overlay */}
       {isExpanding && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -159,8 +159,6 @@ export default function MiniWidget({
           </div>
         </motion.div>
       )}
-
-      {/* Header */}
       <div
         className="titlebar flex items-center justify-between px-3 py-2 border-b border-border/50 text-sm"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
@@ -174,17 +172,13 @@ export default function MiniWidget({
             </Badge>
           )}
         </div>
-
         <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          {/* Expand */}
           <Button size="sm" variant="ghost" onClick={handleExpand} disabled={isExpanding || isTyping} className="w-6 h-6 p-0">
             <Maximize2 size={12} />
           </Button>
-          {/* Close */}
           <Button size="sm" variant="ghost" onClick={handleClose} className="w-6 h-6 p-0 text-red-400">
             <X size={12} />
           </Button>
-          {/* Menu */}
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="ghost" className="w-6 h-6 p-0">
@@ -213,8 +207,6 @@ export default function MiniWidget({
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Messages preview */}
       <ScrollArea className="flex-1 px-3 py-2" ref={scrollRef}>
         <div className="space-y-2">
           {previewMessages.length === 0 ? (
@@ -258,8 +250,6 @@ export default function MiniWidget({
           )}
         </div>
       </ScrollArea>
-
-      {/* Input */}
       <div className="border-t border-border/50 p-2 flex gap-1">
         <Input
           value={state.draftMessage}

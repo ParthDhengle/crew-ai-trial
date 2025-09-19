@@ -1,6 +1,9 @@
+// frontend/src/context/NovaContext.tsx (complete with fixes)
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import type { AgentOp, SchedulerTask, ChatMessage, ChatSession, Integration, NovaRole } from '../api/types';
+import { useAuth } from '@/hooks/useAuth';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '@/firebase';
+import type { AgentOp, SchedulerTask, ChatMessage, ChatSession, Integration, NovaRole } from '@/api/types';
 
 type NovaAction =
   | { type: 'SET_VIEW'; payload: 'chat' | 'scheduler' | 'dashboard' | 'settings' }
@@ -11,8 +14,9 @@ type NovaAction =
   | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
   | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
   | { type: 'SET_SESSIONS'; payload: ChatSession[] }
-  | { type: "ADD_SESSION"; payload: ChatSession }  
+  | { type: "ADD_SESSION"; payload: ChatSession }
   | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
+  | { type: 'SET_MESSAGES'; payload: { sessionId: string; messages: ChatMessage[] } }
   | { type: 'SET_TYPING'; payload: boolean }
   | { type: 'SET_TASKS'; payload: SchedulerTask[] }
   | { type: 'ADD_TASK'; payload: SchedulerTask }
@@ -22,6 +26,7 @@ type NovaAction =
   | { type: 'SET_INTEGRATIONS'; payload: Integration[] }
   | { type: 'SET_MINI_MODE'; payload: boolean }
   | { type: 'SET_DRAFT'; payload: string };
+
 interface NovaState {
   view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
   role: NovaRole;
@@ -66,9 +71,7 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
     switch (action.type) {
       case 'SET_VIEW':
         return { ...state, view: action.payload };
-      case 'SET_MINI_MODE':
-        return { ...state, isMiniMode: action.payload };
-        case 'SET_ROLE':
+      case 'SET_ROLE':
         return { ...state, role: action.payload };
       case 'SET_VOICE_ENABLED':
         return { ...state, voiceEnabled: action.payload };
@@ -82,6 +85,12 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
         return { ...state, currentSession: action.payload };
       case 'SET_SESSIONS':
         return { ...state, sessions: action.payload };
+      case 'ADD_SESSION':
+        return {
+          ...state,
+          sessions: [...state.sessions, action.payload],
+          currentSession: action.payload,
+        };
       case 'ADD_MESSAGE':
         if (state.currentSession?.id === action.payload.sessionId) {
           const updatedSession = {
@@ -94,6 +103,11 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
             currentSession: updatedSession,
             sessions: state.sessions.map(s => s.id === action.payload.sessionId ? updatedSession : s),
           };
+        }
+        return state;
+      case 'SET_MESSAGES':
+        if (state.currentSession?.id === action.payload.sessionId) {
+          return { ...state, currentSession: { ...state.currentSession, messages: action.payload.messages } };
         }
         return state;
       case 'SET_TYPING':
@@ -113,12 +127,8 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
         return { ...state, operations: action.payload };
       case 'SET_INTEGRATIONS':
         return { ...state, integrations: action.payload };
-      case "ADD_SESSION":
-        return {
-          ...state,
-          sessions: [...state.sessions, action.payload],
-          currentSession: action.payload,
-        };
+      case 'SET_MINI_MODE':
+        return { ...state, isMiniMode: action.payload };
       case 'SET_DRAFT':
         return { ...state, draftMessage: action.payload };
       default:
@@ -126,7 +136,34 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
     }
   }, initialState);
 
-  const { profile, idToken } = useAuth();  // Integrate auth
+  const { user, profile, updateUserProfile } = useAuth();
+
+  useEffect(() => {
+    if (profile && !state.currentSession) {
+      let sessionId = profile.current_chat_session;
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        updateUserProfile({ current_chat_session: sessionId });
+      }
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: { 
+        id: sessionId, 
+        title: 'Main Chat', 
+        messages: [], 
+        createdAt: Date.now(), 
+        updatedAt: Date.now() 
+      } });
+      const q = query(collection(db, 'chats', sessionId, 'messages'), orderBy('timestamp'));
+      onSnapshot(q, (snap) => {
+        const msgs = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp?.toDate().getTime() || Date.now()
+        } as ChatMessage));
+        dispatch({ type: 'SET_MESSAGES', payload: { sessionId, messages: msgs } });
+      });
+    }
+  }, [profile]);
+
   useEffect(() => {
     if (profile) {
       dispatch({ type: 'SET_ROLE', payload: profile.role });
@@ -135,27 +172,6 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: 'SET_ALWAYS_ON_TOP', payload: profile.alwaysOnTop });
     }
   }, [profile]);
-
-  // Fetch initial data on mount
-  useEffect(() => {
-    // Fetch sessions, tasks, etc. via API (implement fetchTasks, etc.)
-    const fetchInitialData = async () => {
-      if (!idToken) return;
-      try {
-        // Example: Fetch tasks
-        const tasksRes = await fetch('http://localhost:8000/tasks', {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        const tasks = await tasksRes.json();
-        dispatch({ type: 'SET_TASKS', payload: tasks });
-
-        // Similar for operations, integrations
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-      }
-    };
-    fetchInitialData();
-  }, [idToken]);
 
   return (
     <NovaContext.Provider value={{ state, dispatch }}>

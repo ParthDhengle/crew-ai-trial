@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, UserCredential, updateProfile  } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, UserCredential, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -12,16 +12,14 @@ export interface UserProfile {
   voiceEnabled: boolean;
   selectedModel: string;
   alwaysOnTop: boolean;
-  // Add other prefs from REQUIRED_PROFILE_KEYS
   Name?: string;
   Location?: string;
-  // ... etc.
 }
+
 export async function getIdToken(): Promise<string | null> {
   const currentUser = auth.currentUser;
   return currentUser ? await currentUser.getIdToken() : null;
 }
-
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -35,13 +33,11 @@ export const useAuth = () => {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken();
         setIdToken(token);
-        // Fetch profile
         const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (profileDoc.exists()) {
           const data = profileDoc.data() as UserProfile;
           setProfile({ ...data, uid: firebaseUser.uid });
         } else {
-          // Create default profile
           const defaultProfile: UserProfile = {
             uid: firebaseUser.uid,
             email: firebaseUser.email!,
@@ -49,7 +45,6 @@ export const useAuth = () => {
             voiceEnabled: true,
             selectedModel: 'whisper-base',
             alwaysOnTop: false,
-            // Defaults for others
             Name: firebaseUser.displayName || 'User',
           };
           await setDoc(doc(db, 'users', firebaseUser.uid), defaultProfile);
@@ -75,12 +70,11 @@ export const useAuth = () => {
   const signup = async (email: string, password: string, displayName?: string) => {
     try {
       const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Fixed: Use user.updateProfile for displayName
+      const user = userCredential.user;
       if (displayName) {
-      // FIXED: use imported updateProfile instead of user.updateProfile
-      await updateProfile(userCredential.user, { displayName });
-    }
-      // Backend will create profile on first login
+        await updateProfile(user, { displayName });
+        await user.reload();
+      }
     } catch (error) {
       throw new Error((error as Error).message);
     }
@@ -90,7 +84,7 @@ export const useAuth = () => {
     await signOut(auth);
   };
 
-  const updateUserProfile  = async (updates: Partial<UserProfile>) => {
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (!profile) return;
     await setDoc(doc(db, 'users', profile.uid), { ...profile, ...updates }, { merge: true });
     setProfile({ ...profile, ...updates });

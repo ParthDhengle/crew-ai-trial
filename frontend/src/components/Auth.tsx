@@ -1,13 +1,11 @@
-// frontend/src/components/Auth.tsx
-import React, { useState, useEffect } from 'react';  // Added useEffect
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { auth } from "../firebase"; // <-- make sure path is correct
+import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { updateProfile } from "firebase/auth";
-
 
 export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [email, setEmail] = useState('');
@@ -15,11 +13,9 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const [isSignup, setIsSignup] = useState(false);
   const { login, signup, user } = useAuth();
 
-  // FIXED: Auto-close + Send IPC on success
   useEffect(() => {
     if (user && isOpen) {
       onClose();
-      // New: Notify Electron main process
       if (window.api) {
         window.api.setAuthStatus(true);
       }
@@ -33,7 +29,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         if (auth.currentUser) {
           await updateProfile(auth.currentUser, { displayName: email.split('@')[0] });
         }
-  // Use email as displayName
       } else {
         await login(email, password);
       }
@@ -43,14 +38,21 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   };
 
   if (!isOpen) return null;
+
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const credential = await signInWithPopup(auth, provider);
+      const user = credential.user;
+      if (!user.displayName) {
+        await updateProfile(user, { displayName: user.email?.split('@')[0] || 'User' });
+        await user.reload();
+      }
     } catch (error) {
       alert((error as Error).message);
     }
   };
+
   return (
     <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md">

@@ -76,8 +76,14 @@ def get_user_by_uid(uid: str) -> dict:
 
 # === Profile Functions (Updated to use auth UID) ===
 def get_user_profile() -> dict:
-    """Get user profile from Firestore (tied to USER_ID/UID)."""
-    return get_document("users", USER_ID, subcollection=False)
+    """Get user profile, auto-set current_chat_session if missing."""
+    doc = db.collection("users").document(USER_ID).get()
+    profile = doc.to_dict() if doc.exists else {}
+    if 'current_chat_session' not in profile:
+        import uuid
+        profile['current_chat_session'] = str(uuid.uuid4())
+        db.collection("users").document(USER_ID).set(profile, merge=True)
+    return profile
 
 def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC", 
                       focus_hours: list = None, permissions: dict = None, integrations: dict = None) -> str:

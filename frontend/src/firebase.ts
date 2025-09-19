@@ -1,8 +1,7 @@
-// frontend/src/firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';  // If needed for cloud funcs
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAzdlb6LA3GvS1_bJ8sUBeuEM3KJGBzBSs",
@@ -17,5 +16,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const functions = getFunctions(app);  // Optional
+export const functions = getFunctions(app);
 export default app;
