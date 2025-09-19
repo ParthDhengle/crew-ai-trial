@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Loader2,
   Volume2,
-  Bot
+  Bot,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -36,6 +37,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useNova } from '@/context/NovaContext';
+import { useAuth } from '@/context/AuthContext';
 import { useElectronApi } from '@/hooks/useElectronApi';
 
 /**
@@ -275,6 +277,7 @@ function EmailSetupDialog({ open, onOpenChange, onComplete }: EmailSetupDialogPr
 
 export default function Settings() {
   const { state, dispatch } = useNova();
+  const { logout } = useAuth();
   const { api } = useElectronApi();
   const [localModels, setLocalModels] = useState(['whisper-base', 'whisper-small', 'whisper-medium']);
   const [showEmailSetup, setShowEmailSetup] = useState(false);
@@ -486,6 +489,36 @@ export default function Settings() {
                 <p className="text-xs text-muted-foreground">
                   Your data is encrypted at rest
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Account */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <User size={20} className="text-primary" />
+              <h2 className="text-lg font-semibold">Account</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted/20 border border-muted">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">Sign Out</div>
+                    <div className="text-sm text-muted-foreground">
+                      Sign out of your Nova account
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={logout}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
               </div>
             </div>
           </section>

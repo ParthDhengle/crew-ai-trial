@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNova } from '@/context/NovaContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
@@ -11,6 +11,9 @@ import DashboardCard from './DashboardCard';
 import Settings from './Settings';
 import AgentOpsPanel from './AgentOpsPanel';
 
+/**
+ * MainLayout - Single source for Topbar/sidebar across views
+ */
 interface MainLayoutProps {
   children?: React.ReactNode;
 }
@@ -18,19 +21,16 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const { state, dispatch } = useNova();
 
-  // NEW: Log mount for stability
-  useEffect(() => {
-    console.log('MAIN LAYOUT: Mounted and stable');
-  }, []);
-
+  // Toggle sidebar via hamburger
   const toggleSidebar = () => {
     dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: !state.sidebarCollapsed });
   };
 
+  // Render content based on view (pure content—no layout dups)
   const renderContent = () => {
     switch (state.view) {
       case 'chat':
-        return <FullChat showAgentOps={true} />;
+        return <FullChat showAgentOps={true} />; // Pure chat, no sidebar/Topbar
       case 'scheduler':
         return <SchedulerKanban />;
       case 'dashboard':
@@ -48,18 +48,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
+      {/* Single Topbar with Hamburger */}
       <Topbar showSearch={state.view === 'chat'}>
+        {/* Hamburger - Always present */}
         <Button
           size="sm"
           variant="ghost"
           onClick={toggleSidebar}
-          className="ml-2 w-8 h-8 p-0"
+          className="ml-2 w-8 h-8 p-0" // Show always, not just lg:hidden
         >
           <Menu size={16} />
         </Button>
       </Topbar>
 
+      {/* Sidebar + Main Content */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Collapsible Sidebar */}
         <motion.div
           initial={{ x: state.sidebarCollapsed ? -250 : 0 }}
           animate={{ x: state.sidebarCollapsed ? -250 : 0 }}
@@ -69,11 +73,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <Sidebar />
         </motion.div>
 
+        {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-auto">
             {renderContent()}
           </div>
           
+          {/* Agent Ops Panel - Only in chat/scheduler */}
           {['chat', 'scheduler'].includes(state.view) && (
             <motion.div
               initial={{ x: 300 }}

@@ -62,6 +62,8 @@ export const useElectronApi = () => {
   };
   const api = isElectron ? window.api : mockApi;
  
+  // FIXED: Remove the test call—causes IPC loop/crash!
+  console.log('HOOK: useElectronApi initialized, isElectron:', isElectron);
  
   return {
     api,

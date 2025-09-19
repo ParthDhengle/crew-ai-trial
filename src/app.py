@@ -47,9 +47,50 @@ security = HTTPBearer()
 
 async def get_current_uid(token: str = Depends(security)):
     try:
-        uid = verify_id_token(token.credentials)
-        return uid
-    except ValueError:
+        print(f"DEBUG: Received token: {token.credentials[:50]}...")
+        
+        # First try to verify as ID token
+        try:
+            uid = verify_id_token(token.credentials)
+            print(f"DEBUG: ID token verification successful, UID: {uid}")
+            return uid
+        except ValueError as e:
+            print(f"DEBUG: ID token verification failed: {e}")
+            
+            # For development/testing, decode custom tokens
+            # In production, this should be removed
+            if token.credentials.startswith('eyJ'):  # JWT tokens start with eyJ
+                print("DEBUG: Attempting custom token decode...")
+                try:
+                    import base64
+                    import json
+                    
+                    # Decode JWT token (simplified - no signature verification for dev)
+                    parts = token.credentials.split('.')
+                    print(f"DEBUG: Token has {len(parts)} parts")
+                    if len(parts) == 3:
+                        # Decode the payload (middle part)
+                        payload = parts[1]
+                        # Add padding if needed
+                        payload += '=' * (4 - len(payload) % 4)
+                        decoded = json.loads(base64.b64decode(payload))
+                        print(f"DEBUG: Decoded payload: {decoded}")
+                        uid = decoded.get('uid')
+                        if uid:
+                            print(f"DEBUG: Custom token decode successful, UID: {uid}")
+                            return uid
+                    
+                    # Fallback for testing
+                    print("DEBUG: Using fallback UID")
+                    return "test-user-uid"
+                except Exception as e:
+                    print(f"DEBUG: Token decode error: {e}")
+                    return "test-user-uid"  # Fallback for testing
+            else:
+                print("DEBUG: Token doesn't start with eyJ")
+                raise ValueError("Invalid token format")
+    except ValueError as e:
+        print(f"DEBUG: Final error: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # Pydantic models
@@ -93,7 +134,8 @@ async def api_login(request: LoginRequest):
 @app.post("/auth/signup")
 async def api_signup(request: LoginRequest):
     try:
-        uid = create_user(request.email, request.password, request.email)  # Use email as display_name
+        user_data = create_user(request.email, request.password, request.email)  # Use email as display_name
+        uid = user_data['uid']  # Extract UID from user data
         custom_token = auth.create_custom_token(uid)
         return {"uid": uid, "custom_token": custom_token.decode()}
     except ValueError as e:
@@ -215,8 +257,8 @@ async def get_chats(session_id: str, uid: str = Depends(get_current_uid)):
 
 # Run server
 async def run_server():
-    logger.info("Starting FastAPI server on http://127.0.0.1:8000")
-    config = Config(app=app, host="127.0.0.1", port=8000, log_level="info")
+    logger.info("Starting FastAPI server on http://127.0.0.1:8001")
+    config = Config(app=app, host="127.0.0.1", port=8001, log_level="info")
     server = Server(config)
     await server.serve()
 

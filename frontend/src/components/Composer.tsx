@@ -1,11 +1,11 @@
-// frontend/src/components/Composer.tsx (complete with fixes)
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Send,
-  Mic,
-  MicOff,
-  Paperclip,
+import { 
+  Send, 
+  Mic, 
+  MicOff, 
+  Paperclip, 
+  Image,
   FileText,
   Smile,
   X,
@@ -13,11 +13,38 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useNova } from '@/context/NovaContext';
 import { useVoiceTranscription } from '@/hooks/useElectronApi';
+import { chatService } from '@/api/chatService';
 import type { ChatMessage } from '@/api/types';
-import { useAuth } from '@/hooks/useAuth';
+
+/**
+ * Nova Composer - Text and voice input component
+ * 
+ * Features:
+ * - Multi-line text input with markdown support
+ * - Voice transcription (local Whisper)
+ * - File attachments
+ * - Role prefills and quick actions
+ * - Streaming voice-to-text display
+ * - Auto-resize textarea
+ * - Keyboard shortcuts (Ctrl+Enter to send)
+ * - Real-time character count
+ */
 
 interface ComposerProps {
   className?: string;
@@ -25,19 +52,20 @@ interface ComposerProps {
   maxLength?: number;
 }
 
-export default function Composer({
+export default function Composer({ 
   className = '',
   placeholder = 'Message Nova...',
-  maxLength = 4000
+  maxLength = 4000 
 }: ComposerProps) {
   const { state, dispatch } = useNova();
-  const { idToken, user } = useAuth();
+  const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [showRolePrefills, setShowRolePrefills] = useState(false);
- 
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
- 
+  
   const {
     isRecording,
     transcript,
@@ -46,110 +74,110 @@ export default function Composer({
     stopRecording,
   } = useVoiceTranscription();
 
+  // Update message when transcript changes
   useEffect(() => {
     if (transcript && !isPartial) {
-      dispatch({
-        type: 'SET_DRAFT',
-        payload: state.draftMessage + (state.draftMessage ? ' ' : '') + transcript
-      });
+      setMessage(prev => prev + (prev ? ' ' : '') + transcript);
     }
-  }, [transcript, isPartial, state.draftMessage, dispatch]);
+  }, [transcript, isPartial]);
 
+  // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
     }
-  }, [state.draftMessage]);
+  }, [message]);
 
-  useEffect(() => {
-    const savedDraft = localStorage.getItem('nova_draft');
-    if (savedDraft) {
-      dispatch({ type: 'SET_DRAFT', payload: savedDraft });
-      localStorage.removeItem('nova_draft');
-    }
-  }, []);
+  // Role-based message prefills
+  const rolePrefills = {
+    friend: [
+      "Hey Nova, I need some advice about...",
+      "Can you help me think through...",
+      "What do you think about...",
+    ],
+    mentor: [
+      "I'm looking for guidance on...",
+      "Can you help me develop a plan for...",
+      "What steps should I take to...",
+    ],
+    girlfriend: [
+      "I've been thinking about us and...",
+      "How was your day? I want to tell you about...",
+      "I love talking to you about...",
+    ],
+    husband: [
+      "Let's plan something special...",
+      "I need your support with...",
+      "Can we discuss our goals for...",
+    ],
+    guide: [
+      "Please analyze and provide recommendations for...",
+      "I need a structured approach to...",
+      "Create a comprehensive plan for...",
+    ],
+  };
 
+  // Handle message sending
   const handleSend = async () => {
-    if (!state.draftMessage.trim() && attachments.length === 0) return;
- 
-    const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      content: state.draftMessage.trim(),
-      role: 'user',
-      timestamp: Date.now(),
-    };
-    if (state.currentSession) {
-      dispatch({
-        type: 'ADD_MESSAGE',
-        payload: { sessionId: state.currentSession.id, message: newMessage }
-      });
-    }
-    dispatch({ type: 'SET_DRAFT', payload: '' });
+    if (!message.trim() && attachments.length === 0) return;
+    
+    const messageContent = message.trim();
+    
+    // Clear input immediately
+    setMessage('');
     setAttachments([]);
-    dispatch({ type: 'SET_TYPING', payload: true });
+    
     try {
-      const response = await fetch("http://127.0.0.1:8000/process_query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ query: newMessage.content, session_id: state.currentSession?.id || null }),
-      });
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status}`);
-      }
-      const data = await response.json();
-      const aiMessage: ChatMessage = {
-        id: `msg-${Date.now()}-ai`,
-        content: data.result || "No response received",
-        role: 'assistant',
+      // Send message through chat service
+      await chatService.sendMessage(messageContent, state.currentSession?.id);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Show error message to user
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        content: 'Sorry, I encountered an error processing your message. Please try again.',
+        role: 'system',
         timestamp: Date.now(),
       };
+      
       if (state.currentSession) {
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: { sessionId: state.currentSession.id, message: aiMessage }
+        dispatch({ 
+          type: 'ADD_MESSAGE', 
+          payload: { sessionId: state.currentSession.id, message: errorMessage }
         });
       }
-    } catch (error) {
-      console.error('Send error:', error);
-      const errorMsg: ChatMessage = {
-        id: `msg-${Date.now()}-error`,
-        content: '⚠️ Sorry, something went wrong. Please try again.',
-        role: 'assistant',
-        timestamp: Date.now(),
-      };
-      if (state.currentSession) {
-        dispatch({ type: 'ADD_MESSAGE', payload: { sessionId: state.currentSession.id, message: errorMsg } });
-      }
-    } finally {
-      dispatch({ type: 'SET_TYPING', payload: false });
     }
   };
 
+  // Handle file attachments
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setAttachments(prev => [...prev, ...files].slice(0, 5));
+    setAttachments(prev => [...prev, ...files].slice(0, 5)); // Max 5 files
   };
 
+  // Remove attachment
   const removeAttachment = (index: number) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Handle keyboard shortcuts
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Ctrl/Cmd + Enter to send
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
       handleSend();
     }
+    
+    // Escape to clear
     if (event.key === 'Escape') {
-      dispatch({ type: 'SET_DRAFT', payload: '' });
+      setMessage('');
       setAttachments([]);
     }
   };
 
+  // Handle voice recording toggle
   const handleVoiceToggle = () => {
     if (isRecording) {
       stopRecording();
@@ -161,6 +189,7 @@ export default function Composer({
   return (
     <div className={`p-4 bg-background/80 backdrop-blur-sm ${className}`}>
       <div className="max-w-4xl mx-auto">
+        {/* Voice Transcript Display */}
         <AnimatePresence>
           {isRecording && transcript && (
             <motion.div
@@ -176,10 +205,14 @@ export default function Composer({
                   {isPartial ? 'Partial' : 'Complete'}
                 </Badge>
               </div>
-              <div className="text-sm">{transcript || 'Listening...'}</div>
+              <div className="text-sm">
+                {transcript || 'Listening...'}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Attachments */}
         <AnimatePresence>
           {attachments.length > 0 && (
             <motion.div
@@ -213,20 +246,68 @@ export default function Composer({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Main Input Area */}
         <div className="glass-nova rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
+          {/* Role Prefills */}
+          <AnimatePresence>
+            {showRolePrefills && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                exit={{ height: 0 }}
+                className="border-b border-border/30 overflow-hidden"
+              >
+                <div className="p-3">
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Quick {state.role} prompts:
+                  </div>
+                  <div className="space-y-1">
+                    {rolePrefills[state.role].map((prefill, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs h-6 justify-start font-normal text-left"
+                        onClick={() => {
+                          setMessage(prefill);
+                          setShowRolePrefills(false);
+                          textareaRef.current?.focus();
+                        }}
+                      >
+                        {prefill}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Textarea */}
           <div className="relative">
             <Textarea
               ref={textareaRef}
-              value={state.draftMessage}
-              onChange={(e) => dispatch({ type: 'SET_DRAFT', payload: e.target.value })}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className="min-h-[60px] max-h-[150px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base leading-relaxed px-4 py-3"
               maxLength={maxLength}
             />
+
+            {/* Character Count */}
+            {message.length > maxLength * 0.8 && (
+              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                {message.length}/{maxLength}
+              </div>
+            )}
           </div>
+
+          {/* Controls */}
           <div className="flex items-center justify-between p-3 border-t border-border/30">
             <div className="flex items-center gap-1">
+              {/* Attachments */}
               <Button
                 size="sm"
                 variant="ghost"
@@ -236,6 +317,19 @@ export default function Composer({
               >
                 <Paperclip size={16} />
               </Button>
+
+              {/* Role Prefills Toggle */}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowRolePrefills(!showRolePrefills)}
+                className="w-8 h-8 p-0"
+                aria-label="Show role prefills"
+              >
+                <Smile size={16} />
+              </Button>
+
+              {/* Voice Recording */}
               {state.voiceEnabled && (
                 <Button
                   size="sm"
@@ -248,9 +342,11 @@ export default function Composer({
                 </Button>
               )}
             </div>
+
+            {/* Send Button */}
             <Button
               onClick={handleSend}
-              disabled={!state.draftMessage.trim() && attachments.length === 0}
+              disabled={!message.trim() && attachments.length === 0}
               className="btn-nova gap-2"
               size="sm"
             >
@@ -268,14 +364,8 @@ export default function Composer({
             </Button>
           </div>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileSelect}
-          accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
-        />
+
+        {/* Quick Tips */}
         <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground gap-4">
           <span>Ctrl+Enter to send</span>
           <span>•</span>
@@ -286,6 +376,16 @@ export default function Composer({
             Local voice processing
           </span>
         </div>
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileSelect}
+          accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+        />
       </div>
     </div>
   );

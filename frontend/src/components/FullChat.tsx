@@ -1,4 +1,3 @@
-// frontend/src/components/FullChat.tsx (complete with fixes)
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -10,11 +9,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNova } from '@/context/NovaContext';
 import Composer from './Composer';
 import type { ChatMessage, NovaRole } from '@/api/types';
-import { useAuth } from '@/hooks/useAuth';
 
+/**
+ * FullChat - Pure chat content (no layout—use in MainLayout)
+ */
 interface FullChatProps {
   className?: string;
-  showAgentOps?: boolean;
+  showAgentOps?: boolean; // Keep optional for legacy
 }
 
 export default function FullChat({
@@ -23,28 +24,34 @@ export default function FullChat({
 }: FullChatProps) {
   const { state, dispatch } = useNova();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
 
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.currentSession?.messages]);
 
-  useEffect(() => {
-    if (!state.currentSession) {
-      // Auto-create if none (handled in context, but fallback)
-      const newSession = {
-        id: crypto.randomUUID(),
-        title: 'Main Chat',
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
-    }
-  }, [state.currentSession]);
-
+  // Message actions
   const handleMessageAction = async (action: { type: string; payload?: any }) => {
-    // ... (existing)
+    const mockResponse = {
+      accept_schedule: 'Schedule accepted and added to your calendar',
+      reschedule: 'Rescheduling options prepared',
+      send_email: 'Email draft created and ready to send',
+      run_operation: 'Operation queued for execution'
+    };
+    const responseText = mockResponse[action.type as keyof typeof mockResponse] || 'Action completed';
+   
+    if (state.currentSession) {
+      const systemMessage: ChatMessage = {
+        id: `system-${Date.now()}`,
+        content: responseText,
+        role: 'system',
+        timestamp: Date.now(),
+      };
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: { sessionId: state.currentSession.id, message: systemMessage }
+      });
+    }
   };
 
   const handleSpeak = async (text: string) => {
@@ -64,9 +71,11 @@ export default function FullChat({
 
   return (
     <div className={`flex flex-col h-full bg-background text-foreground ${className}`}>
+      {/* Chat Messages - Full height */}
       <div className="flex-1 flex flex-col">
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="max-w-4xl mx-auto space-y-6">
+            {/* Welcome Message */}
             {(!state.currentSession?.messages || state.currentSession.messages.length === 0) && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -76,11 +85,7 @@ export default function FullChat({
                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-primary-foreground">
                   N
                 </div>
-                <h2 className="text-2xl font-bold mb-2">
-                  {user
-                    ? `Hi ${user.displayName || user.email?.split('@')[0]}, welcome to Nova!!`
-                    : "Welcome to Nova"}
-                </h2>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Nova</h2>
                 <p className="text-muted-foreground mb-4">
                   {getRoleGreeting(state.role)}
                 </p>
@@ -94,6 +99,7 @@ export default function FullChat({
                 </div>
               </motion.div>
             )}
+            {/* Messages */}
             {state.currentSession?.messages.map((message, index) => (
               <motion.div
                 key={message.id}
@@ -112,6 +118,7 @@ export default function FullChat({
                         : 'glass-nova glow-nova mr-12'
                     }`}
                   >
+                    {/* Role & Time */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-xs font-medium opacity-70">
                         {message.role === 'assistant' ? 'Nova' :
@@ -121,9 +128,11 @@ export default function FullChat({
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
+                    {/* Content */}
                     <div className="text-sm leading-relaxed whitespace-pre-wrap">
                       {message.content}
                     </div>
+                    {/* Actions */}
                     {message.actions && message.actions.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
                         {message.actions.map((action, actionIndex) => (
@@ -139,6 +148,7 @@ export default function FullChat({
                         ))}
                       </div>
                     )}
+                    {/* TTS */}
                     {message.role === 'assistant' && (
                       <div className="flex justify-end mt-2">
                         <Button
@@ -156,6 +166,7 @@ export default function FullChat({
                 </div>
               </motion.div>
             ))}
+            {/* Typing Indicator */}
             {state.isTyping && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -174,9 +185,11 @@ export default function FullChat({
                 </div>
               </motion.div>
             )}
+            {/* Scroll anchor */}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+        {/* Composer - At bottom */}
         <div className="border-t border-border">
           <Composer />
         </div>

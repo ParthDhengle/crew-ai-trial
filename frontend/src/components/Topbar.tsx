@@ -12,8 +12,7 @@ import {
   Briefcase,
   BookOpen,
   Shield,
-  Menu,
-  LogOut,  // New: For logout icon
+  Menu // NEW: Import Menu for hamburger
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,25 +36,32 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useNova } from '@/context/NovaContext';
 import type { NovaRole } from '@/api/types';
-import { useAuth } from '@/hooks/useAuth';  // For logout
 import { Minimize2, Maximize2, X } from 'lucide-react';
-
+/**
+ * Nova Topbar - Role switching, search, and voice controls
+ *
+ * Features:
+ * - Role selector (friend, mentor, girlfriend, husband, guide)
+ * - Global search across chats
+ * - Voice enable/disable toggle
+ * - Privacy indicators
+ * - Quick settings access
+ * - Current session info
+ * - NEW: Optional children for hamburger (passed from MainLayout)
+ */
 interface TopbarProps {
   className?: string;
   showSearch?: boolean;
-  children?: React.ReactNode;
+  children?: React.ReactNode; // NEW: For hamburger button
 }
-
 export default function Topbar({
   className = '',
   showSearch = true,
-  children
+  children // NEW: Render children (hamburger)
 }: TopbarProps) {
   const { state, dispatch } = useNova();
-  const { logout } = useAuth();  // New: For logout
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-
   // Role configurations
   const roleConfig = {
     friend: {
@@ -89,54 +95,42 @@ export default function Topbar({
       color: 'text-cyan-400',
     },
   };
-
-  // Fixed: Fallback if state.role is undefined (before profile loads)
-  const safeRole = (state.role || 'guide') as NovaRole;
-  const currentRoleConfig = roleConfig[safeRole] || roleConfig.guide;  // Fallback to guide
+  const currentRoleConfig = roleConfig[state.role];
   const RoleIcon = currentRoleConfig.icon;
-
   // Handle role change
   const handleRoleChange = (role: NovaRole) => {
     dispatch({ type: 'SET_ROLE', payload: role });
+    // TODO: IMPLEMENT IN PRELOAD - window.api.updateUserPreferences({ role })
   };
-
   // Handle voice toggle
   const handleVoiceToggle = () => {
     dispatch({ type: 'SET_VOICE_ENABLED', payload: !state.voiceEnabled });
+    // TODO: IMPLEMENT IN PRELOAD - window.api.updateUserPreferences({ voiceEnabled: !state.voiceEnabled })
   };
-
   // Handle search
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    // TODO: IMPLEMENT IN PRELOAD - window.api.searchChats(query)
     console.log('Searching for:', query);
   };
-
   // Handle search submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // TODO: Implement global search functionality
       console.log('Search submitted:', searchQuery);
     }
   };
-
-  // New: Logout handler
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
   return (
     <div className={`border-b border-border bg-background/80 backdrop-blur-sm ${className}`}>
       <div className="flex items-center justify-between px-6 py-3">
         {/* Left Section - Role & Session Info + Hamburger */}
         <div className="flex items-center gap-4">
-          {children}  {/* Hamburger */}
-
-          {/* Role Selector - Fixed: Safe access */}
-          <Select value={safeRole} onValueChange={(value: NovaRole) => handleRoleChange(value)}>
+          {/* NEW: Render children (hamburger) here */}
+          {children}
+          
+          {/* Role Selector */}
+          <Select value={state.role} onValueChange={(value: NovaRole) => handleRoleChange(value)}>
             <SelectTrigger className="w-48 h-9 glass-nova border-primary/20 hover:border-primary/40">
               <div className="flex items-center gap-2">
                 <RoleIcon size={16} className={currentRoleConfig.color} />
@@ -154,7 +148,7 @@ export default function Topbar({
                 {Object.entries(roleConfig).map(([key, config]) => {
                   const Icon = config.icon;
                   return (
-                    <SelectItem key={key} value={key as NovaRole}>
+                    <SelectItem key={key} value={key}>
                       <div className="flex items-center gap-2">
                         <Icon size={16} className={config.color} />
                         <div className="flex flex-col">
@@ -170,7 +164,6 @@ export default function Topbar({
               </SelectGroup>
             </SelectContent>
           </Select>
-
           {/* Session Info */}
           {state.currentSession && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -183,7 +176,6 @@ export default function Topbar({
             </div>
           )}
         </div>
-
         {/* Center Section - Search */}
         {showSearch && (
           <motion.div
@@ -206,7 +198,7 @@ export default function Topbar({
                 onBlur={() => setIsSearchFocused(false)}
                 className="pl-10 input-nova h-9 bg-background/50"
               />
-
+             
               {/* Search Results Dropdown */}
               {searchQuery && isSearchFocused && (
                 <motion.div
@@ -225,10 +217,9 @@ export default function Topbar({
             </form>
           </motion.div>
         )}
-
         {/* Right Section - Controls */}
         <div className="flex items-center gap-2">
-          {/* Voice Control */}
+          {/* Voice Control - existing */}
           <Button
             size="sm"
             variant={state.voiceEnabled ? 'default' : 'outline'}
@@ -247,15 +238,13 @@ export default function Topbar({
               </>
             )}
           </Button>
-
-          {/* Privacy Indicator */}
+          {/* Privacy Indicator - existing */}
           <Badge
             variant="outline"
             className="bg-green-500/10 text-green-400 border-green-500/20 text-xs"
           >
             LOCAL
           </Badge>
-
           {/* Operations Status */}
           {state.operations.length > 0 && (
             <motion.div
@@ -271,50 +260,29 @@ export default function Topbar({
               </Badge>
             </motion.div>
           )}
-
           {/* Custom Titlebar Buttons */}
-          <div className="flex items-center gap-1 ml-auto">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => window.api?.requestMinimize?.()}
-              className="w-8 h-8 p-0 hover:bg-accent/10"
-              aria-label="Minimize to widget"
-            >
-              <Minimize2 size={14} />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => window.api?.windowClose?.()}
-              className="w-8 h-8 p-0 hover:bg-destructive/10 text-destructive"
-              aria-label="Close"
-            >
-              <X size={14} />
-            </Button>
-          </div>
-
-          {/* Logout Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="w-8 h-8 p-0">
-                <MoreVertical size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => { /* Full chat */ }}>
-                Full Chat
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => dispatch({ type: 'SET_VIEW', payload: 'settings' })}>
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut size={16} className="mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+<div className="flex items-center gap-1 ml-auto"> {/* ml-auto pushes to right */}
+  <Button
+    size="sm"
+    variant="ghost"
+    onClick={() => window.api?.requestMinimize?.()} // FIXED: Call requestMinimize to switch to mini
+    className="w-8 h-8 p-0 hover:bg-accent/10"
+    aria-label="Minimize to widget"
+  >
+    <Minimize2 size={14} />
+  </Button>
+  <Button
+    size="sm"
+    variant="ghost"
+    onClick={() => window.api?.windowClose?.()} // Calls IPC to quit
+    className="w-8 h-8 p-0 hover:bg-destructive/10 text-destructive"
+    aria-label="Close"
+  >
+    <X size={14} />
+  </Button>
+</div>
+          
+          
         </div>
       </div>
     </div>
