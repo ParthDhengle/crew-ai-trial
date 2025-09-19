@@ -2,6 +2,7 @@ import React from 'react';
 import { useNova } from '@/context/NovaContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import WindowTitleBar from './WindowTitleBar';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+      {/* Window Title Bar */}
+      <WindowTitleBar title="Nova AI Assistant" />
+      
       {/* Single Topbar with Hamburger */}
       <Topbar showSearch={state.view === 'chat'}>
         {/* Hamburger - Always present */}

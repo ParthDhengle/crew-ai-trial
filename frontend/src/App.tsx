@@ -56,7 +56,7 @@ const App = () => (
       <AuthProvider>
         <NovaProvider>
           <BrowserRouter>
-            <div className="min-h-screen bg-background text-foreground">
+            <div className="min-h-screen w-full bg-background text-foreground overflow-hidden">
               <Routes>
                 <Route path="/" element={<AppContent />} />
                 <Route path="*" element={<NotFound />} />

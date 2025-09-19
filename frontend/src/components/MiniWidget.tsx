@@ -27,6 +27,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowControls } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
 import { chatService } from '@/api/chatService';
+import WindowTitleBar from './WindowTitleBar';
 
 interface MiniWidgetProps {
   className?: string;
@@ -53,20 +54,35 @@ export default function MiniWidget({
   const handleExpand = async () => {
     if (miniMessage.trim()) {
       console.log('Mini send:', miniMessage);
-      // TODO: Send message before expanding
-      setMiniMessage('');
+      // Send message before expanding
+      try {
+        await chatService.sendMessage(miniMessage.trim(), state.currentSession?.id);
+        setMiniMessage('');
+      } catch (error) {
+        console.error('Failed to send message before expand:', error);
+      }
     }
     
     setIsExpanding(true);
     try {
       console.log('MINI: Button clicked—awaiting IPC expand...');
-      await expand();
-      console.log('MINI: IPC expand complete—window should switch');
-      // FIXED: Reset immediately after success
-      setIsExpanding(false);
+      const result = await expand();
+      console.log('MINI: IPC expand completed:', result);
+      
+      // Only proceed if expand was successful
+      if (result?.success !== false) {
+        // In development, simulate window switch by updating URL
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('mini');
+          window.history.replaceState({}, '', url.toString());
+          // Trigger a re-render by dispatching a state change
+          dispatch({ type: 'SET_VIEW', payload: 'chat' });
+        }
+      }
     } catch (error) {
       console.error('MINI: Expand failed:', error);
-      // Reset loading state on error
+    } finally {
       setIsExpanding(false);
     }
   };
@@ -101,12 +117,13 @@ export default function MiniWidget({
     try {
       // Send message through chat service
       await chatService.sendMessage(messageContent, state.currentSession?.id);
-      // Then expand to show full chat
-      await handleExpand();
+      // Don't auto-expand after sending - let user choose
+      console.log('MINI: Message sent successfully');
     } catch (error) {
       console.error('Failed to send message from mini widget:', error);
-      // Still expand to show the error
-      await handleExpand();
+      // Show error in mini widget instead of expanding
+      const errorMessage = 'Failed to send message. Please try again.';
+      // You could add a toast notification here
     }
   };
 
@@ -154,25 +171,22 @@ export default function MiniWidget({
         </motion.div>
       )}
 
-      {/* Draggable Header */}
-      <div 
-        className="titlebar bg-background/90 flex items-center justify-between px-3 py-2 text-sm font-medium text-foreground border-b border-border/50 sticky top-0 z-10 flex-shrink-0"
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-      >
+      {/* Window Title Bar */}
+      <WindowTitleBar title="Nova Mini" className="sticky top-0 z-10 flex-shrink-0" />
+      
+      {/* Mini Widget Status Bar */}
+      <div className="flex items-center justify-between px-3 py-2 bg-background/90 border-b border-border/50">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span>Nova Chat</span>
+          <span className="text-sm font-medium">Chat</span>
           {unreadCount > 0 && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[18px] h-4">
               {unreadCount}
             </Badge>
           )}
         </div>
-
-        <div 
-          className="flex items-center gap-1" 
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
+        
+        <div className="flex items-center gap-1">
           {/* Expand Button */}
           <Button
             size="sm"
@@ -183,17 +197,6 @@ export default function MiniWidget({
             title="Expand to full chat"
           >
             <Maximize2 size={12} />
-          </Button>
-
-          {/* Close Button */}
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleClose}
-            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400"
-            title="Close Nova"
-          >
-            <X size={12} />
           </Button>
 
           {/* Menu */}
