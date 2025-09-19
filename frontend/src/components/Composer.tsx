@@ -30,8 +30,7 @@ export default function Composer({
   maxLength = 4000 
 }: ComposerProps) {
   const { state, dispatch } = useNova();
-  const { idToken } = useAuth();
-  const [message, setMessage] = useState('');
+  const { idToken, user } = useAuth();
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showRolePrefills, setShowRolePrefills] = useState(false);
   
@@ -49,58 +48,33 @@ export default function Composer({
   // Update message when transcript changes
   useEffect(() => {
     if (transcript && !isPartial) {
-      setMessage(prev => prev + (prev ? ' ' : '') + transcript);
+      dispatch({
+        type: 'SET_DRAFT',
+        payload: state.draftMessage + (state.draftMessage ? ' ' : '') + transcript
+      });
     }
-  }, [transcript, isPartial]);
+  }, [transcript, isPartial, state.draftMessage, dispatch]);
 
   // Auto-resize textarea
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
-    }
-  }, [message]);
+  const textarea = textareaRef.current;
+  if (textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+  }
+}, [state.draftMessage]);
 
-  // Role-based message prefills
-  const rolePrefills = {
-    friend: [
-      "Hey Nova, I need some advice about...",
-      "Can you help me think through...",
-      "What do you think about...",
-    ],
-    mentor: [
-      "I'm looking for guidance on...",
-      "Can you help me develop a plan for...",
-      "What steps should I take to...",
-    ],
-    girlfriend: [
-      "I've been thinking about us and...",
-      "How was your day? I want to tell you about...",
-      "I love talking to you about...",
-    ],
-    husband: [
-      "Let's plan something special...",
-      "I need your support with...",
-      "Can we discuss our goals for...",
-    ],
-    guide: [
-      "Please analyze and provide recommendations for...",
-      "I need a structured approach to...",
-      "Create a comprehensive plan for...",
-    ],
-  };
 
   // Handle message sending (real API call)
   const handleSend = async () => {
-    if (!message.trim() && attachments.length === 0) return;
-    
-    const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      content: message.trim(),
-      role: 'user',
-      timestamp: Date.now(),
-    };
+    if (!state.draftMessage.trim() && attachments.length === 0) return;
+  
+  const newMessage: ChatMessage = {
+    id: `msg-${Date.now()}`,
+    content: state.draftMessage.trim(),
+    role: 'user',
+    timestamp: Date.now(),
+  };
 
     if (state.currentSession) {
       dispatch({ 
@@ -109,24 +83,35 @@ export default function Composer({
       });
     }
 
-    setMessage('');
+    dispatch({ type: 'SET_DRAFT', payload: '' });  // Clear draft
     setAttachments([]);
     dispatch({ type: 'SET_TYPING', payload: true });
 
     try {
-      // ✅ Fixed: Use correct API signature (message, sessionId) - removed idToken parameter
-      const aiResponse = await window.api.sendMessage(message, state.currentSession?.id);
-      
+      // ✅ Call FastAPI backend
+      const response = await fetch("http://127.0.0.1:8000/process_query", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`,  // ✅ Firebase token for auth
+        },
+        body: JSON.stringify({
+          query: newMessage.content,
+          session_id: state.currentSession?.id || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
       const aiMessage: ChatMessage = {
         id: `msg-${Date.now()}-ai`,
-        // ✅ Fixed: Extract string content from AiResponse object
-        content: aiResponse.display_response || aiResponse.mode || 'No response received',
+        content: data.result || "No response received",
         role: 'assistant',
         timestamp: Date.now(),
-        actions: [
-          { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
-          { type: 'run_operation', label: 'Analyze Further', payload: {} }
-        ]
       };
 
       if (state.currentSession) {
@@ -139,7 +124,7 @@ export default function Composer({
       console.error('Failed to send message:', error);
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now()}-error`,
-        content: 'Sorry, something went wrong. Please try again.',
+        content: '⚠️ Sorry, something went wrong. Please try again.',
         role: 'assistant',
         timestamp: Date.now(),
       };
@@ -169,7 +154,7 @@ export default function Composer({
       handleSend();
     }
     if (event.key === 'Escape') {
-      setMessage('');
+      dispatch({ type: 'SET_DRAFT', payload: '' });
       setAttachments([]);
     }
   };
@@ -244,60 +229,18 @@ export default function Composer({
 
         {/* Input Area */}
         <div className="glass-nova rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
-          {/* Role Prefills */}
-          <AnimatePresence>
-            {showRolePrefills && (
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                exit={{ height: 0 }}
-                className="border-b border-border/30 overflow-hidden"
-              >
-                <div className="p-3">
-                  <div className="text-xs text-muted-foreground mb-2">
-                    Quick {state.role} prompts:
-                  </div>
-                  <div className="space-y-1">
-                    {rolePrefills[state.role]?.map((prefill, index) => (
-                      <Button
-                        key={index}
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs h-6 justify-start font-normal text-left"
-                        onClick={() => {
-                          setMessage(prefill);
-                          setShowRolePrefills(false);
-                          textareaRef.current?.focus();
-                        }}
-                      >
-                        {prefill}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Textarea */}
           <div className="relative">
             <Textarea
               ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              value={state.draftMessage}
+              onChange={(e) => dispatch({ type: 'SET_DRAFT', payload: e.target.value })}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className="min-h-[60px] max-h-[150px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base leading-relaxed px-4 py-3"
               maxLength={maxLength}
             />
-            {message.length > maxLength * 0.8 && (
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                {message.length}/{maxLength}
-              </div>
-            )}
           </div>
 
-          {/* Controls */}
           <div className="flex items-center justify-between p-3 border-t border-border/30">
             <div className="flex items-center gap-1">
               <Button
@@ -308,15 +251,6 @@ export default function Composer({
                 aria-label="Attach file"
               >
                 <Paperclip size={16} />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setShowRolePrefills(!showRolePrefills)}
-                className="w-8 h-8 p-0"
-                aria-label="Show role prefills"
-              >
-                <Smile size={16} />
               </Button>
               {state.voiceEnabled && (
                 <Button
@@ -333,7 +267,7 @@ export default function Composer({
 
             <Button
               onClick={handleSend}
-              disabled={!message.trim() && attachments.length === 0}
+              disabled={!state.draftMessage.trim() && attachments.length === 0}
               className="btn-nova gap-2"
               size="sm"
             >
@@ -351,6 +285,16 @@ export default function Composer({
             </Button>
           </div>
         </div>
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileSelect}
+          accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+        />
 
         {/* Quick Tips */}
         <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground gap-4">

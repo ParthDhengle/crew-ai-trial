@@ -287,6 +287,3 @@ def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
     except Exception as e:
         logger.error(f"❌ Error sending email: {e}")
         return False, "Error {e}"
-
-
-print(send_email("atharvadeo@gmail.com", "Test Subject", "This is a test email body."))

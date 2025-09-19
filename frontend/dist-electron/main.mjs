@@ -145,9 +145,9 @@ function createMiniWindow() {
 
   // FIXED: Only minimize if main is not visible and not expanding
   miniWindow.on('blur', () => {
+    console.log('MAIN: Mini lost focus, requesting minimize');
     if (mainWindow && !mainWindow.isVisible() && !isExpanding) {
-      console.log('MAIN: Mini lost focus, requesting minimize');
-      ipcMain.handle('requestMinimize')();
+      miniWindow.webContents.send('requestMinimize');
     }
   });
 }

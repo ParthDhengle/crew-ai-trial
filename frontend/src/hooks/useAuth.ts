@@ -17,6 +17,11 @@ export interface UserProfile {
   Location?: string;
   // ... etc.
 }
+export async function getIdToken(): Promise<string | null> {
+  const currentUser = auth.currentUser;
+  return currentUser ? await currentUser.getIdToken() : null;
+}
+
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);

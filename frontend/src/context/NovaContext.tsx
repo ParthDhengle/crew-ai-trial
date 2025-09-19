@@ -11,6 +11,7 @@ type NovaAction =
   | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
   | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
   | { type: 'SET_SESSIONS'; payload: ChatSession[] }
+  | { type: "ADD_SESSION"; payload: ChatSession }  
   | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
   | { type: 'SET_TYPING'; payload: boolean }
   | { type: 'SET_TASKS'; payload: SchedulerTask[] }
@@ -19,8 +20,8 @@ type NovaAction =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'SET_OPERATIONS'; payload: AgentOp[] }
   | { type: 'SET_INTEGRATIONS'; payload: Integration[] }
-  | { type: 'SET_MINI_MODE'; payload: boolean };
-
+  | { type: 'SET_MINI_MODE'; payload: boolean }
+  | { type: 'SET_DRAFT'; payload: string };
 interface NovaState {
   view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
   role: NovaRole;
@@ -35,6 +36,7 @@ interface NovaState {
   operations: AgentOp[];
   integrations: Integration[];
   isMiniMode: boolean;
+  draftMessage: string;
 }
 
 const initialState: NovaState = {
@@ -51,6 +53,7 @@ const initialState: NovaState = {
   operations: [],
   integrations: [],
   isMiniMode: false,
+  draftMessage: '',
 };
 
 const NovaContext = createContext<{
@@ -110,6 +113,14 @@ export const NovaProvider = ({ children }: { children: ReactNode }) => {
         return { ...state, operations: action.payload };
       case 'SET_INTEGRATIONS':
         return { ...state, integrations: action.payload };
+      case "ADD_SESSION":
+        return {
+          ...state,
+          sessions: [...state.sessions, action.payload],
+          currentSession: action.payload,
+        };
+      case 'SET_DRAFT':
+        return { ...state, draftMessage: action.payload };
       default:
         return state;
     }

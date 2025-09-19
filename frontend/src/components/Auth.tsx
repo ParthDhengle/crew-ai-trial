@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { auth } from "../firebase"; // <-- make sure path is correct
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { updateProfile } from "firebase/auth";
+
 
 export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [email, setEmail] = useState('');
@@ -25,7 +29,11 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const handleSubmit = async () => {
     try {
       if (isSignup) {
-        await signup(email, password, email);  // Use email as displayName
+        await signup(email, password, email);
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: email.split('@')[0] });
+        }
+  // Use email as displayName
       } else {
         await login(email, password);
       }
@@ -35,7 +43,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
   };
 
   if (!isOpen) return null;
-
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      alert((error as Error).message);
+    }
+  };
   return (
     <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md">
@@ -43,6 +58,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
           <DialogTitle>{isSignup ? 'Sign Up' : 'Sign In'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <Button onClick={handleGoogleSignIn} className="w-full mt-4">Sign in with Google</Button>
           <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
           <Button onClick={handleSubmit} className="w-full">{isSignup ? 'Sign Up' : 'Sign In'}</Button>

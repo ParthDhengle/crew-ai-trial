@@ -311,6 +311,17 @@ def get_expenses() -> list:
     """List expenses."""
     return query_collection("expenses")
 # Knowledge Base
+def save_chat_message(session_id, uid, role, content, timestamp, actions=None):
+    ref = db.collection("chats").document(session_id).collection("messages")
+    message = {
+        "role": role,
+        "content": content,
+        "timestamp": timestamp,
+        "actions": actions or []
+    }
+    ref.add(message)
+    return True
+
 def add_kb_entry(title: str, content_md: str, tags: list = None, references: list = None) -> str:
     """Add KB entry (facts/notes)."""
     data = {

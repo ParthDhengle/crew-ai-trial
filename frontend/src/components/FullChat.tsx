@@ -9,7 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNova } from '@/context/NovaContext';
 import Composer from './Composer';
 import type { ChatMessage, NovaRole } from '@/api/types';
-
+import { useAuth } from '@/hooks/useAuth';  // <-- add this
+import { fetchChats } from "@/api/chat";
 /**
  * FullChat - Pure chat content (no layout—use in MainLayout)
  */
@@ -24,6 +25,7 @@ export default function FullChat({
 }: FullChatProps) {
   const { state, dispatch } = useNova();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth(); // get logged-in user
 
   // Auto-scroll
   useEffect(() => {
@@ -40,18 +42,27 @@ export default function FullChat({
     };
     const responseText = mockResponse[action.type as keyof typeof mockResponse] || 'Action completed';
    
-    if (state.currentSession) {
-      const systemMessage: ChatMessage = {
-        id: `system-${Date.now()}`,
-        content: responseText,
-        role: 'system',
-        timestamp: Date.now(),
-      };
-      dispatch({
-        type: 'ADD_MESSAGE',
-        payload: { sessionId: state.currentSession.id, message: systemMessage }
-      });
-    }
+    useEffect(() => {
+      if (state.currentSession) {
+        fetchChats(state.currentSession.id).then((messages) => {
+          messages.forEach((msg: any) => {
+            dispatch({
+              type: "ADD_MESSAGE",
+              payload: {
+                sessionId: state.currentSession.id,
+                message: {
+                  id: msg.id,
+                  role: msg.role,
+                  content: msg.content,
+                  timestamp: new Date(msg.timestamp).getTime(),
+                  actions: msg.actions || [],
+                },
+              },
+            });
+          });
+        });
+      }
+    }, [state.currentSession?.id]);
   };
 
   const handleSpeak = async (text: string) => {
@@ -85,7 +96,12 @@ export default function FullChat({
                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-primary-foreground">
                   N
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to Nova</h2>
+                <h2 className="text-2xl font-bold mb-2">
+                  {user
+                    ? `Hi ${user.displayName || user.email?.split('@')[0]}, welcome to Nova!!`
+                    : "Welcome to Nova"}
+                </h2>
+
                 <p className="text-muted-foreground mb-4">
                   {getRoleGreeting(state.role)}
                 </p>

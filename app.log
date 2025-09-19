@@ -768,3 +768,16 @@
 2025-09-18 19:16:52 - AIAssistant - INFO - Firebase connected successfully
 2025-09-18 19:16:52 - AIAssistant - INFO - Loading or creating user profile
 2025-09-18 19:16:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-19 15:22:20 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:33 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:03:26 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:03:31 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:13:42 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:13:55 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:28:03 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:28:11 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:20:17 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:20:24 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:24:06 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:24:18 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000

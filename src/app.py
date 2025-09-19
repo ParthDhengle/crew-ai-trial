@@ -20,6 +20,7 @@ from firebase_client import (
 )
 from firebase_admin import auth
 from fastapi.security import HTTPBearer
+from typing import Optional
 
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
@@ -58,7 +59,7 @@ class LoginRequest(BaseModel):
 
 class QueryRequest(BaseModel):
     query: str
-    session_id: str = None
+    session_id: Optional[str] = None
 
 class TaskRequest(BaseModel):
     title: str
@@ -101,12 +102,23 @@ async def api_signup(request: LoginRequest):
 # Protected Routes
 @app.post("/process_query")
 async def process_query(request: QueryRequest, uid: str = Depends(get_current_uid)):
-    global current_uid  # For Firebase ops
+    global current_uid
     current_uid = uid
     try:
+        from firebase_client import save_chat_message
+        timestamp = datetime.now().isoformat()
+
+        # Save user query
+        save_chat_message(request.session_id, uid, "user", request.query, timestamp)
+
+        # Run AI agent
         crew_instance = AiAgent()
         final_response = crew_instance.run_workflow(request.query, session_id=request.session_id)
-        from firebase_client import queue_operation
+
+        # Save assistant response
+        save_chat_message(request.session_id, uid, "assistant", final_response, datetime.now().isoformat())
+
+        # Queue op
         queue_operation("process_query", {"query": request.query})
         return {"result": final_response}
     except Exception as e:
@@ -182,6 +194,24 @@ async def update_profile(updates: dict, uid: str = Depends(get_current_uid)):
     if not success:
         raise HTTPException(status_code=500, detail="Update failed")
     return {"success": True}
+@app.get("/chat_history")
+async def get_chat_history(session_id: str = None, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import get_chat_history
+    history = get_chat_history(session_id)
+    return history  # List of message dicts
+@app.post("/chat_message")
+async def add_chat_message(role: str, content: str, session_id: str = None, uid: str = Depends(get_current_uid)):
+    global current_uid; current_uid = uid
+    from firebase_client import add_chat_message
+    msg_id = add_chat_message(role, content, session_id)
+    return {"msg_id": msg_id}
+# Chats (protected)
+@app.get("/chats/{session_id}")
+async def get_chats(session_id: str, uid: str = Depends(get_current_uid)):
+    from firebase_client import get_chats_by_session
+    return get_chats_by_session(session_id)
+
 
 # Run server
 async def run_server():
