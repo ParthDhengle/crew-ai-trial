@@ -11,7 +11,7 @@ import {
   Send,
   User,
   Bot,
-  Minimize2 // Added for close functionality
+  Minus  // Added for close functionality
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowControls } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
 import { chatService } from '@/api/chatService';
-import WindowTitleBar from './WindowTitleBar';
-
 interface MiniWidgetProps {
   className?: string;
   unreadCount?: number;
@@ -43,8 +41,7 @@ export default function MiniWidget({
   const [showMenu, setShowMenu] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const { expand, close } = useWindowControls();
+  const { expand, close, minimize } = useWindowControls();
   const { state, dispatch } = useNova();
 
   // Last 3 messages for preview
@@ -172,7 +169,53 @@ export default function MiniWidget({
       )}
 
       {/* Window Title Bar */}
-      <WindowTitleBar title="Nova Mini" className="sticky top-0 z-10 flex-shrink-0" />
+        <div 
+        className={`flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50 ${className}`}
+        style={{ 
+          ['WebkitAppRegion' as any]: 'drag',
+          userSelect: 'none'
+        }}
+      >
+        {/* Title */}
+        <div className="flex items-center space-x-2">
+          <span className="ml-3 text-sm font-medium text-foreground/80">
+            {'Nova Mini Chat'}
+          </span>
+        </div>
+
+        {/* Window Controls */}
+        <div className="flex items-center space-x-1" style={{ ['WebkitAppRegion' as any]: 'no-drag' }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={minimize}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Minimize"
+          >
+            <Minus size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={expand}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Maximize"
+          >
+            <Maximize2 size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={close}
+            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-none"
+            title="Close"
+          >
+            <X size={12} />
+          </Button>
+        </div>
+      </div>
       
       {/* Mini Widget Status Bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-background/90 border-b border-border/50">
@@ -187,17 +230,6 @@ export default function MiniWidget({
         </div>
         
         <div className="flex items-center gap-1">
-          {/* Expand Button */}
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleExpand}
-            disabled={isExpanding}
-            className="w-6 h-6 p-0 hover:bg-primary/20"
-            title="Expand to full chat"
-          >
-            <Maximize2 size={12} />
-          </Button>
 
           {/* Menu */}
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
@@ -396,20 +428,3 @@ export function useMiniWidgetKeyboard() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [expand, dispatch]);
 }
-
-// CSS variables for styling
-export const miniWidgetStyles = `
-  :root {
-    --nova-widget-bg: rgba(5, 6, 10, 0.95);
-    --nova-widget-shadow: 0 20px 40px -10px rgba(0, 183, 199, 0.3);
-    --nova-widget-border: rgba(0, 183, 199, 0.3);
-  }
- 
-  .nova-widget-frame {
-    background: var(--nova-widget-bg);
-    backdrop-filter: blur(20px);
-    border-radius: 12px;
-    box-shadow: var(--nova-widget-shadow);
-    border: 2px solid var(--nova-widget-border);
-  }
-`;

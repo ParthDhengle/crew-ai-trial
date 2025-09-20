@@ -2,7 +2,6 @@ import React from 'react';
 import { useNova } from '@/context/NovaContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import WindowTitleBar from './WindowTitleBar';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,12 @@ import DashboardCard from './DashboardCard';
 import Settings from './Settings';
 import AgentOpsPanel from './AgentOpsPanel';
 
+import { useWindowControls } from '@/hooks/useElectronApi';
+import {
+  Minimize2 ,
+  X,
+  Minus  // Added for close functionality
+} from 'lucide-react';
 /**
  * MainLayout - Single source for Topbar/sidebar across views
  */
@@ -21,6 +26,8 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { state, dispatch } = useNova();
+  
+  const { expand, close, minimize,contract } = useWindowControls();
 
   // Toggle sidebar via hamburger
   const toggleSidebar = () => {
@@ -50,7 +57,56 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       {/* Window Title Bar */}
-      <WindowTitleBar title="Nova AI Assistant" />
+      <div 
+        className={"flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50"}
+        style={{ 
+          ['WebkitAppRegion' as any]: 'drag',
+          userSelect: 'none'
+        }}
+      >
+        <span className="ml-3 text-sm font-medium text-foreground/80">
+          Nova Mini Chat
+        </span>
+
+        {/* Right side: buttons */}
+        <div
+          className="flex items-center space-x-1"
+          style={{ ['WebkitAppRegion' as any]: 'no-drag' }}
+        >
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={minimize}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Minimize"
+          >
+            <Minus size={12} />
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={contract}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Maximize"
+          >
+            <Minimize2 size={12} />
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={close}
+            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-none"
+            title="Close"
+          >
+            <X size={12} />
+          </Button>
+        </div>
+      </div>
+
+        {/* Window Controls */}
+        
       
       {/* Single Topbar with Hamburger */}
       <Topbar showSearch={state.view === 'chat'}>

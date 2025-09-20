@@ -261,26 +261,6 @@ export default function Topbar({
             </motion.div>
           )}
           {/* Custom Titlebar Buttons */}
-<div className="flex items-center gap-1 ml-auto"> {/* ml-auto pushes to right */}
-  <Button
-    size="sm"
-    variant="ghost"
-    onClick={() => window.api?.requestMinimize?.()} // FIXED: Call requestMinimize to switch to mini
-    className="w-8 h-8 p-0 hover:bg-accent/10"
-    aria-label="Minimize to widget"
-  >
-    <Minimize2 size={14} />
-  </Button>
-  <Button
-    size="sm"
-    variant="ghost"
-    onClick={() => window.api?.windowClose?.()} // Calls IPC to quit
-    className="w-8 h-8 p-0 hover:bg-destructive/10 text-destructive"
-    aria-label="Close"
-  >
-    <X size={14} />
-  </Button>
-</div>
           
           
         </div>

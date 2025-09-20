@@ -75,7 +75,7 @@ function createMiniWindow() {
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    skipTaskbar: true,
+    skipTaskbar: false,
     resizable: true,
     minWidth: 200,
     minHeight: 300,
