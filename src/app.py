@@ -162,7 +162,7 @@ async def process_query(request: QueryRequest, uid: str = Depends(get_current_ui
 
         # Queue op
         queue_operation("process_query", {"query": request.query})
-        return {"result": final_response}
+        return {"result": final_response["display_response"]}
     except Exception as e:
         logger.error(f"Error processing query: {str(e)}")
         traceback.print_exc()

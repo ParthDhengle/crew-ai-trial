@@ -121,7 +121,7 @@ class ApiClient {
 
   // Chat endpoints
   async sendMessage(query: string, sessionId?: string) {
-    const response = await this.request<{ result: string }>('/process_query', {
+    const response = await this.request<{ result: { display_response: string, mode: string } }>('/process_query', {
       method: 'POST',
       body: JSON.stringify({ query, session_id: sessionId }),
     });

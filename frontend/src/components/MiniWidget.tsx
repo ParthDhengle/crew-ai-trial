@@ -282,9 +282,7 @@ export default function MiniWidget({
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`max-w-[200px] rounded-lg px-2 py-1 text-xs max-w-full break-words ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50 text-muted-foreground border border-border/30'
+                    msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground border border-border/30'
                   }`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="flex items-center gap-1">
@@ -304,8 +302,9 @@ export default function MiniWidget({
                         })}
                       </span>
                     </div>
+
                     <div className="whitespace-pre-wrap leading-tight">
-                      {msg.content}
+                      {typeof msg.content === 'string' ? msg.content : 'Invalid message format'}  {/* Safeguard */}
                     </div>
                   </div>
                 </motion.div>

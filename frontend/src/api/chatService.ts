@@ -54,12 +54,15 @@ class ChatService {
       this.callbacks.onMessage?.(userMessage);
 
       // Send to backend and get response
-      const response = await apiClient.sendMessage(content, this.currentSessionId);
+      const backendResponse = await apiClient.sendMessage(content, this.currentSessionId);
+      const displayContent = typeof backendResponse === 'object' 
+        ? backendResponse.display_response || JSON.stringify(backendResponse)  // Fallback to stringified if no display_response
+        : backendResponse;  // If it's already a string (edge case)
 
       // Create assistant message
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
-        content: response,
+        content: displayContent,
         role: 'assistant',
         timestamp: Date.now(),
         actions: [
