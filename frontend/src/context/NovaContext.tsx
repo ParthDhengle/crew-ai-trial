@@ -1,49 +1,48 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import type { 
-  ChatSession, 
-  ChatMessage, 
-  SchedulerTask, 
+import type {
+  ChatSession,
+  ChatMessage,
+  SchedulerTask,
   AgentOp,
   NovaRole,
-  Integration 
+  Integration
 } from '@/api/types';
 import { chatService } from '@/api/chatService';
 import { apiClient } from '@/api/client';
 
 /**
  * Nova AI Assistant - Global State Management
- * 
+ *
  * Provides centralized state management for the Nova UI with mock data
  * for development and easy integration with Electron backend.
  */
-
 type NovaState = {
   // Chat state
   currentSession: ChatSession | null;
   sessions: ChatSession[];
   isTyping: boolean;
-  
-  // Scheduler state  
+ 
+  // Scheduler state
   tasks: SchedulerTask[];
-  
+ 
   // Agent operations
   operations: AgentOp[];
-  
+ 
   // UI state
   view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
   isMiniMode: boolean;
   sidebarCollapsed: boolean;
-  
+ 
   // User preferences
   role: NovaRole;
   voiceEnabled: boolean;
   selectedModel: string;
-  
+ 
   // Integrations
   integrations: Integration[];
 };
 
-type NovaAction = 
+type NovaAction =
   | { type: 'SET_VIEW'; payload: NovaState['view'] }
   | { type: 'SET_MINI_MODE'; payload: boolean }
   | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
@@ -76,7 +75,7 @@ const mockSessions: ChatSession[] = [
         timestamp: Date.now() - 86400000,
       },
       {
-        id: 'msg-2', 
+        id: 'msg-2',
         content: "Of course! I'd be happy to help you plan your Q4 projects. Let me analyze your current workload and suggest an optimal timeline. I can also create a structured task breakdown for you.",
         role: 'assistant',
         timestamp: Date.now() - 86390000,
@@ -88,7 +87,7 @@ const mockSessions: ChatSession[] = [
       {
         id: 'msg-3',
         content: "That sounds perfect. I have about 15 hours per week available for project work.",
-        role: 'user', 
+        role: 'user',
         timestamp: Date.now() - 86300000,
       },
     ]
@@ -109,7 +108,7 @@ const mockSessions: ChatSession[] = [
       {
         id: 'msg-5',
         content: "Absolutely! I can help you create email filters, automated responses, and priority sorting. What type of emails would you like to automate first?",
-        role: 'assistant', 
+        role: 'assistant',
         timestamp: Date.now() - 172750000,
       }
     ]
@@ -130,12 +129,12 @@ const mockTasks: SchedulerTask[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: 'task-2', 
+    id: 'task-2',
     title: 'Code review for API updates',
     description: 'Review pull requests for authentication service improvements',
     deadline: '2024-10-12T17:00:00Z',
     priority: 'Medium',
-    status: 'inprogress', 
+    status: 'inprogress',
     tags: ['development', 'api'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -144,7 +143,7 @@ const mockTasks: SchedulerTask[] = [
     id: 'task-3',
     title: 'Team standup notes',
     description: 'Document key decisions and action items from daily standups',
-    deadline: '2024-10-11T09:30:00Z', 
+    deadline: '2024-10-11T09:30:00Z',
     priority: 'Low',
     status: 'done',
     tags: ['documentation'],
@@ -183,17 +182,17 @@ function novaReducer(state: NovaState, action: NovaAction): NovaState {
   switch (action.type) {
     case 'SET_VIEW':
       return { ...state, view: action.payload };
-    
+   
     case 'SET_MINI_MODE':
       return { ...state, isMiniMode: action.payload };
-    
+   
     case 'SET_SIDEBAR_COLLAPSED':
       return { ...state, sidebarCollapsed: action.payload };
-      
+     
     case 'ADD_MESSAGE':
       const { sessionId, message } = action.payload;
-      updatedSessions = state.sessions.map(session => 
-        session.id === sessionId 
+      updatedSessions = state.sessions.map(session =>
+        session.id === sessionId
           ? { ...session, messages: [...session.messages, message], updatedAt: Date.now() }
           : session
       );
@@ -205,47 +204,47 @@ function novaReducer(state: NovaState, action: NovaAction): NovaState {
         sessions: updatedSessions,
         currentSession: updatedCurrentSession
       };
-    
+   
     case 'SET_SESSIONS':
       return { ...state, sessions: action.payload };
-      
+     
     case 'SET_CURRENT_SESSION':
       return { ...state, currentSession: action.payload };
-      
+     
     case 'SET_TYPING':
       return { ...state, isTyping: action.payload };
-      
+     
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.payload] };
-      
+     
     case 'UPDATE_TASK':
       return {
         ...state,
-        tasks: state.tasks.map(task => 
-          task.id === action.payload.id 
+        tasks: state.tasks.map(task =>
+          task.id === action.payload.id
             ? { ...task, ...action.payload.updates, updatedAt: new Date().toISOString() }
             : task
         )
       };
-      
+     
     case 'DELETE_TASK':
       return { ...state, tasks: state.tasks.filter(task => task.id !== action.payload) };
-      
+     
     case 'SET_TASKS':
       return { ...state, tasks: action.payload };
-      
+     
     case 'SET_OPERATIONS':
       return { ...state, operations: action.payload };
-      
+     
     case 'SET_ROLE':
       return { ...state, role: action.payload };
-      
+     
     case 'SET_VOICE_ENABLED':
       return { ...state, voiceEnabled: action.payload };
-      
+     
     case 'SET_INTEGRATIONS':
       return { ...state, integrations: action.payload };
-      
+     
     default:
       return state;
   }
@@ -278,6 +277,9 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
       },
       onSessionUpdate: (session) => {
         dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
+      },
+      onSessionsUpdate: (sessions) => { // Added callback for sessions refresh
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
       }
     });
   }, [state.currentSession]);
@@ -288,13 +290,14 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
       try {
         // Load chat sessions
         const sessions = await chatService.getChatSessions();
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
         if (sessions.length > 0) {
-          dispatch({ type: 'SET_SESSIONS', payload: sessions });
           dispatch({ type: 'SET_CURRENT_SESSION', payload: sessions[0] });
         } else {
           // Create a new session if none exist
-          const newSession = chatService.createNewSession();
+          const newSession = await chatService.createNewSession();
           dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+          dispatch({ type: 'SET_SESSIONS', payload: [newSession] });
         }
 
         // Load tasks
@@ -310,12 +313,10 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
         // Load operations
         const operations = await apiClient.getOperations();
         dispatch({ type: 'SET_OPERATIONS', payload: operations });
-
       } catch (error) {
         console.error('Failed to load initial data:', error);
       }
     };
-
     loadInitialData();
   }, []);
 
@@ -337,7 +338,6 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_OPERATIONS', payload: mockOps });
       }
     }, 30000); // Reduced frequency
-
     return () => clearInterval(interval);
   }, []);
 

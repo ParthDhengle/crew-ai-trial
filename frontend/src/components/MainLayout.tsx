@@ -10,13 +10,14 @@ import SchedulerKanban from './SchedulerKanban';
 import DashboardCard from './DashboardCard';
 import Settings from './Settings';
 import AgentOpsPanel from './AgentOpsPanel';
-
 import { useWindowControls } from '@/hooks/useElectronApi';
 import {
   Minimize2 ,
   X,
-  Minus  // Added for close functionality
+  Minus // Added for close functionality
 } from 'lucide-react';
+import { chatService } from '@/api/chatService';
+
 /**
  * MainLayout - Single source for Topbar/sidebar across views
  */
@@ -26,12 +27,23 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { state, dispatch } = useNova();
-  
+ 
   const { expand, close, minimize,contract } = useWindowControls();
 
   // Toggle sidebar via hamburger
   const toggleSidebar = () => {
     dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: !state.sidebarCollapsed });
+  };
+
+  // Handle new chat creation
+  const handleNewChat = async () => {
+    try {
+      const newSession = await chatService.createNewSession();
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+      dispatch({ type: 'SET_SESSIONS', payload: [...state.sessions, newSession] });
+    } catch (error) {
+      console.error('Failed to create new chat:', error);
+    }
   };
 
   // Render content based on view (pure content—no layout dups)
@@ -57,9 +69,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       {/* Window Title Bar */}
-      <div 
-        className={"flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50"}
-        style={{ 
+      <div
+        className={"flex flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50"}
+        style={{
           ['WebkitAppRegion' as any]: 'drag',
           userSelect: 'none'
         }}
@@ -67,7 +79,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <span className="ml-3 text-sm font-medium text-foreground/80">
         Nova Chat Assistant
         </span>
-
         {/* Right side: buttons */}
         <div
           className="flex items-center space-x-1"
@@ -82,7 +93,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
           >
             <Minus size={12} />
           </Button>
-
           <Button
             size="sm"
             variant="ghost"
@@ -92,7 +102,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
           >
             <Minimize2 size={12} />
           </Button>
-
           <Button
             size="sm"
             variant="ghost"
@@ -104,10 +113,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </Button>
         </div>
       </div>
-
         {/* Window Controls */}
-        
-      
+       
+     
       {/* Single Topbar with Hamburger */}
       <Topbar showSearch={state.view === 'chat'}>
         {/* Hamburger - Always present */}
@@ -120,7 +128,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <Menu size={16} />
         </Button>
       </Topbar>
-
       {/* Sidebar + Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Collapsible Sidebar */}
@@ -130,15 +137,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className="shrink-0 border-r border-border"
         >
-          <Sidebar />
+          <Sidebar onNewChat={handleNewChat} /> {/* Pass handleNewChat to Sidebar */}
         </motion.div>
-
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-auto">
             {renderContent()}
           </div>
-          
+         
           {/* Agent Ops Panel - Only in chat/scheduler */}
           {['chat', 'scheduler'].includes(state.view) && (
             <motion.div
