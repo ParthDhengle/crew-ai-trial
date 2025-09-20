@@ -134,33 +134,7 @@ class ApiClient {
   }
 
   async getChatSessions() {
-    // For now, we'll create sessions from chat history
-    // In a real implementation, you'd have a dedicated sessions endpoint
-    const history = await this.getChatHistory();
-    const sessions: ChatSession[] = [];
-    
-    // Group messages by session (simplified approach)
-    const sessionMap = new Map<string, ChatMessage[]>();
-    history.forEach(msg => {
-      const sessionId = msg.id.split('-')[0] || 'default';
-      if (!sessionMap.has(sessionId)) {
-        sessionMap.set(sessionId, []);
-      }
-      sessionMap.get(sessionId)!.push(msg);
-    });
-
-    sessionMap.forEach((messages, sessionId) => {
-      sessions.push({
-        id: sessionId,
-        title: `Chat ${sessionId}`,
-        summary: messages[0]?.content.substring(0, 100) + '...',
-        messages: messages.sort((a, b) => a.timestamp - b.timestamp),
-        createdAt: Math.min(...messages.map(m => m.timestamp)),
-        updatedAt: Math.max(...messages.map(m => m.timestamp)),
-      });
-    });
-
-    return sessions;
+    return this.request<ChatSession[]>('/chat_sessions');  // New endpoint
   }
 
   // Task endpoints

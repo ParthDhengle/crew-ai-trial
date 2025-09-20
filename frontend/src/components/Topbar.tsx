@@ -12,7 +12,9 @@ import {
   Briefcase,
   BookOpen,
   Shield,
-  Menu // NEW: Import Menu for hamburger
+  Menu,
+  LogOut, 
+  HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +37,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useNova } from '@/context/NovaContext';
+import { useAuth } from '@/context/AuthContext'; // NEW: Import AuthContext for logout
+import { useNavigate } from 'react-router-dom';
 import type { NovaRole } from '@/api/types';
 import { Minimize2, Maximize2, X } from 'lucide-react';
 /**
@@ -60,6 +64,8 @@ export default function Topbar({
   children // NEW: Render children (hamburger)
 }: TopbarProps) {
   const { state, dispatch } = useNova();
+  const { logout } = useAuth(); // NEW: Get logout from AuthContext
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   // Role configurations
@@ -121,6 +127,28 @@ export default function Topbar({
       console.log('Search submitted:', searchQuery);
     }
   };
+
+  // NEW: Handle logout
+  const handleLogout = () => {
+    logout(); // Clear auth
+    navigate('/'); // Redirect to login/root
+  };
+
+  // NEW: Handle other menu actions (placeholders)
+  const handleSettings = () => {
+    dispatch({ type: 'SET_VIEW', payload: 'settings' });
+  };
+
+  const handleProfile = () => {
+    // TODO: Navigate to profile view or open modal
+    console.log('Open Profile');
+  };
+
+  const handleHelp = () => {
+    // TODO: Open help docs or modal
+    console.log('Open Help');
+  };
+
   return (
     <div className={`border-b border-border bg-background/80 backdrop-blur-sm ${className}`}>
       <div className="flex items-center justify-between px-6 py-3">
@@ -260,9 +288,37 @@ export default function Topbar({
               </Badge>
             </motion.div>
           )}
-          {/* Custom Titlebar Buttons */}
           
-          
+          {/* NEW: User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="ghost" className="w-9 h-9 p-0">
+                <User size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleProfile}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSettings}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleHelp}>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Help</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        
         </div>
       </div>
     </div>

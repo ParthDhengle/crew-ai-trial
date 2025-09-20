@@ -13,11 +13,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
-
+import {
+  Minimize2 ,
+  X,
+  Minus,
+  Maximize2 // Added for close functionality
+} from 'lucide-react';
 interface LoginFormProps {
   onSuccess?: () => void;
   className?: string;
 }
+import { useWindowControls } from '@/hooks/useElectronApi';
 
 export default function LoginForm({ onSuccess, className = '' }: LoginFormProps) {
   const { login, signup, isLoading, error, clearError } = useAuth();
@@ -28,6 +34,7 @@ export default function LoginForm({ onSuccess, className = '' }: LoginFormProps)
     password: '',
     confirmPassword: '',
   });
+  const { expand, close, minimize,contract } = useWindowControls();
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
@@ -70,6 +77,56 @@ export default function LoginForm({ onSuccess, className = '' }: LoginFormProps)
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
+
+{/* Window Title Bar */}
+<div 
+        className={`flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50 ${className}`}
+        style={{ 
+          ['WebkitAppRegion' as any]: 'drag',
+          userSelect: 'none'
+        }}
+      >
+        {/* Title */}
+        <div className="flex items-center space-x-2">
+          <span className="ml-3 text-sm font-medium text-foreground/80">
+            "Nova Chat Assistant"
+          </span>
+        </div>
+
+        {/* Window Controls */}
+        <div className="flex items-center space-x-1" style={{ ['WebkitAppRegion' as any]: 'no-drag' }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={minimize}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Minimize"
+          >
+            <Minus size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={expand}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Maximize"
+          >
+            <Maximize2 size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={close}
+            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-none"
+            title="Close"
+          >
+            <X size={12} />
+          </Button>
+        </div>
+      </div>
+
         <Card className="glass-nova border-primary/20">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-primary-foreground">

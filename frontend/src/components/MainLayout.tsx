@@ -65,7 +65,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         }}
       >
         <span className="ml-3 text-sm font-medium text-foreground/80">
-          Nova Mini Chat
+        Nova Chat Assistant
         </span>
 
         {/* Right side: buttons */}

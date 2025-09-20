@@ -179,7 +179,7 @@ export default function MiniWidget({
         {/* Title */}
         <div className="flex items-center space-x-2">
           <span className="ml-3 text-sm font-medium text-foreground/80">
-            {'Nova Mini Chat'}
+            "Nova Chat Assistant"
           </span>
         </div>
 

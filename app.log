@@ -797,3 +797,5 @@
 2025-09-20 01:43:19 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
 2025-09-21 00:05:02 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
 2025-09-21 00:05:10 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 02:57:49 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 02:57:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
