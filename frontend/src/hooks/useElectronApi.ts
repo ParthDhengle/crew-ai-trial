@@ -7,7 +7,7 @@ import type {
   Integration,
   NovaRole
 } from '@/api/types';
-
+import { apiClient } from '@/api/client';
 /**
  * React hook wrapper for Electron API interactions
  * Provides typed access to window.api methods with React state management
@@ -76,45 +76,40 @@ export const useElectronApi = () => {
  */
 export const useAgentOps = () => {
   const [operations, setOperations] = useState<AgentOp[]>([]);
-  const { api, isElectron } = useElectronApi();
-  useEffect(() => {
-    if (!isElectron) {
-      // Mock data for development
-      setOperations([
-        {
-          id: '1',
-          title: 'Analyzing calendar conflicts',
-          desc: 'Checking for scheduling conflicts in next week',
-          status: 'running',
-          progress: 65,
-          startTime: Date.now() - 30000,
-        },
-        {
-          id: '2',
-          title: 'Email draft preparation',
-          desc: 'Preparing response to client inquiry',
-          status: 'pending',
-          startTime: Date.now() - 5000,
-        }
-      ]);
-      return;
+  const fetchOps = useCallback(async () => {
+    try {
+      const opsData = await apiClient.getOperations();  // Fetches all user's ops
+      // Map to AgentOp (assuming backend returns list of {id, op_name, params, status, result, start_time, end_time}
+      const mappedOps: AgentOp[] = opsData.map((op:any) => ({
+        id: op.id,
+        title: op.op_name,
+        desc: JSON.stringify(op.params),
+        status: op.status,
+        startTime: op.start_time ? new Date(op.start_time).getTime() : undefined,
+        endTime: op.end_time ? new Date(op.end_time).getTime() : undefined,
+        result: op.result
+      }));
+      setOperations(mappedOps);
+    } catch (error) {
+      console.error('Failed to fetch operations:', error);
     }
-    const unsubscribe = api.onAgentOpsUpdate?.(setOperations);
-    return unsubscribe;
-  }, [api, isElectron]);
-  const cancelOperation = useCallback((id: string) => {
-    // TODO: IMPLEMENT IN PRELOAD - api.cancelOperation(id)
-    setOperations(ops => ops.filter(op => op.id !== id));
   }, []);
-  return {
-    operations,
-    cancelOperation,
-  };
+
+  useEffect(() => {
+    fetchOps();  // Initial fetch
+    const interval = setInterval(fetchOps, 500);  // Poll every 0.5s
+    return () => clearInterval(interval);
+  }, [fetchOps]);
+
+  const cancelOperation = useCallback((operationId: string) => {
+    // TODO: Add /operations/{id}/cancel PUT if needed
+    setOperations(ops => ops.filter(op => op.id !== operationId));
+  }, []);
+
+  return { operations, cancelOperation };
 };
 
-/**
- * Hook for managing voice transcription
- */
+
 export const useVoiceTranscription = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');

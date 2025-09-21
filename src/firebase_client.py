@@ -1,3 +1,4 @@
+# Optimized src/firebase_client.py with reduced debug prints
 import os
 import shutil
 from dotenv import load_dotenv
@@ -16,20 +17,16 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
-
 USER_ID = os.getenv("USER_ID", "parth")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_BASE = os.path.join(PROJECT_ROOT, "knowledge", "storage")
-
 def set_user_id(uid: str):
     """Set the current USER_ID from auth UID."""
     global USER_ID
     USER_ID = uid
-
 def get_user_ref():
     """Get users doc ref for current user (uses dynamic USER_ID)."""
     return db.collection("users").document(USER_ID)
-
 # === Auth Functions ===
 def create_user(email: str, password: str = None, display_name: str = None) -> dict:
     """Create a new user with email/password. Returns user dict with uid."""
@@ -41,7 +38,6 @@ def create_user(email: str, password: str = None, display_name: str = None) -> d
         return user._data
     except Exception as e:
         raise ValueError(f"Failed to create user: {e}")
-
 def sign_in_with_email(email: str, password: str) -> str:
     """Sign in user and return ID token (for verification). For CLI, store in session/memory."""
     try:
@@ -56,7 +52,6 @@ def sign_in_with_email(email: str, password: str) -> str:
         raise ValueError("User not found. Sign up first.")
     except Exception as e:
         raise ValueError(f"Sign-in failed: {e}")
-
 def verify_id_token(id_token: str) -> str:
     """Verify ID token (for FastAPI endpoints). Returns UID."""
     try:
@@ -66,7 +61,6 @@ def verify_id_token(id_token: str) -> str:
         return uid
     except Exception as e:
         raise ValueError(f"Token verification failed: {e}")
-
 def get_user_by_uid(uid: str) -> dict:
     """Get user by UID."""
     try:
@@ -74,7 +68,6 @@ def get_user_by_uid(uid: str) -> dict:
         return user._data
     except Exception as e:
         raise ValueError(f"User fetch failed: {e}")
-
 # === Profile Functions (Updated to use auth UID) ===
 def get_user_profile() -> dict:
     """Get user profile, auto-set current_chat_session if missing."""
@@ -85,23 +78,20 @@ def get_user_profile() -> dict:
         profile['current_chat_session'] = str(uuid.uuid4())
         db.collection("users").document(USER_ID).set(profile, merge=True)
     return profile
-
-def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC", 
+def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC",
                       focus_hours: list = None, permissions: dict = None, integrations: dict = None) -> str:
     """Create/update profile using UID as doc ID."""
-    set_user_id(uid)  # Ensure global USER_ID is set
+    set_user_id(uid) # Ensure global USER_ID is set
     data = {
         "uid": uid, "email": email, "Name": display_name, "display_name": display_name,
-        "timezone": timezone, "focus_hours": focus_hours or [], 
+        "timezone": timezone, "focus_hours": focus_hours or [],
         "permissions": permissions or {}, "integrations": integrations or {},
         "updated_at": datetime.now().isoformat()
     }
     return add_document("users", data, uid, subcollection=False)
-
 def update_user_profile(data: dict) -> bool:
     """Update profile (uses current USER_ID)."""
     return update_document("users", USER_ID, data, subcollection=False)
-
 # Generic CRUD
 def add_document(collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
     """Add doc to users/{user_id}/{collection}/{doc_id} or top-level collection."""
@@ -143,10 +133,6 @@ def get_operations() -> list:
         with open(ops_path, "r") as f:
             return json.load(f).get("operations", [])
     return []
-def add_operation(name: str, params: dict, description: str) -> str:
-    """Add op to Firestore (for future dynamic ops)."""
-    data = {"name": name, "required_parameters": params.get("required", []), "optional_parameters": params.get("optional", []), "description": description}
-    return add_document("operations", data, subcollection=False)
 def get_chat_history(session_id: str = None, uid: str = None) -> list:
     user_ref = db.collection('users').document(uid)
     if session_id:
@@ -167,7 +153,7 @@ def get_chat_history(session_id: str = None, uid: str = None) -> list:
                 all_history.append(data)
         all_history.sort(key=lambda x: x.get('timestamp', ''))
         return all_history
-    
+   
 def add_chat_message(role: str, content: str, session_id: str = None) -> str:
     """Add a message to chat_history collection."""
     data = {
@@ -334,7 +320,7 @@ def get_expenses() -> list:
 # Knowledge Base
 def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str, actions=None) -> str:
     user_ref = db.collection("users").document(uid)
-    
+   
     if session_id is None or not user_ref.collection('chat_sessions').document(session_id).get().exists:
         session_id = session_id or str(uuid.uuid4())
         # Create session doc with metadata
@@ -345,7 +331,7 @@ def save_chat_message(session_id: str, uid: str, role: str, content: str, timest
             'createdAt': timestamp,
             'updatedAt': timestamp
         })
-    
+   
     # Add message
     session_ref = user_ref.collection('chat_sessions').document(session_id)
     msg_ref = session_ref.collection('messages').document()
@@ -356,18 +342,17 @@ def save_chat_message(session_id: str, uid: str, role: str, content: str, timest
         "actions": actions or []
     }
     msg_ref.set(message)
-    
+   
     # Update session updatedAt (and title if first user message)
     session_ref.update({'updatedAt': timestamp})
     if role == 'user':
         messages = session_ref.collection('messages').where('role', '==', 'user').stream()
         user_msgs = [m.to_dict()['content'] for m in messages]
-        if len(user_msgs) == 1:  # First user message
+        if len(user_msgs) == 1: # First user message
             title = user_msgs[0][:50] + ('...' if len(user_msgs[0]) > 50 else '')
             session_ref.update({'title': title})
-    
-    return session_id  # Return session_id (new or existing)
-
+   
+    return session_id # Return session_id (new or existing)
 def add_kb_entry(title: str, content_md: str, tags: list = None, references: list = None) -> str:
     """Add KB entry (facts/notes)."""
     data = {
@@ -408,34 +393,39 @@ def get_rules(enabled_only: bool = True) -> list:
 def queue_operation(op_name: str, params: dict) -> str:
     """Queue operation (optional async)."""
     data = {
-        "op_name": op_name, "params": params, "status": "pending",
-        "created_at": datetime.now().isoformat()
+        "user_id": USER_ID,  # Add user_id
+        "op_name": op_name,
+        "params": params,
+        "status": "pending",
+        "created_at": datetime.now().isoformat(),
+        "start_time": None,
+        "end_time": None,
+        "result": None
     }
     return add_document("operations_queue", data)
-
 # Add to end of file
 def get_tasks_by_user(status: str = None) -> list:
     """Get user's tasks (filtered by status)."""
     filters = [("owner_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
     return query_collection("tasks", filters=filters)
-
 def update_task_by_user(task_id: str, data: dict) -> bool:
     """Update user's task."""
     data["updated_at"] = datetime.now().isoformat()
     return update_document("tasks", task_id, data)
-
 def delete_task_by_user(task_id: str) -> bool:
     """Delete user's task."""
     return delete_document("tasks", task_id)
-
 def get_operations_queue(status: str = None) -> list:
     """Get user's operation queue."""
     filters = [("user_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
     return query_collection("operations_queue", filters=filters)
-
 def update_operation_status(op_id: str, status: str, result: str = None) -> bool:
     """Update op status (e.g., running -> success)."""
     data = {"status": status, "updated_at": datetime.now().isoformat()}
+    if status == 'running':
+        data["start_time"] = datetime.now().isoformat()
+    if status in ['success', 'failed']:
+        data["end_time"] = datetime.now().isoformat()
     if result:
         data["result"] = result
     return update_document("operations_queue", op_id, data)

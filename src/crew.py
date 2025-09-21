@@ -32,7 +32,7 @@ from tools.long_term_rag_tool import LongTermRagTool
 from chat_history import ChatHistory # Updated to Firebase
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager # Updated for KB
-from firebase_client import get_user_profile # For profile
+from firebase_client import get_user_profile,queue_operation, update_operation_status# For profile
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -230,15 +230,23 @@ class AiAgent:
         for op in operations:
             name = op.get('name')
             params = op.get('parameters', {})
+            if name not in self.operation_map:
+                lines.append(f"Operation '{name}' not implemented.")
+                continue
+            
+            # Queue and update status
+            op_id = queue_operation(name, params)  # pending
+            update_operation_status(op_id, 'running')
             try:
-                # Execute single op (wrap in list for tool compat)
-                single_op = [{'name': name, 'parameters': params}]
-                result = ops_tool._run(single_op)
+                func = self.operation_map[name]
+                success, result = func(**params)
+                update_operation_status(op_id, 'success' if success else 'failed', result)
                 lines.append(f"Operation '{name}': {result}")
             except Exception as e:
+                update_operation_status(op_id, 'failed', str(e))
                 lines.append(f"Operation '{name}' failed: {str(e)}")
-       
-        return "\n".join(lines)
+        
+        return "\n".join(lines) if lines else "All operations completed."
     @crew
     def crew(self) -> Crew:
         return Crew(agents=self.agents, tasks=self.tasks, process=Process.sequential, verbose=True)

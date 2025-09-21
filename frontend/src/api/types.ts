@@ -14,6 +14,7 @@ export type AgentOp = {
   progress?: number;
   startTime?: number;
   endTime?: number;
+  result?: string;
 };
 
 export type SchedulerTask = {
