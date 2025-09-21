@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   MessageSquare, 
@@ -22,15 +22,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNova } from '@/context/NovaContext';
+import { chatService } from '@/api/chatService';
+import { apiClient } from '@/api/client';  // Direct for create
 import type { ChatSession } from '@/api/types';
 
 /**
  * Nova Sidebar - Chat history and navigation
  * 
  * Features:
- * - Recent chat sessions with AI summaries
- * - Search functionality
- * - New chat creation
+ * - Recent chat sessions with AI summaries (user-specific via API)
+ * - Search functionality (client-side filter)
+ * - New chat creation (backend-persisted)
  * - View switching (chat, scheduler, dashboard, settings)
  * - Collapsible design
  * - Session management (delete, rename)
@@ -43,54 +45,91 @@ interface SidebarProps {
 export default function Sidebar({ className = '' }: SidebarProps) {
   const { state, dispatch } = useNova();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredSessions, setFilteredSessions] = useState(state.sessions);
+  const [filteredSessions, setFilteredSessions] = useState<ChatSession[]>(state.sessions || []);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Handle search
+  // Fetch user-specific sessions on mount
+  useEffect(() => {
+    async function loadSessions() {
+      setIsLoading(true);
+      try {
+        const loadedSessions = await chatService.getChatSessions();
+        dispatch({ type: 'SET_SESSIONS', payload: loadedSessions });
+        setFilteredSessions(loadedSessions);
+        if (loadedSessions.length > 0 && !state.currentSession) {
+          dispatch({ type: 'SET_CURRENT_SESSION', payload: loadedSessions[0] });
+        }
+      } catch (error) {
+        console.error('Failed to load user sessions:', error);
+        // TODO: Add toast error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadSessions();
+  }, [dispatch]);
+
+  // Handle search (client-side on loaded sessions)
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (!query.trim()) {
-      setFilteredSessions(state.sessions);
+      setFilteredSessions(state.sessions || []);
       return;
     }
-
-    const filtered = state.sessions.filter(session =>
-      session.title.toLowerCase().includes(query.toLowerCase()) ||
-      session.summary?.toLowerCase().includes(query.toLowerCase()) ||
-      session.messages.some(msg => 
-        msg.content.toLowerCase().includes(query.toLowerCase())
-      )
+    const lowerQuery = query.toLowerCase();
+    const filtered = (state.sessions || []).filter(session =>
+      session.title.toLowerCase().includes(lowerQuery) ||
+      (session.summary || '').toLowerCase().includes(lowerQuery) ||
+      session.messages.some(msg => msg.content.toLowerCase().includes(lowerQuery))
     );
     setFilteredSessions(filtered);
   };
 
-  // Handle new chat
-  const handleNewChat = () => {
-    // TODO: IMPLEMENT IN PRELOAD - window.api.createNewChat()
-    const newSession: ChatSession = {
-      id: `session-${Date.now()}`,
-      title: 'New Chat',
-      messages: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    dispatch({ type: 'SET_SESSIONS', payload: [newSession, ...state.sessions] });
-    dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+  // Handle new chat (async create via API)
+  const handleNewChat = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.createChatSession();  // API call for new session
+      const newSession: ChatSession = {
+        id: response.session_id,
+        title: response.title,
+        summary: response.summary,
+        messages: [],
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
+      };
+      dispatch({ type: 'SET_SESSIONS', payload: [newSession, ...(state.sessions || [])] });
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+      setFilteredSessions([newSession, ...filteredSessions]);
+    } catch (error) {
+      console.error('Failed to create new chat:', error);
+      // Fallback local create
+      const fallbackSession = chatService.createNewSession();
+      dispatch({ type: 'SET_SESSIONS', payload: [fallbackSession, ...(state.sessions || [])] });
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: fallbackSession });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handle session selection
-  const handleSessionSelect = (session: ChatSession) => {
+  // Handle session selection/opening
+  const handleSessionSelect = async (session: ChatSession) => {
     dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
+    // Load full messages if not already (assume FullChat handles, but trigger if needed)
   };
 
   // Handle session deletion
-  const handleDeleteSession = (sessionId: string) => {
-    // TODO: IMPLEMENT IN PRELOAD - window.api.deleteChatSession(sessionId)
-    const updatedSessions = state.sessions.filter(s => s.id !== sessionId);
-    dispatch({ type: 'SET_SESSIONS', payload: updatedSessions });
-    
-    if (state.currentSession?.id === sessionId) {
-      dispatch({ type: 'SET_CURRENT_SESSION', payload: updatedSessions[0] || null });
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await chatService.deleteChatSession(sessionId);  // Assume added to chatService
+      const updatedSessions = (state.sessions || []).filter(s => s.id !== sessionId);
+      dispatch({ type: 'SET_SESSIONS', payload: updatedSessions });
+      setFilteredSessions(updatedSessions);
+      if (state.currentSession?.id === sessionId) {
+        dispatch({ type: 'SET_CURRENT_SESSION', payload: updatedSessions[0] || null });
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error);
     }
   };
 
@@ -186,6 +225,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             onClick={handleNewChat}
             className="w-full btn-nova gap-2"
             size="sm"
+            disabled={isLoading}
           >
             <Plus size={16} />
             New Chat
@@ -209,7 +249,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           {state.sidebarCollapsed ? (
             // Collapsed view - show only icons
             <div className="space-y-2">
-              {state.sessions.slice(0, 8).map((session) => (
+              {filteredSessions.slice(0, 8).map((session) => (
                 <Button
                   key={session.id}
                   size="sm"
@@ -225,75 +265,88 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           ) : (
             // Expanded view - show full session info
             <div className="space-y-1">
-              {(searchQuery ? filteredSessions : state.sessions).map((session) => (
-                <motion.div
-                  key={session.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={`group relative rounded-lg p-3 cursor-pointer transition-colors hover:bg-white/5 ${
-                    state.currentSession?.id === session.id 
-                      ? 'bg-primary/10 border border-primary/20' 
-                      : 'border border-transparent'
-                  }`}
-                  onClick={() => handleSessionSelect(session)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {session.title}
-                      </div>
-                      
-                      {session.summary && (
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {session.summary}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                        <span>{session.messages.length} messages</span>
-                        <span>•</span>
-                        <span>{new Date(session.updatedAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-
-                    {/* Session Menu */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-6 h-6 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical size={12} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteSession(session.id);
-                            }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Chat
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-
-              {/* Empty State */}
-              {filteredSessions.length === 0 && searchQuery && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Search size={32} className="mx-auto mb-2 opacity-50" />
-                  <div className="text-sm">No chats found</div>
-                  <div className="text-xs">Try a different search term</div>
+              {isLoading ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  Loading chats...
                 </div>
+              ) : filteredSessions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchQuery ? (
+                    <>
+                      <Search size={32} className="mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No chats found</div>
+                      <div className="text-xs">Try a different search term</div>
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare size={32} className="mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No chats yet</div>
+                      <div className="text-xs">Create your first chat!</div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                filteredSessions.map((session) => (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`group relative rounded-lg p-3 cursor-pointer transition-colors hover:bg-white/5 ${
+                      state.currentSession?.id === session.id 
+                        ? 'bg-primary/10 border border-primary/20' 
+                        : 'border border-transparent'
+                    }`}
+                    onClick={() => handleSessionSelect(session)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">
+                          {session.title}
+                        </div>
+                        
+                        {session.summary && (
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {session.summary}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <span>{session.messages.length} messages</span>
+                          <span>•</span>
+                          <span>{new Date(session.updatedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Session Menu */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-6 h-6 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical size={12} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSession(session.id);
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Chat
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
               )}
             </div>
           )}

@@ -5,6 +5,23 @@
 All colors MUST be HSL. Local-first, privacy-focused design language.
 */
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #root {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+  
   :root {
     /* Nova Theme - Dark Cyan Premium */
     --nova-bg: 225 33% 3%; /* #05060A */

@@ -5,6 +5,7 @@ import {
   Mic, 
   MicOff, 
   Paperclip, 
+  Image,
   FileText,
   Smile,
   X,
@@ -12,11 +13,38 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useNova } from '@/context/NovaContext';
 import { useVoiceTranscription } from '@/hooks/useElectronApi';
+import { chatService } from '@/api/chatService';
 import type { ChatMessage } from '@/api/types';
-import { useAuth } from '@/hooks/useAuth';
+
+/**
+ * Nova Composer - Text and voice input component
+ * 
+ * Features:
+ * - Multi-line text input with markdown support
+ * - Voice transcription (local Whisper)
+ * - File attachments
+ * - Role prefills and quick actions
+ * - Streaming voice-to-text display
+ * - Auto-resize textarea
+ * - Keyboard shortcuts (Ctrl+Enter to send)
+ * - Real-time character count
+ */
 
 interface ComposerProps {
   className?: string;
@@ -30,9 +58,9 @@ export default function Composer({
   maxLength = 4000 
 }: ComposerProps) {
   const { state, dispatch } = useNova();
-  const { idToken } = useAuth();
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [showRolePrefills, setShowRolePrefills] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -91,70 +119,42 @@ export default function Composer({
     ],
   };
 
-  // Handle message sending (real API call)
+  // Handle message sending
   const handleSend = async () => {
     if (!message.trim() && attachments.length === 0) return;
     
-    const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      content: message.trim(),
-      role: 'user',
-      timestamp: Date.now(),
-    };
-
-    if (state.currentSession) {
-      dispatch({ 
-        type: 'ADD_MESSAGE', 
-        payload: { sessionId: state.currentSession.id, message: newMessage }
-      });
-    }
-
+    const messageContent = message.trim();
+    
+    // Clear input immediately
     setMessage('');
     setAttachments([]);
-    dispatch({ type: 'SET_TYPING', payload: true });
-
+    
     try {
-      // ✅ Fixed: Use correct API signature (message, sessionId) - removed idToken parameter
-      const aiResponse = await window.api.sendMessage(message, state.currentSession?.id);
-      
-      const aiMessage: ChatMessage = {
-        id: `msg-${Date.now()}-ai`,
-        // ✅ Fixed: Extract string content from AiResponse object
-        content: aiResponse.display_response || aiResponse.mode || 'No response received',
-        role: 'assistant',
-        timestamp: Date.now(),
-        actions: [
-          { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
-          { type: 'run_operation', label: 'Analyze Further', payload: {} }
-        ]
-      };
-
-      if (state.currentSession) {
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: { sessionId: state.currentSession.id, message: aiMessage }
-        });
-      }
+      // Send message through chat service
+      await chatService.sendMessage(messageContent, state.currentSession?.id);
     } catch (error) {
       console.error('Failed to send message:', error);
-      const errorMsg: ChatMessage = {
-        id: `msg-${Date.now()}-error`,
-        content: 'Sorry, something went wrong. Please try again.',
-        role: 'assistant',
+      // Show error message to user
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        content: 'Sorry, I encountered an error processing your message. Please try again.',
+        role: 'system',
         timestamp: Date.now(),
       };
+      
       if (state.currentSession) {
-        dispatch({ type: 'ADD_MESSAGE', payload: { sessionId: state.currentSession.id, message: errorMsg } });
+        dispatch({ 
+          type: 'ADD_MESSAGE', 
+          payload: { sessionId: state.currentSession.id, message: errorMessage }
+        });
       }
-    } finally {
-      dispatch({ type: 'SET_TYPING', payload: false });
     }
   };
 
-  // File select
+  // Handle file attachments
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setAttachments(prev => [...prev, ...files].slice(0, 5));
+    setAttachments(prev => [...prev, ...files].slice(0, 5)); // Max 5 files
   };
 
   // Remove attachment
@@ -162,19 +162,22 @@ export default function Composer({
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Shortcuts
+  // Handle keyboard shortcuts
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Ctrl/Cmd + Enter to send
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
       handleSend();
     }
+    
+    // Escape to clear
     if (event.key === 'Escape') {
       setMessage('');
       setAttachments([]);
     }
   };
 
-  // Voice toggle
+  // Handle voice recording toggle
   const handleVoiceToggle = () => {
     if (isRecording) {
       stopRecording();
@@ -186,7 +189,7 @@ export default function Composer({
   return (
     <div className={`p-4 bg-background/80 backdrop-blur-sm ${className}`}>
       <div className="max-w-4xl mx-auto">
-        {/* Voice Transcript */}
+        {/* Voice Transcript Display */}
         <AnimatePresence>
           {isRecording && transcript && (
             <motion.div
@@ -202,7 +205,9 @@ export default function Composer({
                   {isPartial ? 'Partial' : 'Complete'}
                 </Badge>
               </div>
-              <div className="text-sm">{transcript || 'Listening...'}</div>
+              <div className="text-sm">
+                {transcript || 'Listening...'}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -242,7 +247,7 @@ export default function Composer({
           )}
         </AnimatePresence>
 
-        {/* Input Area */}
+        {/* Main Input Area */}
         <div className="glass-nova rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
           {/* Role Prefills */}
           <AnimatePresence>
@@ -258,7 +263,7 @@ export default function Composer({
                     Quick {state.role} prompts:
                   </div>
                   <div className="space-y-1">
-                    {rolePrefills[state.role]?.map((prefill, index) => (
+                    {rolePrefills[state.role].map((prefill, index) => (
                       <Button
                         key={index}
                         size="sm"
@@ -290,6 +295,8 @@ export default function Composer({
               className="min-h-[60px] max-h-[150px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base leading-relaxed px-4 py-3"
               maxLength={maxLength}
             />
+
+            {/* Character Count */}
             {message.length > maxLength * 0.8 && (
               <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
                 {message.length}/{maxLength}
@@ -300,6 +307,7 @@ export default function Composer({
           {/* Controls */}
           <div className="flex items-center justify-between p-3 border-t border-border/30">
             <div className="flex items-center gap-1">
+              {/* Attachments */}
               <Button
                 size="sm"
                 variant="ghost"
@@ -309,6 +317,8 @@ export default function Composer({
               >
                 <Paperclip size={16} />
               </Button>
+
+              {/* Role Prefills Toggle */}
               <Button
                 size="sm"
                 variant="ghost"
@@ -318,6 +328,8 @@ export default function Composer({
               >
                 <Smile size={16} />
               </Button>
+
+              {/* Voice Recording */}
               {state.voiceEnabled && (
                 <Button
                   size="sm"
@@ -331,6 +343,7 @@ export default function Composer({
               )}
             </div>
 
+            {/* Send Button */}
             <Button
               onClick={handleSend}
               disabled={!message.trim() && attachments.length === 0}

@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
+
 console.log('PRELOAD: Starting preload script...');
 
+// FIXED: No async wrapper or duplicate import—use top-level directly
 contextBridge.exposeInMainWorld('api', {
   // Window expansion/minimization with proper error handling
   requestExpand: async () => {
@@ -25,18 +27,6 @@ contextBridge.exposeInMainWorld('api', {
       throw error;
     }
   },
-  // NEW: Handle minimize-widget from blur
-  minimizeWidget: async () => {
-    console.log('RENDERER: Calling minimizeWidget...');
-    try {
-      const result = await ipcRenderer.invoke('requestMinimize');
-      console.log('RENDERER: minimizeWidget succeeded:', result);
-      return result;
-    } catch (error) {
-      console.error('RENDERER: minimizeWidget failed:', error);
-      throw error;
-    }
-  },
   setAlwaysOnTop: (flag) => ipcRenderer.invoke('setAlwaysOnTop', flag),
   // Window controls with proper error handling
   windowMinimize: () => {
@@ -53,7 +43,6 @@ contextBridge.exposeInMainWorld('api', {
       console.error('RENDERER: windowMaximize failed:', error);
     }
   },
-  setAuthStatus: (status) => ipcRenderer.send('auth-status', status),
   windowClose: () => {
     try {
       ipcRenderer.send("window:close");
@@ -61,6 +50,7 @@ contextBridge.exposeInMainWorld('api', {
       console.error('RENDERER: windowClose failed:', error);
     }
   },
+  // NEW: Mini window specific close
   miniClose: () => {
     try {
       ipcRenderer.send("mini:close");
@@ -80,20 +70,7 @@ contextBridge.exposeInMainWorld('api', {
   // Text-to-speech
   speak: (text, voiceId) => ipcRenderer.invoke('speak', text, voiceId),
   // Chat functionality
-  sendMessage: async (message, sessionId, idToken) => {
-    if (!idToken) throw new Error('No auth token');
-    const response = await fetch('http://localhost:8000/process_query', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ query: message, session_id: sessionId }),
-    });
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
-    return data.result;
-  },
+  sendMessage: (message, sessionId) => ipcRenderer.invoke('sendMessage', message, sessionId),
   onMessageStream: (cb) => {
     ipcRenderer.on('message-stream', (event, message) => cb(message));
     return () => ipcRenderer.removeAllListeners('message-stream');
@@ -105,39 +82,10 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeAllListeners('agent-ops-update');
   },
   // Task management
-  createTask: async (task, idToken) => {
-    const response = await fetch('http://localhost:8000/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify(task),
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
-  updateTask: async (id, updates, idToken) => {
-    const response = await fetch(`http://localhost:8000/tasks/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify(updates),
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
-  deleteTask: async (id, idToken) => {
-    const response = await fetch(`http://localhost:8000/tasks/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${idToken}` },
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
-  getTasks: async (idToken) => {
-    const response = await fetch('http://localhost:8000/tasks', {
-      headers: { 'Authorization': `Bearer ${idToken}` },
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
+  createTask: (task) => ipcRenderer.invoke('createTask', task),
+  updateTask: (id, updates) => ipcRenderer.invoke('updateTask', id, updates),
+  deleteTask: (id) => ipcRenderer.invoke('deleteTask', id),
+  getTasks: () => ipcRenderer.invoke('getTasks'),
   // Chat sessions
   getChatSessions: () => ipcRenderer.invoke('getChatSessions'),
   getChatSession: (id) => ipcRenderer.invoke('getChatSession', id),
@@ -150,22 +98,8 @@ contextBridge.exposeInMainWorld('api', {
   // Export functionality
   exportDashboardPDF: (payload) => ipcRenderer.invoke('exportDashboardPDF', payload),
   // User preferences
-  getUserPreferences: async (idToken) => {
-    const response = await fetch('http://localhost:8000/profile', {
-      headers: { 'Authorization': `Bearer ${idToken}` },
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
-  updateUserPreferences: async (prefs, idToken) => {
-    const response = await fetch('http://localhost:8000/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify(prefs),
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
-  },
+  getUserPreferences: () => ipcRenderer.invoke('getUserPreferences'),
+  updateUserPreferences: (prefs) => ipcRenderer.invoke('updateUserPreferences', prefs),
   // Notifications
   notify: (title, body) => ipcRenderer.invoke('notify', title, body),
   // Theme changes
@@ -178,7 +112,6 @@ contextBridge.exposeInMainWorld('api', {
   // Window state detection
   isElectron: true,
   isMiniMode: typeof window !== 'undefined' && window.isMiniMode,
-  setAuthStatus: (status) => ipcRenderer.send('auth-status', status),
 });
 
 console.log('PRELOAD: contextBridge exposed window.api successfully');

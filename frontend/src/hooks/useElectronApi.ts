@@ -163,7 +163,7 @@ export const useVoiceTranscription = () => {
 export const useWindowControls = () => {
   const { api, isElectron } = useElectronApi();
   const [isExpanding, setIsExpanding] = useState(false);
-  const minimize = useCallback(async () => { // FIXED: Override to switch to mini
+  const contract  = useCallback(async () => { // FIXED: Override to switch to mini
     try {
       if (isElectron) {
         // Switch to mini instead of taskbar minimize
@@ -176,6 +176,16 @@ export const useWindowControls = () => {
       console.error('Failed to minimize window:', error);
     }
   }, [api, isElectron]);
+
+  const minimize = useCallback(() => {
+    try {
+      api.windowMinimize?.(); // <- must be exposed from preload → main
+      console.log('HOOK: Minimized to taskbar');
+    } catch (error) {
+      console.error('Failed to minimize window:', error);
+    }
+  }, [api]);
+
   const maximize = useCallback(() => {
     try {
       api.windowMaximize?.();
@@ -229,6 +239,7 @@ export const useWindowControls = () => {
     }
   }, [api, isElectron]);
   return {
+    contract,
     minimize,
     maximize,
     close,

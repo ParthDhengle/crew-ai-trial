@@ -768,5 +768,47 @@
 2025-09-18 19:16:52 - AIAssistant - INFO - Firebase connected successfully
 2025-09-18 19:16:52 - AIAssistant - INFO - Loading or creating user profile
 2025-09-18 19:16:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+<<<<<<< HEAD
 2025-09-21 12:58:07 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
 2025-09-21 12:58:27 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+=======
+2025-09-19 15:22:20 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:33 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:03:26 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:03:31 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:13:42 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:13:55 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:28:03 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:28:11 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:20:17 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:20:24 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:24:06 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:24:18 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:36:52 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:36:56 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:37:51 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:37:59 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:38:29 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:38:36 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:39:30 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:39:37 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:39:52 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:39:59 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:40:50 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:40:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-20 01:43:14 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:43:19 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 00:05:02 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 00:05:10 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 02:57:49 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 02:57:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+>>>>>>> 98edb2a8b5c8fa7c968307c08ff813d9c0ea5ee6
+2025-09-21 13:06:51 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-21 13:07:01 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 13:33:04 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-21 13:34:15 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 13:37:51 - AIAssistant - ERROR - Error processing query: litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-21 13:44:49 - AIAssistant - ERROR - Error processing query: litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+

@@ -11,7 +11,7 @@ import {
   Send,
   User,
   Bot,
-  Minimize2
+  Minus  // Added for close functionality
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowControls } from '@/hooks/useElectronApi';
 import { useNova } from '@/context/NovaContext';
-import { useAuth } from '@/hooks/useAuth';
-import type { ChatMessage } from '@/api/types';
-
+import { chatService } from '@/api/chatService';
 interface MiniWidgetProps {
   className?: string;
   unreadCount?: number;
@@ -42,32 +40,46 @@ export default function MiniWidget({
   const [miniMessage, setMiniMessage] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const { expand, close } = useWindowControls();
+  const { expand, close, minimize } = useWindowControls();
   const { state, dispatch } = useNova();
-  const { idToken } = useAuth();
 
   // Last 3 messages for preview
   const previewMessages = state.currentSession?.messages.slice(-3) || [];
 
-  // FIXED: Handle expand with delayed reset
+  // Handle expand with loading state
   const handleExpand = async () => {
     if (miniMessage.trim()) {
       console.log('Mini send:', miniMessage);
-      // TODO: Send message before expanding
-      setMiniMessage('');
+      // Send message before expanding
+      try {
+        await chatService.sendMessage(miniMessage.trim(), state.currentSession?.id);
+        setMiniMessage('');
+      } catch (error) {
+        console.error('Failed to send message before expand:', error);
+      }
     }
     
     setIsExpanding(true);
     try {
       console.log('MINI: Button clicked—awaiting IPC expand...');
       const result = await expand();
-      console.log('MINI: IPC expand complete:', result);
-      setTimeout(() => setIsExpanding(false), 600); // FIXED: Delay reset
+      console.log('MINI: IPC expand completed:', result);
+      
+      // Only proceed if expand was successful
+      if (result?.success !== false) {
+        // In development, simulate window switch by updating URL
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('mini');
+          window.history.replaceState({}, '', url.toString());
+          // Trigger a re-render by dispatching a state change
+          dispatch({ type: 'SET_VIEW', payload: 'chat' });
+        }
+      }
     } catch (error) {
       console.error('MINI: Expand failed:', error);
+    } finally {
       setIsExpanding(false);
     }
   };
@@ -75,91 +87,41 @@ export default function MiniWidget({
   // Handle close
   const handleClose = () => {
     console.log('MINI: Close button clicked');
+    // Send specific mini close
+    // Send specific mini close event
     if (window.api) {
-      (window as any).api.miniClose?.();
+      // Use electron's ipcRenderer to send mini:close event
+      (window as any).api.windowClose?.();
     } else {
+      // Fallback for development
       window.close();
     }
   };
 
-  // FIXED: Handle quick send with backend integration
+  // Handle quick send
   const handleQuickSend = async () => {
     if (!miniMessage.trim()) {
+      // If no message, just expand
       await handleExpand();
       return;
     }
 
-    if (!idToken) {
-      console.error('MINI: No auth token for send');
-      return;
-    }
-
-    console.log('MINI: Sending quick message to backend:', miniMessage);
+    console.log('MINI: Sending quick message:', miniMessage);
     
-    // Add local user message
-    if (state.currentSession) {
-      const newMessage: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        content: miniMessage,
-        role: 'user',
-        timestamp: Date.now(),
-      };
-      
-      dispatch({
-        type: 'ADD_MESSAGE',
-        payload: {
-          sessionId: state.currentSession.id,
-          message: newMessage
-        }
-      });
-    }
-
+    const messageContent = miniMessage.trim();
     setMiniMessage('');
-    setIsTyping(true);
-
+    
     try {
-      const aiContent = await window.api.sendMessage(miniMessage, state.currentSession?.id, idToken);
-      console.log('MINI: Backend response:', aiContent);
-      
-      if (state.currentSession) {
-        const aiResponse: ChatMessage = {
-          id: `msg-${Date.now()}-ai`,
-          content: aiContent.trim(),
-          role: 'assistant',
-          timestamp: Date.now(),
-        };
-        
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            sessionId: state.currentSession.id,
-            message: aiResponse
-          }
-        });
-      }
+      // Send message through chat service
+      await chatService.sendMessage(messageContent, state.currentSession?.id);
+      // Don't auto-expand after sending - let user choose
+      console.log('MINI: Message sent successfully');
     } catch (error) {
-      console.error('MINI: Send failed:', error);
-      if (state.currentSession) {
-        const errorMsg: ChatMessage = {
-          id: `msg-${Date.now()}-error`,
-          content: 'Sorry, message send failed. Try again.',
-          role: 'assistant',
-          timestamp: Date.now(),
-        };
-        
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            sessionId: state.currentSession.id,
-            message: errorMsg
-          }
-        });
-      }
-    } finally {
-      setIsTyping(false);
+      console.error('Failed to send message from mini widget:', error);
+      // Show error in mini widget instead of expanding
+      const errorMessage = 'Failed to send message. Please try again.';
+      // You could add a toast notification here
     }
-
-    await handleExpand();
   };
 
   useEffect(() => {
@@ -168,6 +130,7 @@ export default function MiniWidget({
     };
 
     window.addEventListener('focus', handleFocus);
+    // Reset on mount
     setIsExpanding(false);
 
     return () => window.removeEventListener('focus', handleFocus);
@@ -191,6 +154,7 @@ export default function MiniWidget({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Loading Overlay */}
       {isExpanding && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -204,45 +168,70 @@ export default function MiniWidget({
         </motion.div>
       )}
 
-      <div 
-        className="titlebar bg-background/90 flex items-center justify-between px-3 py-2 text-sm font-medium text-foreground border-b border-border/50 sticky top-0 z-10 flex-shrink-0"
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      {/* Window Title Bar */}
+        <div 
+        className={`flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50 ${className}`}
+        style={{ 
+          ['WebkitAppRegion' as any]: 'drag',
+          userSelect: 'none'
+        }}
       >
+        {/* Title */}
+        <div className="flex items-center space-x-2">
+          <span className="ml-3 text-sm font-medium text-foreground/80">
+            "Nova Chat Assistant"
+          </span>
+        </div>
+
+        {/* Window Controls */}
+        <div className="flex items-center space-x-1" style={{ ['WebkitAppRegion' as any]: 'no-drag' }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={minimize}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Minimize"
+          >
+            <Minus size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={expand}
+            className="w-6 h-6 p-0 hover:bg-muted/50 rounded-none"
+            title="Maximize"
+          >
+            <Maximize2 size={12} />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={close}
+            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-none"
+            title="Close"
+          >
+            <X size={12} />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Mini Widget Status Bar */}
+      <div className="flex items-center justify-between px-3 py-2 bg-background/90 border-b border-border/50">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span>Nova Chat</span>
+          <span className="text-sm font-medium">Chat</span>
           {unreadCount > 0 && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0 min-w-[18px] h-4">
               {unreadCount}
             </Badge>
           )}
         </div>
+        
+        <div className="flex items-center gap-1">
 
-        <div 
-          className="flex items-center gap-1" 
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleExpand}
-            disabled={isExpanding || isTyping}
-            className="w-6 h-6 p-0 hover:bg-primary/20"
-            title="Expand to full chat"
-          >
-            <Maximize2 size={12} />
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleClose}
-            className="w-6 h-6 p-0 hover:bg-red-500/20 text-red-400"
-            title="Close Nova"
-          >
-            <X size={12} />
-          </Button>
-
+          {/* Menu */}
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="ghost" className="w-6 h-6 p-0">
@@ -250,7 +239,7 @@ export default function MiniWidget({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExpand} disabled={isExpanding || isTyping}>
+              <DropdownMenuItem onClick={handleExpand} disabled={isExpanding}>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Full Chat
               </DropdownMenuItem>
@@ -268,6 +257,7 @@ export default function MiniWidget({
         </div>
       </div>
 
+      {/* Messages Preview */}
       <ScrollArea className="flex-1 px-3 py-2 max-w-full" ref={scrollRef}>
         <div className="space-y-2 max-w-full">
           {previewMessages.length === 0 ? (
@@ -292,9 +282,7 @@ export default function MiniWidget({
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`max-w-[200px] rounded-lg px-2 py-1 text-xs max-w-full break-words ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50 text-muted-foreground border border-border/30'
+                    msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground border border-border/30'
                   }`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="flex items-center gap-1">
@@ -314,8 +302,9 @@ export default function MiniWidget({
                         })}
                       </span>
                     </div>
+
                     <div className="whitespace-pre-wrap leading-tight">
-                      {msg.content}
+                      {typeof msg.content === 'string' ? msg.content : 'Invalid message format'}  {/* Safeguard */}
                     </div>
                   </div>
                 </motion.div>
@@ -323,6 +312,7 @@ export default function MiniWidget({
             </AnimatePresence>
           )}
 
+          {/* Typing indicator */}
           {state.isTyping && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -344,6 +334,7 @@ export default function MiniWidget({
         </div>
       </ScrollArea>
 
+      {/* Mini Input */}
       <div className="border-t border-border/50 p-2 bg-background/50 sticky bottom-0 z-10 flex-shrink-0 max-w-full">
         <div className="flex gap-1">
           <Input
@@ -370,6 +361,7 @@ export default function MiniWidget({
           </Button>
         </div>
 
+        {/* Status indicators */}
         <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground max-w-full">
           <div className="flex items-center gap-2">
             {state.voiceEnabled && (
@@ -394,6 +386,7 @@ export default function MiniWidget({
         </div>
       </div>
 
+      {/* Activity pulse if operations are running */}
       {state.operations.length > 0 && (
         <motion.div
           className="absolute inset-0 rounded-xl bg-primary/5 pointer-events-none"
@@ -405,12 +398,14 @@ export default function MiniWidget({
   );
 }
 
+// Keyboard shortcuts handler
 export function useMiniWidgetKeyboard() {
   const { expand } = useWindowControls();
   const { dispatch } = useNova();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Space to toggle mini/full
       if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
         event.preventDefault();
         if (window.api) {
@@ -420,6 +415,7 @@ export function useMiniWidgetKeyboard() {
         }
       }
       
+      // Escape to close
       if (event.code === 'Escape') {
         if (window.api) {
           (window as any).api.windowClose?.();
@@ -431,19 +427,3 @@ export function useMiniWidgetKeyboard() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [expand, dispatch]);
 }
-
-export const miniWidgetStyles = `
-  :root {
-    --nova-widget-bg: rgba(5, 6, 10, 0.95);
-    --nova-widget-shadow: 0 20px 40px -10px rgba(0, 183, 199, 0.3);
-    --nova-widget-border: rgba(0, 183, 199, 0.3);
-  }
- 
-  .nova-widget-frame {
-    background: var(--nova-widget-bg);
-    backdrop-filter: blur(20px);
-    border-radius: 12px;
-    box-shadow: var(--nova-widget-shadow);
-    border: 2px solid var(--nova-widget-border);
-  }
-`;

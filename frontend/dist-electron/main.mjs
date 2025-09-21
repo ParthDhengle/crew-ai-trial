@@ -1,17 +1,14 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 let mainWindow; // Full chat window
 let miniWindow; // Mini widget window
 let mainLoaded = false;
 let miniLoaded = false;
 let expandThrottle = 0; // Debounce IPC
-let isExpanding = false; // NEW: Lock for expand transition
 
 console.log('MAIN: Starting main process...');
 
@@ -35,14 +32,12 @@ function createMainWindow() {
     },
     backgroundColor: 'transparent',
   });
-
   // FIXED: Use consistent port 5173 (matches vite.config.ts)
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173');
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
-
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('MAIN: Main window loaded successfully');
     mainLoaded = true;
@@ -58,25 +53,15 @@ function createMainWindow() {
       }
     `);
   });
-
   mainWindow.webContents.on('did-fail-load', (e, code, desc) => {
     console.error('MAIN: Main load failed:', code, desc);
-    // NEW: Retry in dev, quit in prod
-    if (process.env.NODE_ENV === 'development') {
-      mainWindow.loadURL('http://localhost:5173');
-    } else {
-      app.quit();
-    }
   });
-
-  // Crash listener
+  // NEW: Crash listener
   mainWindow.webContents.on('crashed', (e, killed) => {
     console.error('MAIN: Renderer crashed:', killed ? 'killed' : 'crashed');
   });
-
   // Handle window close
   mainWindow.on('closed', () => {
-    console.log('MAIN: Main window closed');
     mainWindow = null;
   });
 }
@@ -90,7 +75,7 @@ function createMiniWindow() {
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    skipTaskbar: true,
+    skipTaskbar: false,
     resizable: true,
     minWidth: 200,
     minHeight: 300,
@@ -105,7 +90,6 @@ function createMiniWindow() {
     },
     backgroundColor: 'transparent',
   });
-
   // FIXED: DevTools only in dev, consistent port 5173
   if (process.env.NODE_ENV === 'development') {
     miniWindow.loadURL('http://localhost:5173?mini=true');
@@ -118,7 +102,6 @@ function createMiniWindow() {
       document.documentElement.setAttribute('data-mini', 'true');
     `);
   }
-
   miniWindow.webContents.on('did-finish-load', () => {
     console.log('MAIN: Mini window loaded successfully');
     miniLoaded = true;
@@ -127,35 +110,29 @@ function createMiniWindow() {
     miniWindow.show();
     miniWindow.focus();
   });
-
   miniWindow.webContents.on('did-fail-load', (e, code, desc) => {
     console.error('MAIN: Mini load failed:', code, desc);
   });
-
-  // Crash listener
+  // NEW: Crash listener
   miniWindow.webContents.on('crashed', (e, killed) => {
     console.error('MAIN: Mini renderer crashed:', killed ? 'killed' : 'crashed');
   });
-
   // Handle window close
   miniWindow.on('closed', () => {
-    console.log('MAIN: Mini window closed');
     miniWindow = null;
   });
-
-  // FIXED: Only minimize if main is not visible and not expanding
+  // Auto-minimize when focus is lost
   miniWindow.on('blur', () => {
-    if (mainWindow && !mainWindow.isVisible() && !isExpanding) {
-      console.log('MAIN: Mini lost focus, requesting minimize');
-      ipcMain.handle('requestMinimize')();
+    if (mainWindow && !mainWindow.isVisible()) {
+      miniWindow.webContents.send('minimize-widget');
     }
   });
 }
 
-// FIXED: IPC with debounce and expand lock
+// FIXED: IPC with debounce (prevent loop)
 ipcMain.handle('requestExpand', async () => {
   const now = Date.now();
-  if (now - expandThrottle < 1000) {
+  if (now - expandThrottle < 1000) { // 1s throttle
     console.log('MAIN: requestExpand throttled');
     return { success: false, error: 'Throttled' };
   }
@@ -163,12 +140,10 @@ ipcMain.handle('requestExpand', async () => {
   console.log('MAIN: IPC requestExpand received!');
  
   try {
-    isExpanding = true; // NEW: Set lock
     // Hide mini window first
     if (miniWindow && miniWindow.isVisible()) {
       miniWindow.hide();
       console.log('MAIN: Mini window hidden');
-      miniWindow = null; // NEW: Prevent re-interaction
     }
     // Wait for main window to be loaded if not ready
     if (!mainLoaded) {
@@ -189,13 +164,18 @@ ipcMain.handle('requestExpand', async () => {
       mainWindow.show();
       mainWindow.focus();
       mainWindow.setAlwaysOnTop(false);
+     
+      // Force reload in development to ensure fresh content
+      if (process.env.NODE_ENV === 'development') {
+        mainWindow.webContents.reloadIgnoringCache();
+        console.log('MAIN: Main window reloaded (dev mode)');
+      }
+     
       console.log('MAIN: Main window shown and focused!');
-      setTimeout(() => { isExpanding = false; }, 500); // NEW: Clear lock
     }
     return { success: true };
   } catch (error) {
     console.error('MAIN: Error in requestExpand:', error);
-    isExpanding = false; // Reset on error
     return { success: false, error: error.message };
   }
 });
@@ -208,10 +188,6 @@ ipcMain.handle('requestMinimize', async () => {
     if (mainWindow && mainWindow.isVisible()) {
       mainWindow.hide();
       console.log('MAIN: Main window hidden');
-    }
-    // Recreate mini if null
-    if (!miniWindow) {
-      createMiniWindow();
     }
     // Wait for mini window to be loaded if not ready
     if (!miniLoaded) {
@@ -264,6 +240,7 @@ ipcMain.on("window:maximize", () => {
   }
 });
 ipcMain.on("window:close", () => {
+  // Close the focused window, or quit app if it's the last one
   const focused = BrowserWindow.getFocusedWindow();
   if (focused) {
     focused.close();
@@ -271,42 +248,14 @@ ipcMain.on("window:close", () => {
     app.quit();
   }
 });
+// NEW: Handle mini window close specifically
 ipcMain.on("mini:close", () => {
   if (miniWindow) {
     miniWindow.close();
   }
+  // If mini closes and main isn't visible, quit the app
   if (!mainWindow || !mainWindow.isVisible()) {
     app.quit();
-  }
-});
-
-// FIXED: Ensure auth doesn't override expand
-ipcMain.on('auth-status', (event, isAuthenticated) => {
-  console.log('MAIN: Received auth-status:', isAuthenticated);
-  if (isExpanding) {
-    console.log('MAIN: Skipping auth-status handling during expand');
-    return;
-  }
-  if (isAuthenticated) {
-    if (miniWindow) {
-      miniWindow.show();
-      miniWindow.focus();
-      console.log('MAIN: Showing mini after auth');
-    }
-    if (mainWindow) {
-      mainWindow.hide();
-      console.log('MAIN: Hiding main after auth');
-    }
-  } else {
-    if (mainWindow) {
-      mainWindow.show();
-      mainWindow.focus();
-      console.log('MAIN: Showing main for auth');
-    }
-    if (miniWindow) {
-      miniWindow.hide();
-      console.log('MAIN: Hiding mini during auth');
-    }
   }
 });
 
@@ -329,6 +278,7 @@ app.on('window-all-closed', () => {
   }
 });
 
+// Prevent app from quitting when all windows are closed on macOS
 app.on('before-quit', () => {
   console.log('MAIN: App is quitting...');
 });

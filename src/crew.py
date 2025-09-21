@@ -219,7 +219,7 @@ class AiAgent:
             except Exception as e:
                 print(f"Warning: Narrative summary failed: {e}")
        
-        return final_response
+        return {"display_response": final_response, "mode": mode}
     def perform_operations(self, operations: List[Dict[str, Any]]) -> str:
         """Execute list of operations sequentially, append results to a single string."""
         if not operations:

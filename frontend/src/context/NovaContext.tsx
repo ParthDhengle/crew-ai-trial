@@ -1,162 +1,357 @@
-import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import type { AgentOp, SchedulerTask, ChatMessage, ChatSession, Integration, NovaRole } from '../api/types';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import type {
+  ChatSession,
+  ChatMessage,
+  SchedulerTask,
+  AgentOp,
+  NovaRole,
+  Integration
+} from '@/api/types';
+import { chatService } from '@/api/chatService';
+import { apiClient } from '@/api/client';
 
-type NovaAction =
-  | { type: 'SET_VIEW'; payload: 'chat' | 'scheduler' | 'dashboard' | 'settings' }
-  | { type: 'SET_ROLE'; payload: NovaRole }
-  | { type: 'SET_VOICE_ENABLED'; payload: boolean }
-  | { type: 'SET_SELECTED_MODEL'; payload: string }
-  | { type: 'SET_ALWAYS_ON_TOP'; payload: boolean }
-  | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
-  | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
-  | { type: 'SET_SESSIONS'; payload: ChatSession[] }
-  | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
-  | { type: 'SET_TYPING'; payload: boolean }
-  | { type: 'SET_TASKS'; payload: SchedulerTask[] }
-  | { type: 'ADD_TASK'; payload: SchedulerTask }
-  | { type: 'UPDATE_TASK'; payload: { id: string; updates: Partial<SchedulerTask> } }
-  | { type: 'DELETE_TASK'; payload: string }
-  | { type: 'SET_OPERATIONS'; payload: AgentOp[] }
-  | { type: 'SET_INTEGRATIONS'; payload: Integration[] }
-  | { type: 'SET_MINI_MODE'; payload: boolean };
-
-interface NovaState {
-  view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
-  role: NovaRole;
-  voiceEnabled: boolean;
-  selectedModel: string;
-  alwaysOnTop: boolean;
-  sidebarCollapsed: boolean;
+/**
+ * Nova AI Assistant - Global State Management
+ *
+ * Provides centralized state management for the Nova UI with mock data
+ * for development and easy integration with Electron backend.
+ */
+type NovaState = {
+  // Chat state
   currentSession: ChatSession | null;
   sessions: ChatSession[];
   isTyping: boolean;
+ 
+  // Scheduler state
   tasks: SchedulerTask[];
+ 
+  // Agent operations
   operations: AgentOp[];
-  integrations: Integration[];
+ 
+  // UI state
+  view: 'chat' | 'scheduler' | 'dashboard' | 'settings';
   isMiniMode: boolean;
-}
+  sidebarCollapsed: boolean;
+ 
+  // User preferences
+  role: NovaRole;
+  voiceEnabled: boolean;
+  selectedModel: string;
+ 
+  // Integrations
+  integrations: Integration[];
+};
+
+type NovaAction =
+  | { type: 'SET_VIEW'; payload: NovaState['view'] }
+  | { type: 'SET_MINI_MODE'; payload: boolean }
+  | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
+  | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
+  | { type: 'SET_SESSIONS'; payload: ChatSession[] }
+  | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
+  | { type: 'SET_TYPING'; payload: boolean }
+  | { type: 'ADD_TASK'; payload: SchedulerTask }
+  | { type: 'UPDATE_TASK'; payload: { id: string; updates: Partial<SchedulerTask> } }
+  | { type: 'DELETE_TASK'; payload: string }
+  | { type: 'SET_TASKS'; payload: SchedulerTask[] }
+  | { type: 'SET_OPERATIONS'; payload: AgentOp[] }
+  | { type: 'SET_ROLE'; payload: NovaRole }
+  | { type: 'SET_VOICE_ENABLED'; payload: boolean }
+  | { type: 'SET_INTEGRATIONS'; payload: Integration[] };
+
+// Mock data for development
+const mockSessions: ChatSession[] = [
+  {
+    id: 'session-1',
+    title: 'Project Planning Discussion',
+    summary: 'Discussed Q4 project timeline and resource allocation',
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 3600000,
+    messages: [
+      {
+        id: 'msg-1',
+        content: "Hey Nova, I need help planning my Q4 projects. Can you help me organize my tasks?",
+        role: 'user',
+        timestamp: Date.now() - 86400000,
+      },
+      {
+        id: 'msg-2',
+        content: "Of course! I'd be happy to help you plan your Q4 projects. Let me analyze your current workload and suggest an optimal timeline. I can also create a structured task breakdown for you.",
+        role: 'assistant',
+        timestamp: Date.now() - 86390000,
+        actions: [
+          { type: 'accept_schedule', label: 'Create Schedule', payload: {} },
+          { type: 'run_operation', label: 'Analyze Workload', payload: { operation: 'workload_analysis' } }
+        ]
+      },
+      {
+        id: 'msg-3',
+        content: "That sounds perfect. I have about 15 hours per week available for project work.",
+        role: 'user',
+        timestamp: Date.now() - 86300000,
+      },
+    ]
+  },
+  {
+    id: 'session-2',
+    title: 'Email Management',
+    summary: 'Set up automated email responses and sorting rules',
+    createdAt: Date.now() - 172800000,
+    updatedAt: Date.now() - 7200000,
+    messages: [
+      {
+        id: 'msg-4',
+        content: "Can you help me set up some email automation rules?",
+        role: 'user',
+        timestamp: Date.now() - 172800000,
+      },
+      {
+        id: 'msg-5',
+        content: "Absolutely! I can help you create email filters, automated responses, and priority sorting. What type of emails would you like to automate first?",
+        role: 'assistant',
+        timestamp: Date.now() - 172750000,
+      }
+    ]
+  }
+];
+
+const mockTasks: SchedulerTask[] = [
+  {
+    id: 'task-1',
+    title: 'Prepare Q4 presentation',
+    description: 'Create slides for quarterly review meeting with stakeholders',
+    deadline: '2024-10-15T14:00:00Z',
+    priority: 'High',
+    status: 'todo',
+    tags: ['presentation', 'quarterly'],
+    isAgenticTask: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'task-2',
+    title: 'Code review for API updates',
+    description: 'Review pull requests for authentication service improvements',
+    deadline: '2024-10-12T17:00:00Z',
+    priority: 'Medium',
+    status: 'inprogress',
+    tags: ['development', 'api'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'task-3',
+    title: 'Team standup notes',
+    description: 'Document key decisions and action items from daily standups',
+    deadline: '2024-10-11T09:30:00Z',
+    priority: 'Low',
+    status: 'done',
+    tags: ['documentation'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+];
+
+const mockIntegrations: Integration[] = [
+  { id: 'email', name: 'Email', enabled: true, status: 'connected', lastSync: Date.now() - 300000 },
+  { id: 'calendar', name: 'Calendar', enabled: false, status: 'disconnected' },
+  { id: 'smartwatch', name: 'Smartwatch', enabled: false, status: 'disconnected' },
+  { id: 'device', name: 'Device Activity', enabled: true, status: 'connected', lastSync: Date.now() - 600000 },
+];
 
 const initialState: NovaState = {
+  currentSession: mockSessions[0],
+  sessions: mockSessions,
+  isTyping: false,
+  tasks: mockTasks,
+  operations: [],
   view: 'chat',
-  role: 'guide',
+  isMiniMode: false,
+  sidebarCollapsed: false,
+  role: 'friend',
   voiceEnabled: true,
   selectedModel: 'whisper-base',
-  alwaysOnTop: false,
-  sidebarCollapsed: false,
-  currentSession: null,
-  sessions: [],
-  isTyping: false,
-  tasks: [],
-  operations: [],
-  integrations: [],
-  isMiniMode: false,
+  integrations: mockIntegrations,
 };
+
+function novaReducer(state: NovaState, action: NovaAction): NovaState {
+  // Move const outside switch
+  let updatedSessions = state.sessions;
+  let updatedCurrentSession = state.currentSession;
+
+  switch (action.type) {
+    case 'SET_VIEW':
+      return { ...state, view: action.payload };
+   
+    case 'SET_MINI_MODE':
+      return { ...state, isMiniMode: action.payload };
+   
+    case 'SET_SIDEBAR_COLLAPSED':
+      return { ...state, sidebarCollapsed: action.payload };
+     
+    case 'ADD_MESSAGE':
+      const { sessionId, message } = action.payload;
+      updatedSessions = state.sessions.map(session =>
+        session.id === sessionId
+          ? { ...session, messages: [...session.messages, message], updatedAt: Date.now() }
+          : session
+      );
+      updatedCurrentSession = state.currentSession?.id === sessionId
+        ? { ...state.currentSession, messages: [...state.currentSession.messages, message] }
+        : state.currentSession;
+      return {
+        ...state,
+        sessions: updatedSessions,
+        currentSession: updatedCurrentSession
+      };
+   
+    case 'SET_SESSIONS':
+      return { ...state, sessions: action.payload };
+     
+    case 'SET_CURRENT_SESSION':
+      return { ...state, currentSession: action.payload };
+     
+    case 'SET_TYPING':
+      return { ...state, isTyping: action.payload };
+     
+    case 'ADD_TASK':
+      return { ...state, tasks: [...state.tasks, action.payload] };
+     
+    case 'UPDATE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === action.payload.id
+            ? { ...task, ...action.payload.updates, updatedAt: new Date().toISOString() }
+            : task
+        )
+      };
+     
+    case 'DELETE_TASK':
+      return { ...state, tasks: state.tasks.filter(task => task.id !== action.payload) };
+     
+    case 'SET_TASKS':
+      return { ...state, tasks: action.payload };
+     
+    case 'SET_OPERATIONS':
+      return { ...state, operations: action.payload };
+     
+    case 'SET_ROLE':
+      return { ...state, role: action.payload };
+     
+    case 'SET_VOICE_ENABLED':
+      return { ...state, voiceEnabled: action.payload };
+     
+    case 'SET_INTEGRATIONS':
+      return { ...state, integrations: action.payload };
+     
+    default:
+      return state;
+  }
+}
 
 const NovaContext = createContext<{
   state: NovaState;
   dispatch: React.Dispatch<NovaAction>;
 } | null>(null);
 
-export const NovaProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer((state: NovaState, action: NovaAction) => {
-    switch (action.type) {
-      case 'SET_VIEW':
-        return { ...state, view: action.payload };
-      case 'SET_MINI_MODE':
-        return { ...state, isMiniMode: action.payload };
-        case 'SET_ROLE':
-        return { ...state, role: action.payload };
-      case 'SET_VOICE_ENABLED':
-        return { ...state, voiceEnabled: action.payload };
-      case 'SET_SELECTED_MODEL':
-        return { ...state, selectedModel: action.payload };
-      case 'SET_ALWAYS_ON_TOP':
-        return { ...state, alwaysOnTop: action.payload };
-      case 'SET_SIDEBAR_COLLAPSED':
-        return { ...state, sidebarCollapsed: action.payload };
-      case 'SET_CURRENT_SESSION':
-        return { ...state, currentSession: action.payload };
-      case 'SET_SESSIONS':
-        return { ...state, sessions: action.payload };
-      case 'ADD_MESSAGE':
-        if (state.currentSession?.id === action.payload.sessionId) {
-          const updatedSession = {
-            ...state.currentSession,
-            messages: [...state.currentSession.messages, action.payload.message],
-            updatedAt: Date.now(),
-          };
-          return {
-            ...state,
-            currentSession: updatedSession,
-            sessions: state.sessions.map(s => s.id === action.payload.sessionId ? updatedSession : s),
-          };
+export function NovaProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(novaReducer, initialState);
+
+  // Set up chat service callbacks
+  useEffect(() => {
+    chatService.setCallbacks({
+      onMessage: (message) => {
+        if (state.currentSession) {
+          dispatch({
+            type: 'ADD_MESSAGE',
+            payload: { sessionId: state.currentSession.id, message }
+          });
         }
-        return state;
-      case 'SET_TYPING':
-        return { ...state, isTyping: action.payload };
-      case 'SET_TASKS':
-        return { ...state, tasks: action.payload };
-      case 'ADD_TASK':
-        return { ...state, tasks: [...state.tasks, action.payload] };
-      case 'UPDATE_TASK':
-        return {
-          ...state,
-          tasks: state.tasks.map(t => t.id === action.payload.id ? { ...t, ...action.payload.updates } : t),
-        };
-      case 'DELETE_TASK':
-        return { ...state, tasks: state.tasks.filter(t => t.id !== action.payload) };
-      case 'SET_OPERATIONS':
-        return { ...state, operations: action.payload };
-      case 'SET_INTEGRATIONS':
-        return { ...state, integrations: action.payload };
-      default:
-        return state;
-    }
-  }, initialState);
+      },
+      onTyping: (isTyping) => {
+        dispatch({ type: 'SET_TYPING', payload: isTyping });
+      },
+      onError: (error) => {
+        console.error('Chat service error:', error);
+      },
+      onSessionUpdate: (session) => {
+        dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
+      },
+      onSessionsUpdate: (sessions) => { // Added callback for sessions refresh
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
+      }
+    });
+  }, [state.currentSession]);
 
-  const { profile, idToken } = useAuth();  // Integrate auth
+  // Load initial data from API
   useEffect(() => {
-    if (profile) {
-      dispatch({ type: 'SET_ROLE', payload: profile.role });
-      dispatch({ type: 'SET_VOICE_ENABLED', payload: profile.voiceEnabled });
-      dispatch({ type: 'SET_SELECTED_MODEL', payload: profile.selectedModel });
-      dispatch({ type: 'SET_ALWAYS_ON_TOP', payload: profile.alwaysOnTop });
-    }
-  }, [profile]);
-
-  // Fetch initial data on mount
-  useEffect(() => {
-    // Fetch sessions, tasks, etc. via API (implement fetchTasks, etc.)
-    const fetchInitialData = async () => {
-      if (!idToken) return;
+    const loadInitialData = async () => {
       try {
-        // Example: Fetch tasks
-        const tasksRes = await fetch('http://localhost:8000/tasks', {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        const tasks = await tasksRes.json();
-        dispatch({ type: 'SET_TASKS', payload: tasks });
+        // Load chat sessions
+        const sessions = await chatService.getChatSessions();
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
+        if (sessions.length > 0) {
+          dispatch({ type: 'SET_CURRENT_SESSION', payload: sessions[0] });
+        } else {
+          // Create a new session if none exist
+          const newSession = await chatService.createNewSession();
+          dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+          dispatch({ type: 'SET_SESSIONS', payload: [newSession] });
+        }
 
-        // Similar for operations, integrations
+        // Load tasks
+        const tasks = await apiClient.getTasks();
+        // Convert API tasks to our format
+        const formattedTasks = tasks.map(task => ({
+          ...task,
+          createdAt: new Date(task.createdAt).toISOString(),
+          updatedAt: new Date(task.updatedAt).toISOString(),
+        }));
+        dispatch({ type: 'SET_TASKS', payload: formattedTasks });
+
+        // Load operations
+        const operations = await apiClient.getOperations();
+        dispatch({ type: 'SET_OPERATIONS', payload: operations });
       } catch (error) {
-        console.error('Failed to fetch initial data:', error);
+        console.error('Failed to load initial data:', error);
       }
     };
-    fetchInitialData();
-  }, [idToken]);
+    loadInitialData();
+  }, []);
+
+  // Simulate some dynamic updates for demo (reduced frequency)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Randomly update agent operations for demo
+      if (Math.random() > 0.9) {
+        const mockOps: AgentOp[] = [
+          {
+            id: `op-${Date.now()}`,
+            title: 'Processing email batch',
+            desc: 'Categorizing and prioritizing incoming messages',
+            status: 'running',
+            progress: Math.floor(Math.random() * 100),
+            startTime: Date.now() - Math.random() * 60000,
+          }
+        ];
+        dispatch({ type: 'SET_OPERATIONS', payload: mockOps });
+      }
+    }, 30000); // Reduced frequency
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <NovaContext.Provider value={{ state, dispatch }}>
       {children}
     </NovaContext.Provider>
   );
-};
+}
 
-export const useNova = () => {
+export function useNova() {
   const context = useContext(NovaContext);
   if (!context) {
-    throw new Error('useNova must be used within NovaProvider');
+    throw new Error('useNova must be used within a NovaProvider');
   }
   return context;
-};
+}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';  // Added useMemo for tasksByStatus
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
+import { 
   Dialog,
   DialogContent,
   DialogHeader,
@@ -44,14 +44,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -59,11 +59,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { useNova } from '@/context/NovaContext';
-import type { SchedulerTask } from '@/api/types';  // Fixed: Import from types (no separate tasks file needed)
+import type { SchedulerTask } from '@/api/types';
 
 /**
  * Nova Scheduler Kanban - Task management with drag & drop
- *
+ * 
  * Features:
  * - Three columns: To Do, In Progress, Done
  * - Drag & drop between columns
@@ -74,6 +74,7 @@ import type { SchedulerTask } from '@/api/types';  // Fixed: Import from types (
  * - Quick actions (reschedule, mark done, convert to event)
  * - Beautiful animations with Framer Motion
  */
+
 type ColumnType = 'todo' | 'inprogress' | 'done';
 
 interface ColumnConfig {
@@ -125,18 +126,22 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
     transition,
     isDragging: isSortableDragging,
   } = useSortable({ id: task.id });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
   const priorityConfig = {
     High: { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
     Medium: { color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
     Low: { color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
   };
+
   const priority = priorityConfig[task.priority];
   const isOverdue = new Date(task.deadline) < new Date();
   const isDueSoon = new Date(task.deadline) < new Date(Date.now() + 24 * 60 * 60 * 1000);
+
   return (
     <div
       ref={setNodeRef}
@@ -159,6 +164,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
             </div>
           )}
         </div>
+
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -186,7 +192,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
                   Mark Done
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
+              <DropdownMenuItem 
                 className="text-destructive"
                 onClick={() => onDelete(task.id)}
               >
@@ -197,16 +203,18 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
           </DropdownMenu>
         </div>
       </div>
+
       {/* Task Meta */}
       <div className="space-y-2">
         {/* Priority & Status */}
         <div className="flex items-center gap-2">
-          <Badge
+          <Badge 
             variant="outline"
             className={`text-xs ${priority.color} ${priority.bg} ${priority.border}`}
           >
             {task.priority}
           </Badge>
+          
           {task.isAgenticTask && (
             <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
               <Bot size={8} className="mr-1" />
@@ -214,6 +222,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
             </Badge>
           )}
         </div>
+
         {/* Deadline */}
         <div className={`flex items-center gap-1 text-xs ${
           isOverdue ? 'text-red-400' : isDueSoon ? 'text-yellow-400' : 'text-muted-foreground'
@@ -225,6 +234,7 @@ function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCar
           </span>
           {isOverdue && <AlertTriangle size={10} className="text-red-400" />}
         </div>
+
         {/* Tags */}
         {task.tags && task.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -261,8 +271,10 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
     tags: task?.tags?.join(', ') || '',
     isAgenticTask: task?.isAgenticTask || false,
   });
+
   const handleSave = () => {
     if (!formData.title.trim()) return;
+
     onSave({
       ...task,
       title: formData.title.trim(),
@@ -272,8 +284,10 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
       tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
       isAgenticTask: formData.isAgenticTask,
     });
+
     onOpenChange(false);
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -282,6 +296,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
             {task ? 'Edit Task' : 'Create New Task'}
           </DialogTitle>
         </DialogHeader>
+
         <div className="space-y-4">
           <div>
             <Label htmlFor="title">Title</Label>
@@ -293,6 +308,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
               className="mt-1"
             />
           </div>
+
           <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -303,6 +319,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
               className="mt-1 min-h-[80px]"
             />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="deadline">Deadline</Label>
@@ -314,11 +331,12 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
                 className="mt-1"
               />
             </div>
+
             <div>
               <Label htmlFor="priority">Priority</Label>
               <Select
                 value={formData.priority}
-                onValueChange={(value: 'High' | 'Medium' | 'Low') => setFormData(prev => ({ ...prev, priority: value }))}
+                onValueChange={(value: 'High' | 'Medium' | 'Low') => setFormData(prev => ({ ...prev, priority: value }))} // Fixed: Specific type
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
@@ -331,6 +349,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
               </Select>
             </div>
           </div>
+
           <div>
             <Label htmlFor="tags">Tags (comma-separated)</Label>
             <Input
@@ -341,6 +360,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
               className="mt-1"
             />
           </div>
+
           <div className="flex items-center space-x-2">
             <Switch
               id="agentic"
@@ -351,6 +371,7 @@ function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProp
               Make this an Agentic Task
             </Label>
           </div>
+
           <div className="flex gap-2 pt-4">
             <Button onClick={handleSave} className="flex-1 btn-nova">
               {task ? 'Update Task' : 'Create Task'}
@@ -370,6 +391,7 @@ export default function SchedulerKanban() {
   const [activeTask, setActiveTask] = useState<SchedulerTask | null>(null);
   const [editingTask, setEditingTask] = useState<SchedulerTask | undefined>();
   const [showEditDialog, setShowEditDialog] = useState(false);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -377,15 +399,12 @@ export default function SchedulerKanban() {
     })
   );
 
-  // Group tasks by status - using useMemo to avoid recompute
-  const tasksByStatus = useMemo(() => 
-    state.tasks.reduce((acc: Record<ColumnType, SchedulerTask[]>, task) => {
-      const statusKey = task.status as ColumnType;
-      acc[statusKey] = acc[statusKey] || [];
-      acc[statusKey].push(task);
-      return acc;
-    }, {} as Record<ColumnType, SchedulerTask[]>), [state.tasks]
-  );
+  // Group tasks by status
+  const tasksByStatus = state.tasks.reduce((acc, task) => {
+    acc[task.status] = acc[task.status] || [];
+    acc[task.status].push(task);
+    return acc;
+  }, {} as Record<ColumnType, SchedulerTask[]>);
 
   // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
@@ -393,13 +412,16 @@ export default function SchedulerKanban() {
     setActiveTask(task || null);
   };
 
-  // Handle drag end - Fixed: Added missing closing brace and logic
+  // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
+
     if (!over) return;
+
     const taskId = active.id as string;
     const newStatus = over.id as ColumnType;
+
     // Update task status
     dispatch({
       type: 'UPDATE_TASK',
@@ -408,7 +430,7 @@ export default function SchedulerKanban() {
         updates: { status: newStatus }
       }
     });
-  };  // Fixed: Added missing '}' here
+  };
 
   // Handle task creation/editing
   const handleSaveTask = (taskData: Partial<SchedulerTask>) => {
@@ -435,8 +457,10 @@ export default function SchedulerKanban() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
       dispatch({ type: 'ADD_TASK', payload: newTask });
     }
+
     setEditingTask(undefined);
   };
 
@@ -495,6 +519,7 @@ export default function SchedulerKanban() {
           </Button>
         </div>
       </div>
+
       {/* Kanban Board */}
       <div className="flex-1 p-6">
         <DndContext
@@ -520,6 +545,7 @@ export default function SchedulerKanban() {
                     </Badge>
                   </div>
                 </div>
+
                 {/* Task List */}
                 <SortableContext
                   items={tasksByStatus[column.id]?.map(t => t.id) || []}
@@ -549,6 +575,7 @@ export default function SchedulerKanban() {
               </div>
             ))}
           </div>
+
           {/* Drag Overlay */}
           <DragOverlay>
             {activeTask ? (
@@ -563,6 +590,7 @@ export default function SchedulerKanban() {
           </DragOverlay>
         </DndContext>
       </div>
+
       {/* Task Edit Dialog */}
       <TaskEditDialog
         task={editingTask}
