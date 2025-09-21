@@ -208,6 +208,9 @@ class ApiClient {
     });
     return response.op_id;
   }
+  async deleteChatSession(sessionId: string) {
+    await this.request(`/chat_sessions/${sessionId}`, { method: 'DELETE' });
+  }
 }
 
 // Create API client instance

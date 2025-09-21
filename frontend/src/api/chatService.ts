@@ -55,24 +55,36 @@ class ChatService {
 
       // Send to backend and get response
       const backendResponse = await apiClient.sendMessage(content, this.currentSessionId);
-      const displayContent = typeof backendResponse === 'object' 
-        ? backendResponse.display_response || JSON.stringify(backendResponse)  // Fallback to stringified if no display_response
-        : backendResponse;  // If it's already a string (edge case)
+      // Correction at line 57-58: Extract nested result and handle session_id from backend response
+      const responseData = backendResponse.result || backendResponse;
+      const displayContent = typeof responseData === 'object' 
+        ? responseData.display_response || JSON.stringify(responseData)  // Fallback to stringified if no display_response
+        : responseData;  // If it's already a string (edge case)
+      // Correction at line 60: Update currentSessionId if backend returns a new one (e.g., for new sessions)
+      if (backendResponse.session_id) {
+        this.currentSessionId = backendResponse.session_id;
+      }
 
       // Create assistant message
       const assistantMessage: ChatMessage = {
-    id: `assistant-${Date.now()}`,
-    content: displayContent,
-    role: 'assistant',
-    timestamp: Date.now(),
-    actions: [
-      { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
-      { type: 'run_operation', label: 'Analyze Further', payload: {} }
-    ]
-  };
+        id: `assistant-${Date.now()}`,
+        content: displayContent,
+        role: 'assistant',
+        timestamp: Date.now(),
+        actions: [
+          { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
+          { type: 'run_operation', label: 'Analyze Further', payload: {} }
+        ]
+      };
 
       // Notify assistant message
       this.callbacks.onMessage?.(assistantMessage);
+
+      // Correction at line 79: Fetch updated session after message to ensure real data (no mocks)
+      if (this.currentSessionId) {
+        const updatedSession = await this.getChatSession(this.currentSessionId);
+        this.callbacks.onSessionUpdate?.(updatedSession);
+      }
 
       return assistantMessage;
 
@@ -105,6 +117,18 @@ class ChatService {
       console.error('Failed to get chat sessions:', error);
       this.callbacks.onError?.(error as Error);
       return [];
+    }
+  }
+
+  // Correction at line 112: Add getChatSession to fetch a single session with messages
+  async getChatSession(sessionId: string): Promise<ChatSession> {
+    try {
+      const session = await apiClient.getChatSession(sessionId);  // Assume you add this to apiClient if needed
+      const history = await this.getChatHistory(sessionId);
+      return { ...session, messages: history };
+    } catch (error) {
+      console.error('Failed to get chat session:', error);
+      throw error;
     }
   }
 

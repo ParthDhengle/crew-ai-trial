@@ -162,9 +162,9 @@ const mockIntegrations: Integration[] = [
 
 const initialState: NovaState = {
   currentSession: mockSessions[0],
-  sessions: mockSessions,
+  sessions: [],
   isTyping: false,
-  tasks: mockTasks,
+  tasks: [],
   operations: [],
   view: 'chat',
   isMiniMode: false,
@@ -285,39 +285,42 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
   // Load initial data from API
   useEffect(() => {
     const loadInitialData = async () => {
-      try {
-        // Load chat sessions
-        const sessions = await chatService.getChatSessions();
-        if (sessions.length > 0) {
-          dispatch({ type: 'SET_SESSIONS', payload: sessions });
-          dispatch({ type: 'SET_CURRENT_SESSION', payload: sessions[0] });
-        } else {
-          // Create a new session if none exist
-          const newSession = chatService.createNewSession();
-          dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
-        }
-
-        // Load tasks
-        const tasks = await apiClient.getTasks();
-        // Convert API tasks to our format
-        const formattedTasks = tasks.map(task => ({
-          ...task,
-          createdAt: new Date(task.createdAt).toISOString(),
-          updatedAt: new Date(task.updatedAt).toISOString(),
-        }));
-        dispatch({ type: 'SET_TASKS', payload: formattedTasks });
-
-        // Load operations
-        const operations = await apiClient.getOperations();
-        dispatch({ type: 'SET_OPERATIONS', payload: operations });
-
-      } catch (error) {
-        console.error('Failed to load initial data:', error);
+    try {
+      // Load chat sessions
+      const sessions = await chatService.getChatSessions();
+      dispatch({ type: 'SET_SESSIONS', payload: sessions });
+      
+      let currentSession = sessions[0] || chatService.createNewSession();
+      if (!currentSession) {
+        const history = await chatService.getChatHistory(currentSession.id);
+        currentSession = { ...currentSession, messages: history };}
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: currentSession });
+      
+      // Load messages for current session
+      if (currentSession) {
+        const history = await chatService.getChatHistory(currentSession.id);
+        // Update current session with messages (if not already loaded)
+        dispatch({
+          type: 'SET_CURRENT_SESSION',
+          payload: { ...currentSession, messages: history }
+        });
       }
-    };
 
-    loadInitialData();
-  }, []);
+      // Load tasks
+      const tasks = await apiClient.getTasks();
+      dispatch({ type: 'SET_TASKS', payload: tasks });
+
+      // Load operations
+      const operations = await apiClient.getOperations();
+      dispatch({ type: 'SET_OPERATIONS', payload: operations });
+    } catch (error) {
+      console.error('Failed to load initial data:', error);
+    }
+  };
+  loadInitialData();
+}, []);
+
+
 
   // Simulate some dynamic updates for demo (reduced frequency)
   useEffect(() => {

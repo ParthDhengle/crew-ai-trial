@@ -5,6 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore , auth
 from datetime import datetime, timedelta
 import json
+import uuid
 # Load environment variables
 load_dotenv()
 # Initialize Firebase
@@ -146,13 +147,27 @@ def add_operation(name: str, params: dict, description: str) -> str:
     """Add op to Firestore (for future dynamic ops)."""
     data = {"name": name, "required_parameters": params.get("required", []), "optional_parameters": params.get("optional", []), "description": description}
     return add_document("operations", data, subcollection=False)
-def get_chat_history(session_id: str = None) -> list:
-    """Get chat history docs, optionally filtered by session_id."""
-    filters = [("session_id", "==", session_id)] if session_id else None
-    docs = query_collection("chat_history", filters=filters, limit=50)
-    # Sort by timestamp
-    docs.sort(key=lambda x: x.get('timestamp', ''))
-    return docs
+def get_chat_history(session_id: str = None, uid: str = None) -> list:
+    user_ref = db.collection('users').document(uid)
+    if session_id:
+        messages_ref = user_ref.collection('chat_sessions').document(session_id).collection('messages')
+        docs = messages_ref.stream()
+        history = [doc.to_dict() for doc in docs]
+        history.sort(key=lambda x: x.get('timestamp', ''))
+        return history
+    else:
+        # Aggregate all messages across sessions (with session_id in each)
+        all_history = []
+        sessions = user_ref.collection('chat_sessions').stream()
+        for session in sessions:
+            msgs = session.reference.collection('messages').stream()
+            for msg in msgs:
+                data = msg.to_dict()
+                data['session_id'] = session.id
+                all_history.append(data)
+        all_history.sort(key=lambda x: x.get('timestamp', ''))
+        return all_history
+    
 def add_chat_message(role: str, content: str, session_id: str = None) -> str:
     """Add a message to chat_history collection."""
     data = {
@@ -317,16 +332,41 @@ def get_expenses() -> list:
     """List expenses."""
     return query_collection("expenses")
 # Knowledge Base
-def save_chat_message(session_id, uid, role, content, timestamp, actions=None):
-    ref = db.collection("chats").document(session_id).collection("messages")
+def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str, actions=None) -> str:
+    user_ref = db.collection("users").document(uid)
+    
+    if session_id is None or not user_ref.collection('chat_sessions').document(session_id).get().exists:
+        session_id = session_id or str(uuid.uuid4())
+        # Create session doc with metadata
+        session_ref = user_ref.collection('chat_sessions').document(session_id)
+        session_ref.set({
+            'title': 'New Chat',
+            'summary': '',
+            'createdAt': timestamp,
+            'updatedAt': timestamp
+        })
+    
+    # Add message
+    session_ref = user_ref.collection('chat_sessions').document(session_id)
+    msg_ref = session_ref.collection('messages').document()
     message = {
         "role": role,
         "content": content,
         "timestamp": timestamp,
         "actions": actions or []
     }
-    ref.add(message)
-    return True
+    msg_ref.set(message)
+    
+    # Update session updatedAt (and title if first user message)
+    session_ref.update({'updatedAt': timestamp})
+    if role == 'user':
+        messages = session_ref.collection('messages').where('role', '==', 'user').stream()
+        user_msgs = [m.to_dict()['content'] for m in messages]
+        if len(user_msgs) == 1:  # First user message
+            title = user_msgs[0][:50] + ('...' if len(user_msgs[0]) > 50 else '')
+            session_ref.update({'title': title})
+    
+    return session_id  # Return session_id (new or existing)
 
 def add_kb_entry(title: str, content_md: str, tags: list = None, references: list = None) -> str:
     """Add KB entry (facts/notes)."""

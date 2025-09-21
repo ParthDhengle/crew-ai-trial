@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNova } from '@/context/NovaContext';
 import type { ChatSession } from '@/api/types';
-
+import { chatService } from '@/api/chatService';
 /**
  * Nova Sidebar - Chat history and navigation
  * 
@@ -79,9 +79,10 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   };
 
   // Handle session selection
-  const handleSessionSelect = (session: ChatSession) => {
-    dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
-  };
+const handleSessionSelect = async (session: ChatSession) => {
+  const history = await chatService.getChatHistory(session.id);
+  dispatch({ type: 'SET_CURRENT_SESSION', payload: { ...session, messages: history } });
+};
 
   // Handle session deletion
   const handleDeleteSession = (sessionId: string) => {
