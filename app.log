@@ -799,3 +799,9 @@
 2025-09-21 00:05:10 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
 2025-09-21 02:57:49 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
 2025-09-21 02:57:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 04:56:08 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 04:56:15 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 05:00:24 - AIAssistant - ERROR - Error processing query: name 'update_chat_session' is not defined
+2025-09-21 05:01:38 - AIAssistant - ERROR - Error processing query: name 'update_chat_session' is not defined
+2025-09-21 17:22:15 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 17:22:24 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001

@@ -12,7 +12,6 @@ export interface ChatServiceCallbacks {
   onMessage?: (message: ChatMessage) => void;
   onTyping?: (isTyping: boolean) => void;
   onError?: (error: Error) => void;
-  onSessionsUpdate?: (sessions: ChatSession[]) => void;
   onSessionUpdate?: (session: ChatSession) => void;
 }
 
@@ -38,7 +37,7 @@ class ChatService {
 
     this.isProcessing = true;
     this.currentSessionId = sessionId || this.currentSessionId || `session-${Date.now()}`;
-    const isNewSession = await this.isNewSession(this.currentSessionId); // Check if first message
+
     try {
       // Notify typing started
       this.callbacks.onTyping?.(true);
@@ -62,23 +61,19 @@ class ChatService {
 
       // Create assistant message
       const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        content: displayContent,
-        role: 'assistant',
-        timestamp: Date.now(),
-        actions: [
-          { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
-          { type: 'run_operation', label: 'Analyze Further', payload: {} }
-        ]
-      };
+    id: `assistant-${Date.now()}`,
+    content: displayContent,
+    role: 'assistant',
+    timestamp: Date.now(),
+    actions: [
+      { type: 'accept_schedule', label: 'Schedule Follow-up', payload: {} },
+      { type: 'run_operation', label: 'Analyze Further', payload: {} }
+    ]
+  };
 
       // Notify assistant message
       this.callbacks.onMessage?.(assistantMessage);
 
-      if (isNewSession) {
-        const sessions = await this.getChatSessions();
-        this.callbacks.onSessionsUpdate?.(sessions);
-      }
       return assistantMessage;
 
     } catch (error) {
@@ -90,10 +85,7 @@ class ChatService {
       this.callbacks.onTyping?.(false);
     }
   }
-  async isNewSession(sessionId: string): Promise<boolean> {
-    const history = await this.getChatHistory(sessionId);
-    return history.length === 0;
-  }
+
   // Get chat history for a session
   async getChatHistory(sessionId?: string): Promise<ChatMessage[]> {
     try {
@@ -117,32 +109,21 @@ class ChatService {
   }
 
   // Create a new chat session
-  async createNewSession(title: string = 'New Chat', summary: string = ''): Promise<ChatSession> {
-    try {
-      const response = await apiClient.createChatSession({ title, summary });
-      const sessionId = response.session_id;
+  createNewSession(): ChatSession {
+    const sessionId = `session-${Date.now()}`;
+    const newSession: ChatSession = {
+      id: sessionId,
+      title: 'New Chat',
+      summary: '',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
 
-      const newSession: ChatSession = {
-        id: sessionId,
-        title,
-        summary,
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-
-      this.currentSessionId = sessionId;
-      this.callbacks.onSessionUpdate?.(newSession);
-
-      // Refresh sessions list
-      const sessions = await this.getChatSessions();
-      this.callbacks.onSessionsUpdate?.(sessions);
-
-      return newSession;
-    } catch (error) {
-      console.error('Failed to create new session:', error);
-      throw error;
-    }
+    this.currentSessionId = sessionId;
+    this.callbacks.onSessionUpdate?.(newSession);
+    
+    return newSession;
   }
 
   // Get current session ID

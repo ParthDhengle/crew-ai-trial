@@ -134,14 +134,9 @@ class ApiClient {
   }
 
   async getChatSessions() {
-    return this.request<ChatSession[]>('/chat_sessions');  // New endpoint
+    return this.request<ChatSession[]>('/chat_sessions');
   }
-  async createChatSession(data: { title: string, summary: string }) {
-    return this.request<{ session_id: string }>('/chat_sessions', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
+
   // Task endpoints
   async getTasks() {
     return this.request<SchedulerTask[]>('/tasks');

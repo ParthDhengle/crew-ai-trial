@@ -3,7 +3,6 @@ import sys
 import json
 import warnings
 from datetime import datetime
-from collections import defaultdict
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, __version__ as pydantic_version
@@ -163,7 +162,7 @@ async def process_query(request: QueryRequest, uid: str = Depends(get_current_ui
 
         # Queue op
         queue_operation("process_query", {"query": request.query})
-        return {"result": final_response["display_response"]}
+        return {"result": final_response}
     except Exception as e:
         logger.error(f"Error processing query: {str(e)}")
         traceback.print_exc()
@@ -193,38 +192,6 @@ async def update_task(task_id: str, request: UpdateTaskRequest, uid: str = Depen
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"success": True}
-
-@app.get("/chat_sessions")
-async def get_chat_sessions(uid: str = Depends(get_current_uid)):
-    history = get_chat_history()  # All messages for user
-    sessions = defaultdict(lambda: {
-        'id': None,
-        'title': None,
-        'summary': '',
-        'messages': [],
-        'createdAt': float('inf'),
-        'updatedAt': float('-inf')
-    })
-    
-    for msg in history:
-        sid = msg.get('session_id') or 'default'
-        session = sessions[sid]
-        session['id'] = sid
-        session['title'] = f"Chat {sid}"  # Can improve with AI title generation later
-        session['messages'].append(msg)
-        ts = datetime.fromisoformat(msg['timestamp']).timestamp() * 1000  # ms for JS
-        session['createdAt'] = min(session['createdAt'], ts)
-        session['updatedAt'] = max(session['updatedAt'], ts)
-    
-    # Compute summaries (first message content truncated)
-    for sid, data in sessions.items():
-        if data['messages']:
-            first_msg = sorted(data['messages'], key=lambda m: m['timestamp'])[0]
-            data['summary'] = first_msg['content'][:100] + '...'
-            # Include full messages or just metadata? For list, omit messages to save bandwidth
-            del data['messages']  # Don't send full history in list
-    
-    return list(sessions.values())
 
 @app.delete("/tasks/{task_id}")
 async def delete_task(task_id: str, uid: str = Depends(get_current_uid)):
