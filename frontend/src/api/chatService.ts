@@ -49,21 +49,37 @@ class ChatService {
       const backendResponse = await apiClient.sendMessage(content, this.currentSessionId);
 
       // Extract nested result or flat response
-      let displayContent;
-      if ('result' in backendResponse && backendResponse.result) {
-        // Nested response: { result: { display_response: string, mode: string }, session_id: string }
-        const result = backendResponse.result;
-        displayContent = typeof result === 'object' && result.display_response
-          ? result.display_response
-          : JSON.stringify(result, null, 2);
-      } else if ('display_response' in backendResponse) {
-        // Flat response: { display_response: string, mode: string }
-        displayContent = backendResponse.display_response || JSON.stringify(backendResponse, null, 2);
-      } else {
-        // Fallback for unexpected response
-        displayContent = JSON.stringify(backendResponse, null, 2);
+      let displayContent: string;
+
+      // If backend returned a JSON string, try to parse it
+      let parsedResponse: any = backendResponse;
+      if (typeof backendResponse === 'string') {
+        try {
+          parsedResponse = JSON.parse(backendResponse);
+        } catch (e) {
+          // If it can't be parsed, keep it as the raw string
+          parsedResponse = backendResponse;
+        }
       }
 
+      // If parsedResponse has a 'result' object and it includes display_response, use it
+      if (parsedResponse && typeof parsedResponse === 'object' && 'result' in parsedResponse && parsedResponse.result) {
+        const result = parsedResponse.result;
+        if (typeof result === 'object' && 'display_response' in result && result.display_response != null) {
+          displayContent = String(result.display_response);
+        } else {
+          // If result exists but doesn't contain display_response, stringify the result object
+          displayContent = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        }
+      } else if (parsedResponse && typeof parsedResponse === 'object' && 'display_response' in parsedResponse) {
+        // Flat response shape: { display_response: string, mode: string }
+        displayContent = String(parsedResponse.display_response ?? '');
+      } else {
+        // Fallback: if parsedResponse is a primitive (string/number) use it, otherwise stringify
+        displayContent = (typeof parsedResponse === 'string' || typeof parsedResponse === 'number')
+          ? String(parsedResponse)
+          : JSON.stringify(parsedResponse, null, 2);
+      }
       // Update currentSessionId if backend returns a new one
       if (backendResponse.session_id) {
         this.currentSessionId = backendResponse.session_id;
