@@ -120,7 +120,7 @@ export default function FullChat({
             {/* Messages */}
             {state.currentSession?.messages.map((message, index) => (
               <motion.div
-                key={message.id}
+                key={message.id || `message-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -148,7 +148,10 @@ export default function FullChat({
                     </div>
                     {/* Content */}
                     <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
+                      {typeof message.content === 'string' 
+                        ? message.content 
+                        : JSON.stringify(message.content, null, 2)  // Pretty-print object as fallback
+                      }
                     </div>
                     {/* Actions */}
                     {message.actions && message.actions.length > 0 && (

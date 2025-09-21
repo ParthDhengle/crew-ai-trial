@@ -1,16 +1,10 @@
-/**
- * Nova AI Assistant - API Client
- * 
- * Handles all communication with the FastAPI backend
- * Includes authentication, error handling, and type safety
- */
-
-import type { 
-  ChatMessage, 
-  ChatSession, 
-  SchedulerTask, 
+// frontend/src/api/client.ts (fixed - updated sendMessage type and added getChatSession)
+import type {
+  ChatMessage,
+  ChatSession,
+  SchedulerTask,
   AgentOp,
-  NovaRole 
+  NovaRole
 } from './types';
 
 // API Configuration
@@ -60,11 +54,11 @@ class ApiClient {
   }
 
   private async request<T>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const { token } = authManager.getAuth();
-    
+   
     const config: RequestInit = {
       ...options,
       headers: {
@@ -76,13 +70,13 @@ class ApiClient {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-      
+     
       if (!response.ok) {
         if (response.status === 401) {
           authManager.clearAuth();
           throw new Error('Authentication failed. Please login again.');
         }
-        
+       
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
@@ -100,7 +94,7 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    
+   
     authManager.setAuth(response.custom_token, response.uid);
     return response;
   }
@@ -110,7 +104,7 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    
+   
     authManager.setAuth(response.custom_token, response.uid);
     return response;
   }
@@ -121,11 +115,11 @@ class ApiClient {
 
   // Chat endpoints
   async sendMessage(query: string, sessionId?: string) {
-    const response = await this.request<{ result: { display_response: string, mode: string } }>('/process_query', {
+    const response = await this.request<{ result: { display_response: string; mode: string }; session_id: string; }>('/process_query', {
       method: 'POST',
       body: JSON.stringify({ query, session_id: sessionId }),
     });
-    return response.result;
+    return response;
   }
 
   async getChatHistory(sessionId?: string) {
@@ -135,6 +129,17 @@ class ApiClient {
 
   async getChatSessions() {
     return this.request<ChatSession[]>('/chat_sessions');
+  }
+
+  // Added getChatSession to fetch a single session with messages
+  async getChatSession(sessionId: string): Promise<ChatSession> {
+    const sessions = await this.getChatSessions();
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+    const history = await this.getChatHistory(sessionId);
+    return { ...session, messages: history };
   }
 
   // Task endpoints
@@ -153,7 +158,7 @@ class ApiClient {
         tags: task.tags || [],
       }),
     });
-    
+   
     return {
       ...task,
       id: response.task_id,
@@ -174,7 +179,7 @@ class ApiClient {
         tags: updates.tags,
       }),
     });
-    
+   
     return { ...updates, id, updatedAt: new Date().toISOString() };
   }
 
@@ -208,6 +213,7 @@ class ApiClient {
     });
     return response.op_id;
   }
+
   async deleteChatSession(sessionId: string) {
     await this.request(`/chat_sessions/${sessionId}`, { method: 'DELETE' });
   }
