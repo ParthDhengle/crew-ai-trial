@@ -10,7 +10,8 @@ import google.generativeai as genai
 from common_functions.Find_project_root import find_project_root
 import uuid
 from firebase_client import add_chat_message, get_chat_history  # Updated imports
-
+from firebase_client import add_chat_message
+import os
 project_root = find_project_root()
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
 
@@ -42,17 +43,15 @@ class ChatHistory:
         return history
 
     @staticmethod
-    def save_history(history: list, session_id: str = None):
+    def save_history(history: list, session_id: str = None, uid: str = None):
         if session_id is None:
             session_id = ChatHistory.get_session_id()
+        if uid is None:
+            uid = os.getenv("USER_ID", "default_uid")  # Fallback; in app.py, pass explicitly
         for entry in history:
-            add_chat_message(
-                role=entry["role"],
-                content=entry["content"],
-                session_id=session_id
-            )
+            add_chat_message(uid, entry["role"], entry["content"], session_id)  # <- Added uid
         print(f"Saved history to Firebase (session: {session_id}).")
-
+    
     @staticmethod
     def summarize(history: list):
         if len(history) < 2:

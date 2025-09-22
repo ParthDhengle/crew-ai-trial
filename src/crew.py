@@ -17,6 +17,9 @@ from chat_history import ChatHistory # Updated to Firebase
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager # Updated for KB
 from firebase_client import get_user_profile # For profile
+from firebase_client import queue_operation # For operation queueing
+from datetime import datetime
+
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -91,8 +94,21 @@ class AiAgent:
         else:
             return f"Unsupported file type: {ext}. Only txt, pdf, doc, ppt supported."
         return ""
+    
+    async def execute_agentic_background(self, operations: List[Dict[str, Any]], user_summarized_requirements: str, session_id: str, uid: str):
+        try:
+            op_results = self.perform_operations(operations)
+            # Save results to Firebase or update operation statuses
+            from firebase_client import save_chat_message, update_operation_status
+            await save_chat_message(session_id, uid, "assistant", f"Agentic execution completed: {op_results}", datetime.now().isoformat())
+            for op in operations:
+                op_id = queue_operation(op['name'], op.get('parameters', {}))
+                await update_operation_status(op_id, "completed", op_results)
+        except Exception as e:
+            print(f"Error in agentic background task: {e}")
+        
     # === Optimized Workflow (refined per requirements) ===
-    def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None):
+    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None) :
         # 1. Input Handling & Sanitization
         user_query = user_query.strip()
         if not user_query:
@@ -192,9 +208,10 @@ class AiAgent:
                     print(f"Added {len(extracted_facts)} facts to KB.")
        
         # 7. Save History (always)
+        history = []
         history.append({"role": "user", "content": user_query + (f" [File: {file_path}]" if file_path else "")})
         history.append({"role": "assistant", "content": final_response})
-        ChatHistory.save_history(history, session_id)
+        ChatHistory.save_history(history, session_id, uid=uid)
        
         # 8. Periodic Narrative (unchanged, every 10 turns)
         if len(history) % 10 == 0:
@@ -203,7 +220,7 @@ class AiAgent:
             except Exception as e:
                 print(f"Warning: Narrative summary failed: {e}")
        
-        return {"display_response": final_response, "mode": mode}
+        return {"display_response": final_response, "mode": mode, **({"operations": operations} if mode == "agentic" else {})}
     def perform_operations(self, operations: List[Dict[str, Any]]) -> str:
         """Execute list of operations sequentially, append results to a single string."""
         if not operations:

@@ -169,7 +169,7 @@ def get_chat_history(session_id: str = None, uid: str = None) -> list:
         all_history.sort(key=lambda x: x.get('timestamp', ''))
         return all_history
    
-def add_chat_message(role: str, content: str, session_id: str = None) -> str:
+def add_chat_message(uid: str, role: str, content: str, session_id: str = None) -> str:
     """Add a message to chat_history collection."""
     data = {
         "role": role,
@@ -178,7 +178,7 @@ def add_chat_message(role: str, content: str, session_id: str = None) -> str:
     }
     if session_id:
         data["session_id"] = session_id
-    return add_document("chat_history", data)
+    return add_document(uid, "chat_history", data)
 def delete_document(collection: str, doc_id: str, subcollection: bool = True) -> bool:
     """Delete doc."""
     try:

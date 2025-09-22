@@ -257,7 +257,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         result = await crew_instance.run_workflow(
             request.query, 
             file_path=getattr(request, 'file_path', None),
-            session_id=session_id
+            session_id=session_id,
+            uid=uid
         )
         
         # Ensure result is a dict (not a coroutine)
