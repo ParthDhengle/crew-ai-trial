@@ -318,7 +318,7 @@ def get_expenses() -> list:
     """List expenses."""
     return query_collection("expenses")
 # Knowledge Base
-def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str, actions=None) -> str:
+async def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str, actions=None) -> str:
     user_ref = db.collection("users").document(uid)
    
     if session_id is None or not user_ref.collection('chat_sessions').document(session_id).get().exists:
@@ -353,6 +353,7 @@ def save_chat_message(session_id: str, uid: str, role: str, content: str, timest
             session_ref.update({'title': title})
    
     return session_id # Return session_id (new or existing)
+
 def add_kb_entry(title: str, content_md: str, tags: list = None, references: list = None) -> str:
     """Add KB entry (facts/notes)."""
     data = {

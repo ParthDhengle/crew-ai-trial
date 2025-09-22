@@ -829,3 +829,7 @@
 2025-09-22 11:16:58 - AIAssistant - ERROR - Error in process_query: 'CrewBase(AiAgent)' object has no attribute 'parse_json_with_retry'
 2025-09-22 11:21:41 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
 2025-09-22 11:21:46 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:35:10 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:35:15 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:43:39 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:43:46 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001

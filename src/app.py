@@ -238,7 +238,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
     try:
         timestamp = datetime.now().isoformat()
         # Save user query and get session_id
-        session_id = save_chat_message(request.session_id, uid, "user", request.query, timestamp)
+        session_id = await save_chat_message(request.session_id, uid, "user", request.query, timestamp)
+        print(type(session_id))
         if not session_id:
             raise RuntimeError("Failed to create or retrieve session_id")
         
@@ -249,7 +250,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         mode = classification.get('mode', 'direct')
         if mode == 'direct':
             final_response = classification.get('display_response', 'No response')
-            save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+            await save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+            print(type(session_id))
             return {"result": {"display_response": final_response, "mode": mode}, "session_id": session_id}
         else:  # agentic
             operations = classification.get('operations', [])
@@ -268,7 +270,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     
-# ---- get_chat_history (updated) ----
+    # ---- get_chat_history (updated) ----
 @app.get("/chat_history")
 async def get_chat_history_api(session_id: str = None, uid: str = Depends(get_current_uid)):
     """
