@@ -75,35 +75,74 @@ export const useElectronApi = () => {
  * Hook for managing agent operations state
  */
 export const useAgentOps = () => {
+  const { state } = useNova();  // Assume you add isProcessing to state
   const [operations, setOperations] = useState<AgentOp[]>([]);
   const fetchOps = useCallback(async () => {
     try {
-      const opsData = await apiClient.getOperations();  // Fetches all user's ops
-      // Map to AgentOp (assuming backend returns list of {id, op_name, params, status, result, start_time, end_time}
-      const mappedOps: AgentOp[] = opsData.map((op:any) => ({
+      const opsData = await apiClient.getOperations();
+      const mappedOps: AgentOp[] = opsData.map((op: any) => ({
         id: op.id,
         title: op.op_name,
         desc: JSON.stringify(op.params),
         status: op.status,
         startTime: op.start_time ? new Date(op.start_time).getTime() : undefined,
         endTime: op.end_time ? new Date(op.end_time).getTime() : undefined,
-        result: op.result
+        result: op.result,
       }));
       setOperations(mappedOps);
+      // Check if all done (stop polling if no pending/running)
+      const isDone = !mappedOps.some(op => op.status === 'pending' || op.status === 'running');
+      if (isDone && state.isProcessing) {
+        // Dispatch to stop processing, fetch final message
+        dispatch({ type: 'SET_TYPING', payload: false });  // Or custom action
+      }
     } catch (error) {
       console.error('Failed to fetch operations:', error);
     }
-  }, []);
+  }, [state.isProcessing]);
 
   useEffect(() => {
-    fetchOps();  // Initial fetch
-    const interval = setInterval(fetchOps, 500);  // Poll every 0.5s
+    if (!state.isProcessing) return;  // Poll only during processing
+    fetchOps();  // Initial
+    const interval = setInterval(fetchOps, 2000);  // 2s interval (sane)
     return () => clearInterval(interval);
-  }, [fetchOps]);
+  }, [fetchOps, state.isProcessing]);
 
   const cancelOperation = useCallback((operationId: string) => {
-    // TODO: Add /operations/{id}/cancel PUT if needed
+    // TODO: Implement /operations/{id}/cancel if needed
     setOperations(ops => ops.filter(op => op.id !== operationId));
+  }, []);
+
+  return { operations, cancelOperation };
+};
+  useEffect(() => {
+    // Calculate dynamic interval based on error count (exponential backoff)
+    const currentInterval = 2000 * Math.pow(2, errorCount); // 2s, 4s, 8s, etc.
+    const maxInterval = 30000; // Max 30s backoff
+    const intervalTime = Math.min(currentInterval, maxInterval);
+
+    fetchOps(); // Initial fetch
+
+    const interval = setInterval(fetchOps, intervalTime);
+
+    return () => clearInterval(interval);
+  }, [fetchOps, errorCount]); // Re-run effect when errorCount changes
+
+  // Optional: Stop polling if no operations are pending/running (optimization)
+  useEffect(() => {
+    if (operations.every(op => op.status === 'success' || op.status === 'failed')) {
+      // If all completed, increase interval or stop (but keep minimal poll for new ops)
+      setPollInterval(10000); // Slow down to 10s
+    } else {
+      setPollInterval(2000); // Active: 2s
+    }
+  }, [operations]);
+
+  const cancelOperation = useCallback((operationId: string) => {
+    // TODO: Add /operations/{id}/cancel PUT endpoint in backend if needed
+    // For now, just remove from local state (optimistic update)
+    setOperations(ops => ops.filter(op => op.id !== operationId));
+    // Optionally: apiClient.cancelOperation(operationId).catch(err => console.error('Cancel failed:', err));
   }, []);
 
   return { operations, cancelOperation };

@@ -22,6 +22,8 @@ from datetime import date
 import json5
 import platform
 import re
+import datetime
+from datetime import datetime
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from litellm.exceptions import RateLimitError, APIError
@@ -32,7 +34,8 @@ from tools.long_term_rag_tool import LongTermRagTool
 from chat_history import ChatHistory # Updated to Firebase
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager # Updated for KB
-from firebase_client import get_user_profile,queue_operation, update_operation_status# For profile
+from firebase_client import get_user_profile,queue_operation, update_operation_status,save_chat_message# For profile
+
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -107,6 +110,17 @@ class AiAgent:
         else:
             return f"Unsupported file type: {ext}. Only txt, pdf, doc, ppt supported."
         return ""
+    
+    def execute_agentic_background(self, operations: List[Dict], session_id: str, uid: str):
+        """Background: Execute ops, synthesize, save response."""
+        op_results = self.perform_operations(operations)  # Updates statuses in Firestore
+        # Synthesize (assume you have a separate synth method or call task)
+        synth = self.synthesize_response(op_results, self.user_summarized_requirements)  # From classification
+        final_response = synth.get('display_response', 'Synthesis failed.')
+        # Save assistant response
+        save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+        # Extract facts etc.
+    
     # === Optimized Workflow (refined per requirements) ===
     def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None):
         # 1. Input Handling & Sanitization

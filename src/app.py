@@ -24,7 +24,7 @@ from firebase_admin import firestore as _firestore
 from fastapi.security import HTTPBearer
 from typing import Optional,List
 from collections import defaultdict
-
+from fastapi import BackgroundTasks
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
 
@@ -230,32 +230,43 @@ async def get_chats(session_id: str, uid: str = Depends(get_current_uid)):
     return get_chats_by_session(session_id)
 
 @app.post("/process_query")
-async def process_query(request: QueryRequest, uid: str = Depends(get_current_uid)):
+async def process_query(request: QueryRequest, background_tasks: BackgroundTasks, uid: str = Depends(get_current_uid)):
     """
-    Saves user message, runs AI agent with the session_id (new if None), saves assistant reply,
-    and returns assistant result + session_id.
+    Classifies query, queues ops for agentic (pending), returns mode/ops/session_id immediately.
+    Executes workflow in background, updating statuses.
     """
     try:
         timestamp = datetime.now().isoformat()
-
-        # Save user query and get session_id (create new session if None)
+        # Save user query and get session_id
         session_id = save_chat_message(request.session_id, uid, "user", request.query, timestamp)
         if not session_id:
             raise RuntimeError("Failed to create or retrieve session_id")
 
-        # Run AI agent (synchronous call kept as you had it)
+        # Run classification synchronously (quick)
         crew_instance = AiAgent()
-        final_response = crew_instance.run_workflow(request.query, session_id=session_id)
+        classification = crew_instance.classify_query(request.query, session_id=session_id)  # Assume you extract classification step
 
-        # Save assistant response
-        save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+        mode = classification.get('mode', 'direct')
+        if mode == 'direct':
+            final_response = classification.get('display_response', 'No response')
+            save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+            return {"result": {"display_response": final_response, "mode": mode}, "session_id": session_id}
+        else:  # agentic
+            operations = classification.get('operations', [])
+            op_ids = []
+            for op in operations:
+                op_id = queue_operation(op['name'], op['parameters'])  # Status: pending
+                op_ids.append(op_id)
 
-        return {"result": final_response, "session_id": session_id}
+            # Return immediately with op list
+            response_ops = [{"id": op_id, "name": op['name'], "parameters": op['parameters']} for op_id, op in zip(op_ids, operations)]
+            background_tasks.add_task(crew_instance.execute_agentic_background, operations, session_id, uid)  # Async execution
+            return {"result": {"mode": "agentic", "operations": response_ops}, "session_id": session_id}
+
     except Exception as e:
         logger.error(f"Error in process_query: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 # ---- get_chat_history (updated) ----
 @app.get("/chat_history")
 async def get_chat_history_api(session_id: str = None, uid: str = Depends(get_current_uid)):
