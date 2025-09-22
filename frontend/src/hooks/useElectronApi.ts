@@ -8,6 +8,8 @@ import type {
   NovaRole
 } from '@/api/types';
 import { apiClient } from '@/api/client';
+import { useNova } from '@/context/NovaContext';  // FIXED: Import useNova for state/dispatch
+
 /**
  * React hook wrapper for Electron API interactions
  * Provides typed access to window.api methods with React state management
@@ -18,7 +20,7 @@ export const useElectronApi = () => {
     window.api &&
     typeof window.api === 'object'
   );
- 
+
   // Enhanced fallback for when running in browser (development)
   const mockApi = {
     requestExpand: async () => {
@@ -60,11 +62,11 @@ export const useElectronApi = () => {
     sendMessage: async (message: string, sessionId?: string) => ({ sessionId: sessionId || 'mock-session' }),
     notify: (title: string, body?: string) => console.log('Mock: notify', title, body),
   };
+
   const api = isElectron ? window.api : mockApi;
- 
-  // FIXED: Remove the test call—causes IPC loop/crash!
+
   console.log('HOOK: useElectronApi initialized, isElectron:', isElectron);
- 
+
   return {
     api,
     isElectron,
@@ -75,8 +77,11 @@ export const useElectronApi = () => {
  * Hook for managing agent operations state
  */
 export const useAgentOps = () => {
-  const { state } = useNova();  // Assume you add isProcessing to state
-  const [operations, setOperations] = useState<AgentOp[]>([]);
+  const { state, dispatch } = useNova();  // FIXED: Added dispatch
+  const [operations, setOperations] = useState<AgentOp[]>([]);  // FIXED: Defined operations state
+  const [errorCount, setErrorCount] = useState(0);  // FIXED: Defined errorCount for backoff
+  const [pollInterval, setPollInterval] = useState(2000);  // FIXED: Defined pollInterval (starts at 2s)
+
   const fetchOps = useCallback(async () => {
     try {
       const opsData = await apiClient.getOperations();
@@ -90,23 +95,38 @@ export const useAgentOps = () => {
         result: op.result,
       }));
       setOperations(mappedOps);
+
       // Check if all done (stop polling if no pending/running)
       const isDone = !mappedOps.some(op => op.status === 'pending' || op.status === 'running');
       if (isDone && state.isProcessing) {
-        // Dispatch to stop processing, fetch final message
-        dispatch({ type: 'SET_TYPING', payload: false });  // Or custom action
+        dispatch({ type: 'SET_TYPING', payload: false });  // FIXED: Using SET_TYPING as per your code (or change to SET_PROCESSING)
       }
+
+      // Success: Reset error count and interval
+      setErrorCount(0);
+      setPollInterval(2000);  // Reset to base interval
     } catch (error) {
       console.error('Failed to fetch operations:', error);
+      setErrorCount(prev => prev + 1);  // Increment on error
     }
-  }, [state.isProcessing]);
+  }, [state.isProcessing, dispatch]);  // FIXED: Added deps
 
   useEffect(() => {
-    if (!state.isProcessing) return;  // Poll only during processing
-    fetchOps();  // Initial
-    const interval = setInterval(fetchOps, 2000);  // 2s interval (sane)
+    if (!state.isProcessing) return; // Poll only during processing
+
+    fetchOps(); // Initial fetch
+    const interval = setInterval(fetchOps, pollInterval);  // FIXED: Use pollInterval
+
     return () => clearInterval(interval);
-  }, [fetchOps, state.isProcessing]);
+  }, [fetchOps, pollInterval, state.isProcessing]);  // FIXED: pollInterval as dep (recreates on change)
+
+  // Dynamic backoff: Update pollInterval based on errorCount
+  useEffect(() => {
+    const baseInterval = 2000;
+    const maxInterval = 30000; // 30s max
+    const newInterval = Math.min(baseInterval * Math.pow(2, errorCount), maxInterval);
+    setPollInterval(newInterval);
+  }, [errorCount]);  // FIXED: Recalculate on errorCount change
 
   const cancelOperation = useCallback((operationId: string) => {
     // TODO: Implement /operations/{id}/cancel if needed
@@ -115,45 +135,13 @@ export const useAgentOps = () => {
 
   return { operations, cancelOperation };
 };
-  useEffect(() => {
-    // Calculate dynamic interval based on error count (exponential backoff)
-    const currentInterval = 2000 * Math.pow(2, errorCount); // 2s, 4s, 8s, etc.
-    const maxInterval = 30000; // Max 30s backoff
-    const intervalTime = Math.min(currentInterval, maxInterval);
-
-    fetchOps(); // Initial fetch
-
-    const interval = setInterval(fetchOps, intervalTime);
-
-    return () => clearInterval(interval);
-  }, [fetchOps, errorCount]); // Re-run effect when errorCount changes
-
-  // Optional: Stop polling if no operations are pending/running (optimization)
-  useEffect(() => {
-    if (operations.every(op => op.status === 'success' || op.status === 'failed')) {
-      // If all completed, increase interval or stop (but keep minimal poll for new ops)
-      setPollInterval(10000); // Slow down to 10s
-    } else {
-      setPollInterval(2000); // Active: 2s
-    }
-  }, [operations]);
-
-  const cancelOperation = useCallback((operationId: string) => {
-    // TODO: Add /operations/{id}/cancel PUT endpoint in backend if needed
-    // For now, just remove from local state (optimistic update)
-    setOperations(ops => ops.filter(op => op.id !== operationId));
-    // Optionally: apiClient.cancelOperation(operationId).catch(err => console.error('Cancel failed:', err));
-  }, []);
-
-  return { operations, cancelOperation };
-};
-
 
 export const useVoiceTranscription = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isPartial, setIsPartial] = useState(false);
   const { api } = useElectronApi();
+
   const startRecording = useCallback(async () => {
     const sessionId = `voice-${Date.now()}`;
     setIsRecording(true);
@@ -170,6 +158,7 @@ export const useVoiceTranscription = () => {
       setIsRecording(false);
     }
   }, [api]);
+
   const stopRecording = useCallback(async () => {
     const sessionId = `voice-${Date.now()}`;
     setIsRecording(false);
@@ -179,6 +168,7 @@ export const useVoiceTranscription = () => {
       console.error('Failed to stop recording:', error);
     }
   }, [api]);
+
   return {
     isRecording,
     transcript,
@@ -191,13 +181,11 @@ export const useVoiceTranscription = () => {
 /**
  * Hook for managing window state with improved error handling
  */
-/**
- * Hook for managing window state with improved error handling
- */
 export const useWindowControls = () => {
   const { api, isElectron } = useElectronApi();
   const [isExpanding, setIsExpanding] = useState(false);
-  const contract  = useCallback(async () => { // FIXED: Override to switch to mini
+
+  const contract = useCallback(async () => { // FIXED: Override to switch to mini
     try {
       if (isElectron) {
         // Switch to mini instead of taskbar minimize
@@ -227,6 +215,7 @@ export const useWindowControls = () => {
       console.error('Failed to maximize window:', error);
     }
   }, [api]);
+
   const close = useCallback(() => {
     try {
       api.windowClose?.();
@@ -234,6 +223,7 @@ export const useWindowControls = () => {
       console.error('Failed to close window:', error);
     }
   }, [api]);
+
   const expand = useCallback(async () => {
     if (isExpanding) {
       console.log('HOOK: Expand already in progress, skipping...');
@@ -241,18 +231,18 @@ export const useWindowControls = () => {
     }
     setIsExpanding(true);
     console.log('HOOK: Calling api.requestExpand...');
-  
+
     try {
       console.log('HOOK: About to await requestExpand...');
       const result = await api.requestExpand?.();
       console.log('HOOK: api.requestExpand succeeded:', result);
-    
+
       // FIXED: Reset immediately on success
       setIsExpanding(false);
-    
+
       // Add a small delay to ensure window switch completes
       await new Promise(resolve => setTimeout(resolve, 100));
-    
+
       return result || { success: true };
     } catch (error) {
       console.error('HOOK: api.requestExpand failed:', error);
@@ -261,6 +251,7 @@ export const useWindowControls = () => {
       return { success: false, error: error.message };
     }
   }, [api, isExpanding]);
+
   const miniClose = useCallback(() => {
     try {
       if (isElectron && api.miniClose) {
@@ -272,6 +263,7 @@ export const useWindowControls = () => {
       console.error('Failed to close mini window:', error);
     }
   }, [api, isElectron]);
+
   return {
     contract,
     minimize,

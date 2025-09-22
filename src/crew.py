@@ -17,13 +17,11 @@
 import json
 import os
 import traceback
-from typing import List, Dict, Any
-from datetime import date
-import json5
 import platform
 import re
-import datetime
-from datetime import datetime
+import json5
+from typing import List, Dict, Any
+from datetime import datetime  # Add for isoformat
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from litellm.exceptions import RateLimitError, APIError
@@ -31,11 +29,10 @@ from tools.file_manager_tool import FileManagerTool
 from tools.operations_tool import OperationsTool
 from tools.rag_tool import RagTool
 from tools.long_term_rag_tool import LongTermRagTool
-from chat_history import ChatHistory # Updated to Firebase
+from chat_history import ChatHistory
 from common_functions.Find_project_root import find_project_root
-from memory_manager import MemoryManager # Updated for KB
-from firebase_client import get_user_profile,queue_operation, update_operation_status,save_chat_message# For profile
-
+from memory_manager import MemoryManager
+from firebase_client import get_user_profile, queue_operation, update_operation_status, save_chat_message
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -57,6 +54,75 @@ class AiAgent:
         self.summarizer_fallback2_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY1"))
         self.memory_manager = MemoryManager()
         super().__init__()
+    
+    # NEW: Parse method
+    def parse_json_with_retry(self, raw: str, retries: int = 1) -> Dict:
+        for _ in range(retries):
+            cleaned = re.sub(r'```json|```|markdown', '', raw).strip()
+            try:
+                return json5.loads(cleaned)
+            except Exception as e:
+                print(f"JSON parse failed: {e}. Retrying after cleanup...")
+        # Fallback
+        return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
+    
+    
+    # NEW: Extract classification logic for API to call separately
+    def get_classification(self, user_query: str, file_path: str = None, session_id: str = None) -> Dict:
+        user_query = user_query.strip()
+        if not user_query:
+            return {"mode": "direct", "display_response": "No query provided."}
+        
+        # Assemble inputs (session_id can be used if needed in prompt, e.g., for history load)
+        history = ChatHistory.load_history(session_id)
+        user_profile = self.memory_manager.get_user_profile()
+        file_content = self._process_file(file_path)
+        
+        # Load operations from json (future: migrate to Firebase collection)
+        file_tool = FileManagerTool()
+        ops_path = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
+        available_operations_raw = file_tool._run(ops_path)
+        # Robust JSON extraction...
+        json_match = re.search(r'\{.*\}', available_operations_raw, re.DOTALL)
+        if json_match:
+            available_operations_content = json_match.group(0)
+        else:
+            available_operations_content = "{}"
+        try:
+            available_operations = json.loads(available_operations_content.strip()).get("operations", [])
+        except json.JSONDecodeError:
+            print("Warning: Invalid operations JSON. Using empty list.")
+            available_operations = []
+        
+        available_ops_info = "\\n".join([f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}" for op in available_operations])
+        
+        full_history = json.dumps(history)
+        if len(full_history) > 2000:
+            history_summary = ChatHistory.summarize(history)
+            full_history = f"Summary: {history_summary}"
+        
+        os_info = f"{platform.system()} {platform.release()}"
+        
+        inputs = {
+            'user_query': user_query,
+            'file_content': file_content,
+            'full_history': full_history,
+            'available_ops_info': available_ops_info,
+            'user_profile': json.dumps(user_profile),
+            'os_info': os_info
+        }
+        
+        classify_task = self.classify_query()
+        classify_task.description = classify_task.description.format(**inputs)
+        classify_agent = self.classifier()
+        classification_raw = self._execute_task_with_fallbacks(
+            classify_agent, classify_task, [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
+        )
+        
+        classification = self.parse_json_with_retry(classification_raw)  # Assume defined
+        
+        return classification
+    
     # === Agents (refined: Removed planner, memory_extractor, direct_responder; kept classifier, synthesizer, summarizer) ===
     @agent
     def classifier(self) -> Agent:
@@ -111,16 +177,14 @@ class AiAgent:
             return f"Unsupported file type: {ext}. Only txt, pdf, doc, ppt supported."
         return ""
     
-    def execute_agentic_background(self, operations: List[Dict], session_id: str, uid: str):
+    def execute_agentic_background(self, operations: List[Dict], user_summarized_requirements: str, session_id: str, uid: str):
         """Background: Execute ops, synthesize, save response."""
         op_results = self.perform_operations(operations)  # Updates statuses in Firestore
-        # Synthesize (assume you have a separate synth method or call task)
-        synth = self.synthesize_response(op_results, self.user_summarized_requirements)  # From classification
+        synth = self.synthesize_response(op_results, user_summarized_requirements)
         final_response = synth.get('display_response', 'Synthesis failed.')
         # Save assistant response
         save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
-        # Extract facts etc.
-    
+
     # === Optimized Workflow (refined per requirements) ===
     def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None):
         # 1. Input Handling & Sanitization

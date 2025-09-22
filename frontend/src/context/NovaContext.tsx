@@ -22,6 +22,7 @@ type NovaState = {
   currentSession: ChatSession | null;
   sessions: ChatSession[];
   isTyping: boolean;
+  isProcessing: boolean;
   
   // Scheduler state  
   tasks: SchedulerTask[];
@@ -58,63 +59,10 @@ type NovaAction =
   | { type: 'SET_OPERATIONS'; payload: AgentOp[] }
   | { type: 'SET_ROLE'; payload: NovaRole }
   | { type: 'SET_VOICE_ENABLED'; payload: boolean }
-  | { type: 'SET_INTEGRATIONS'; payload: Integration[] };
+  | { type: 'SET_INTEGRATIONS'; payload: Integration[] }
+  | { type: 'SET_PROCESSING'; payload: boolean };;
 
-// Mock data for development
-const mockSessions: ChatSession[] = [
-  {
-    id: 'session-1',
-    title: 'Project Planning Discussion',
-    summary: 'Discussed Q4 project timeline and resource allocation',
-    createdAt: Date.now() - 86400000,
-    updatedAt: Date.now() - 3600000,
-    messages: [
-      {
-        id: 'msg-1',
-        content: "Hey Nova, I need help planning my Q4 projects. Can you help me organize my tasks?",
-        role: 'user',
-        timestamp: Date.now() - 86400000,
-      },
-      {
-        id: 'msg-2', 
-        content: "Of course! I'd be happy to help you plan your Q4 projects. Let me analyze your current workload and suggest an optimal timeline. I can also create a structured task breakdown for you.",
-        role: 'assistant',
-        timestamp: Date.now() - 86390000,
-        actions: [
-          { type: 'accept_schedule', label: 'Create Schedule', payload: {} },
-          { type: 'run_operation', label: 'Analyze Workload', payload: { operation: 'workload_analysis' } }
-        ]
-      },
-      {
-        id: 'msg-3',
-        content: "That sounds perfect. I have about 15 hours per week available for project work.",
-        role: 'user', 
-        timestamp: Date.now() - 86300000,
-      },
-    ]
-  },
-  {
-    id: 'session-2',
-    title: 'Email Management',
-    summary: 'Set up automated email responses and sorting rules',
-    createdAt: Date.now() - 172800000,
-    updatedAt: Date.now() - 7200000,
-    messages: [
-      {
-        id: 'msg-4',
-        content: "Can you help me set up some email automation rules?",
-        role: 'user',
-        timestamp: Date.now() - 172800000,
-      },
-      {
-        id: 'msg-5',
-        content: "Absolutely! I can help you create email filters, automated responses, and priority sorting. What type of emails would you like to automate first?",
-        role: 'assistant', 
-        timestamp: Date.now() - 172750000,
-      }
-    ]
-  }
-];
+
 
 const mockTasks: SchedulerTask[] = [
   {
@@ -161,7 +109,7 @@ const mockIntegrations: Integration[] = [
 ];
 
 const initialState: NovaState = {
-  currentSession: mockSessions[0],
+  currentSession:[0] as unknown as ChatSession,
   sessions: [],
   isTyping: false,
   tasks: [],
@@ -173,6 +121,7 @@ const initialState: NovaState = {
   voiceEnabled: true,
   selectedModel: 'whisper-base',
   integrations: mockIntegrations,
+  isProcessing: false,
 };
 
 function novaReducer(state: NovaState, action: NovaAction): NovaState {
@@ -245,6 +194,9 @@ function novaReducer(state: NovaState, action: NovaAction): NovaState {
       
     case 'SET_INTEGRATIONS':
       return { ...state, integrations: action.payload };
+
+    case 'SET_PROCESSING':  // NEW
+      return { ...state, isProcessing: action.payload };  
       
     default:
       return state;

@@ -817,3 +817,15 @@
 2025-09-22 01:05:21 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
 2025-09-22 01:19:34 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
 2025-09-22 01:19:40 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 10:46:05 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 10:46:12 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:03:54 - AIAssistant - ERROR - Error in process_query: AiAgent.classify_query() got an unexpected keyword argument 'session_id'
+2025-09-22 11:05:39 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:05:44 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:05:56 - AIAssistant - ERROR - Error in process_query: AiAgent.classify_query() got an unexpected keyword argument 'session_id'
+2025-09-22 11:14:53 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:14:58 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:16:16 - AIAssistant - ERROR - Error in process_query: 'CrewBase(AiAgent)' object has no attribute 'parse_json_with_retry'
+2025-09-22 11:16:58 - AIAssistant - ERROR - Error in process_query: 'CrewBase(AiAgent)' object has no attribute 'parse_json_with_retry'
+2025-09-22 11:21:41 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:21:46 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
