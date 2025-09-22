@@ -93,11 +93,10 @@ def update_user_profile(data: dict) -> bool:
     """Update profile (uses current USER_ID)."""
     return update_document("users", USER_ID, data, subcollection=False)
 # Generic CRUD
-def add_document(collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
+def add_document(uid: str, collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
     """Add doc to users/{user_id}/{collection}/{doc_id} or top-level collection."""
-    ref = (get_user_ref().collection(collection).document(doc_id) if doc_id else
-           get_user_ref().collection(collection).document()) if subcollection else (
-           db.collection(collection).document(doc_id or data.get("id")))
+    user_ref = db.collection("users").document(uid)
+    ref = user_ref.collection(collection).document(doc_id) if doc_id else user_ref.collection(collection).document()
     ref.set(data)
     return ref.id
 def get_document(collection: str, doc_id: str, subcollection: bool = True) -> dict:
@@ -391,10 +390,10 @@ def get_rules(enabled_only: bool = True) -> list:
     filters = [("enabled", "==", True)] if enabled_only else None
     return query_collection("rules", filters)
 # Operations Queue
-def queue_operation(op_name: str, params: dict) -> str:
+def queue_operation(uid: str, op_name: str, params: dict) -> str:
     """Queue operation (optional async)."""
     data = {
-        "user_id": USER_ID,  # Add user_id
+        "user_id": uid,  # Add user_id
         "op_name": op_name,
         "params": params,
         "status": "pending",

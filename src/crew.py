@@ -144,6 +144,11 @@ class AiAgent:
             )
             
             classification = self.parse_json_with_retry(classification_raw)
+            operations = classification.get('operations', [])
+            if not all(isinstance(op, dict) and 'name' in op for op in operations):
+                logger.warning("Invalid operations format from classification. Falling back to direct mode.")
+                classification['mode'] = 'direct'
+                classification['display_response'] = "Invalid operations plan. Please rephrase."
             return classification
             
         except Exception as e:
@@ -250,7 +255,7 @@ class AiAgent:
         """Background: Execute ops, synthesize, save response"""
         try:
             # Execute operations
-            op_results = await self.perform_operations_async(operations)
+            op_results = await self.perform_operations_async(operations, uid)
             
             # Synthesize response
             synth_task = self.synthesize_response()
@@ -283,38 +288,48 @@ class AiAgent:
             error_response = f"Background execution failed: {str(e)}"
             await save_chat_message(session_id, uid, "assistant", error_response, datetime.now().isoformat())
     
-    async def perform_operations_async(self, operations: List[Dict[str, Any]]) -> str:
-        """Execute list of operations sequentially (async version)"""
+    async def perform_operations_async(self, operations: List[Dict[str, Any]], uid: str) -> str:
+        logger.debug(f"Operations type: {type(operations)}, content: {operations}")
+        
         if not operations:
             return "No operations to execute."
         
         lines = []
         for op in operations:
-            name = op.get('name')
+            logger.debug(f"Processing op type: {type(op)}, op: {op}")
+            if not isinstance(op, dict) or 'name' not in op:
+                lines.append(f"Invalid operation format: {op}")
+                continue
+                
+            name = op['name']
             params = op.get('parameters', {})
             
             if name not in self.operation_map:
                 lines.append(f"Operation '{name}' not implemented.")
                 continue
             
-            # Queue and update status
-            op_id = queue_operation(name, params)
-            update_operation_status(op_id, 'running')
-            
             try:
+                # Queue operation
+                op_id = queue_operation(uid, name, params)
+                if inspect.iscoroutine(op_id):
+                    op_id = await op_id
+                    
+                # Update status
+                update_operation_status(uid, op_id, 'running')
+                
+                # Execute operation
                 func = self.operation_map[name]
-                # Execute operation (make it async-safe)
                 if asyncio.iscoroutinefunction(func):
                     success, result = await func(**params)
                 else:
                     success, result = func(**params)
                     
-                update_operation_status(op_id, 'success' if success else 'failed', result)
+                # Update final status
+                update_operation_status(uid, op_id, 'success' if success else 'failed', result)
                 lines.append(f"Operation '{name}': {result}")
                 
             except Exception as e:
                 error_msg = str(e)
-                update_operation_status(op_id, 'failed', error_msg)
                 lines.append(f"Operation '{name}' failed: {error_msg}")
                 logger.error(f"Operation {name} failed: {e}")
         
@@ -351,13 +366,18 @@ class AiAgent:
         
         return "\n".join(lines) if lines else "All operations completed."
     
-    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None):
+    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
         """Optimized workflow execution"""
         try:
             # Input validation
             user_query = user_query.strip()
             if not user_query:
                 return {"display_response": "No query provided.", "mode": "direct"}
+                
+            # Validate uid parameter
+            if uid is None:
+                logger.warning("uid parameter is None, some features may not work correctly")
+                uid = "anonymous"  # fallback value
            
             # Load context
             history = ChatHistory.load_history(session_id)
@@ -425,8 +445,8 @@ class AiAgent:
                 else:
                     user_summarized_requirements = classification.get('user_summarized_requirements', 'User intent unclear.')
                    
-                    # Execute operations
-                    op_results = await self.perform_operations_async(operations)
+                    # Execute operations with uid parameter
+                    op_results = await self.perform_operations_async(operations, uid)
                    
                     # Synthesize response
                     synth_task = self.synthesize_response()
