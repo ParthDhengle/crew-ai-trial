@@ -267,6 +267,13 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_OPERATIONS', payload: operations });
     } catch (error) {
       console.error('Failed to load initial data:', error);
+    // Set defaults to avoid undefined
+    dispatch({ type: 'SET_SESSIONS', payload: [] });
+    dispatch({ type: 'SET_TASKS', payload: [] });
+    dispatch({ type: 'SET_OPERATIONS', payload: [] });
+    // Create a default session
+    const defaultSession = { id: 'default', title: 'New Chat', messages: [], createdAt: Date.now(), updatedAt: Date.now() };
+    dispatch({ type: 'SET_CURRENT_SESSION', payload: defaultSession });
     }
   };
   loadInitialData();

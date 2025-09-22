@@ -428,10 +428,9 @@ def queue_operation(uid: str, operation_data: dict) -> str:
     return add_document(uid, "operations_queue", data)
 
 
-def get_operations_queue(uid: str, status: str = None) -> list:
-    """Get user's ops queue."""
-    filters = [("user_id", "==", uid)] + ([("status", "==", status)] if status else [])
-    return query_collection(uid, "operations_queue", filters=filters)
+def get_operations_queue(status: str = None) -> list:
+    filters = [("status", "==", status)] if status else None
+    return query_collection("operations_queue", filters=filters)
 
 def update_operation_status(uid: str, op_id: str, status: str, result: str = None) -> bool:
     """Update op status."""

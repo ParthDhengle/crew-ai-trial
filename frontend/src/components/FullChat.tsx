@@ -118,7 +118,7 @@ export default function FullChat({
               </motion.div>
             )}
             {/* Messages */}
-            {state.currentSession?.messages.map((message, index) => (
+            {state.currentSession?.messages?.length > 0 && state.currentSession?.messages.map((message, index) => (
               <motion.div
                 key={`${message.id}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
