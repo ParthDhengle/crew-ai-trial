@@ -13,6 +13,7 @@ import asyncio
 from common_functions.Find_project_root import find_project_root
 from common_functions.User_preference import collect_preferences
 from utils.logger import setup_logger
+import inspect
 from firebase_client import (
     create_user, sign_in_with_email, get_user_profile, set_user_profile, verify_id_token,
     add_task, get_tasks_by_user, update_task_by_user, delete_task_by_user,
@@ -237,39 +238,114 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
     """
     try:
         timestamp = datetime.now().isoformat()
-        # Save user query and get session_id
+        
+        # Save user query and get session_id - ENSURE THIS IS AWAITED
         session_id = await save_chat_message(request.session_id, uid, "user", request.query, timestamp)
-        print(type(session_id))
+        
         if not session_id:
             raise RuntimeError("Failed to create or retrieve session_id")
         
+        # CRITICAL FIX: Ensure session_id is a string, not a coroutine
+        if inspect.iscoroutine(session_id):
+            session_id = await session_id
+        
+        logger.info(f"Session ID type: {type(session_id)}, value: {session_id}")
+        
         # Run classification synchronously
         crew_instance = AiAgent()
-        classification = crew_instance.get_classification(request.query, session_id=session_id)
+        classification = await crew_instance.get_classification(
+            request.query, 
+            file_path=getattr(request, 'file_path', None),
+            session_id=session_id
+        )
+        
+        # ENSURE classification is a dict, not a coroutine
+        if inspect.iscoroutine(classification):
+            classification = await classification
         
         mode = classification.get('mode', 'direct')
+        
         if mode == 'direct':
             final_response = classification.get('display_response', 'No response')
-            await save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
-            print(type(session_id))
-            return {"result": {"display_response": final_response, "mode": mode}, "session_id": session_id}
+            
+            # Save assistant response - ENSURE THIS IS AWAITED
+            save_result = save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+            if inspect.iscoroutine(save_result):
+                await save_result
+            
+            # RETURN SERIALIZABLE DATA ONLY
+            return {
+                "result": {
+                    "display_response": final_response, 
+                    "mode": mode
+                }, 
+                "session_id": str(session_id)  # Ensure string conversion
+            }
         else:  # agentic
             operations = classification.get('operations', [])
+            
+            # Validate operations structure
+            if not isinstance(operations, list):
+                operations = []
+            
+            # Queue operations and collect IDs
             op_ids = []
             for op in operations:
-                op_id = queue_operation(op['name'], op['parameters'])
-                op_ids.append(op_id)
+                if isinstance(op, dict) and 'name' in op:
+                    try:
+                        op_id = queue_operation(op['name'], op.get('parameters', {}))
+                        # Ensure op_id is not a coroutine
+                        if inspect.iscoroutine(op_id):
+                            op_id = await op_id
+                        op_ids.append(str(op_id))
+                    except Exception as e:
+                        logger.error(f"Failed to queue operation {op['name']}: {e}")
+                        op_ids.append(f"error_{len(op_ids)}")
             
-            # Return immediately with op list
-            response_ops = [{"id": op_id, "name": op['name'], "parameters": op['parameters']} for op_id, op in zip(op_ids, operations)]
-            user_summarized_requirements = classification.get('user_summarized_requirements', '')
-            background_tasks.add_task(crew_instance.execute_agentic_background, operations, user_summarized_requirements, session_id, uid)
-            return {"result": {"mode": "agentic", "operations": response_ops}, "session_id": session_id}
+            # Prepare serializable response operations
+            response_ops = []
+            for i, (op_id, op) in enumerate(zip(op_ids, operations)):
+                response_ops.append({
+                    "id": str(op_id),
+                    "name": str(op.get('name', 'unknown')),
+                    "parameters": op.get('parameters', {})
+                })
+            
+            user_summarized_requirements = str(classification.get('user_summarized_requirements', ''))
+            
+            # Add background task
+            background_tasks.add_task(
+                crew_instance.execute_agentic_background, 
+                operations, 
+                user_summarized_requirements, 
+                session_id, 
+                uid
+            )
+            
+            # RETURN SERIALIZABLE DATA ONLY
+            return {
+                "result": {
+                    "mode": "agentic", 
+                    "operations": response_ops
+                }, 
+                "session_id": str(session_id)
+            }
+            
     except Exception as e:
         logger.error(f"Error in process_query: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    
+        
+        # Return a proper error response that's serializable
+        error_response = {
+            "result": {
+                "mode": "error",
+                "display_response": f"Processing failed: {str(e)}"
+            },
+            "session_id": request.session_id or "error"
+        }
+        
+        raise HTTPException(status_code=500, detail=error_response)
+
     # ---- get_chat_history (updated) ----
 @app.get("/chat_history")
 async def get_chat_history_api(session_id: str = None, uid: str = Depends(get_current_uid)):

@@ -833,3 +833,22 @@
 2025-09-22 11:35:15 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
 2025-09-22 11:43:39 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
 2025-09-22 11:43:46 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 11:52:56 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 11:53:01 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:07:46 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 12:07:50 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:08:44 - AIAssistant - ERROR - Error in process_query: object str can't be used in 'await' expression
+2025-09-22 12:10:14 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 12:10:19 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:11:06 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 12:11:10 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:11:26 - AIAssistant - ERROR - Error in process_query: object str can't be used in 'await' expression
+2025-09-22 12:17:26 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 12:17:30 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:22:56 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-22 12:23:00 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-22 12:24:19 - AIAssistant - INFO - Session ID type: <class 'str'>, value: session-1758477608717
+2025-09-22 12:24:25 - AIAssistant - ERROR - Failed to queue operation custom_search: 'str' object has no attribute 'name'
+2025-09-22 12:24:25 - AIAssistant - ERROR - Failed to queue operation search_files: 'str' object has no attribute 'name'
+2025-09-22 12:24:25 - AIAssistant - ERROR - Failed to queue operation document_translate: 'str' object has no attribute 'name'
+2025-09-22 12:24:25 - AIAssistant - ERROR - Failed to queue operation run_command: 'str' object has no attribute 'name'
