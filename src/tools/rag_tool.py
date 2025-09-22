@@ -44,8 +44,8 @@ class RagTool(BaseTool):
 
             # Convert ops into searchable strings
             ops = [
-                f"{op['name']} | parameters: {', '.join(op['required_parameters'] + [f'{p}=None' for p in op['optional_parameters']])} | {op['description']}"
-                for op in ops_data
+                f"{op['name']} | parameters: {', '.join(op['required_parameters'] + [f'{p}=None' for p in op.get('optional_parameters', [])])} | {op['description']}"
+                for op in ops_data.get('operations', [])  # <-- Fix: Access the 'operations' list, default to empty list
             ]
 
             if not ops:

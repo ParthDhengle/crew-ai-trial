@@ -271,16 +271,34 @@ export default function AgentOpsPanel({
                       )}
 
                       {/* Action Buttons for Completed Operations */}
-                      {operation.status === 'success' && operation.result && (
-                        <div className="mt-3 pt-3 border-t border-white/5">
-                          <div className="text-xs text-muted-foreground">Result:</div>
-                          <div className="text-sm mt-1 whitespace-pre-wrap">{operation.result}</div>
+                      {operation.status === 'success' && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            className="text-xs h-7"
+                          >
+                            View Results
+                          </Button>
                         </div>
                       )}
-                      {operation.status === 'failed' && operation.result && (
-                        <div className="mt-3 pt-3 border-t border-white/5 text-red-400">
-                          <div className="text-xs text-muted-foreground">Error Details:</div>
-                          <div className="text-sm mt-1 whitespace-pre-wrap">{operation.result}</div>
+
+                      {operation.status === 'failed' && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            className="text-xs h-7"
+                          >
+                            Retry
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="text-xs h-7"
+                          >
+                            View Error
+                          </Button>
                         </div>
                       )}
                     </motion.div>

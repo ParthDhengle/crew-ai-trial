@@ -4,7 +4,7 @@ import traceback
 import platform
 import re
 import json5
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
@@ -17,426 +17,470 @@ from chat_history import ChatHistory
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
 from firebase_client import get_user_profile, queue_operation, update_operation_status, save_chat_message
-from typing import Optional
 import inspect
 import logging
 import asyncio
 
-# configure logging once in module
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = find_project_root()
-MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
+
 
 @CrewBase
 class AiAgent:
+    """Cleaned AiAgent module: keeps core workflow, frontend connections and operation execution.
+
+    Removed stray/duplicate helper code and kept stable, well-documented methods only.
+    """
+
     agents: List[Agent]
     tasks: List[Task]
-    
+
     def __init__(self):
-        # LLMs with fallbacks
-        self.classifier_llm = LLM(model="groq/llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY1"))
-        self.classifier_fallback1_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY2"))
-        self.classifier_fallback2_llm = LLM(model="openrouter/deepseek/deepseek-chat-v3.1:free", api_key=os.getenv("OPENROUTER_API_KEY2"))
-       
-        self.synthesizer_llm = LLM(model="openrouter/openai/gpt-oss-120b:free", api_key=os.getenv("OPENROUTER_API_KEY4"))
-        self.synthesizer_fallback1_llm = LLM(model="openrouter/deepseek/deepseek-chat-v3.1:free", api_key=os.getenv("OPENROUTER_API_KEY2"))
-        self.synthesizer_fallback2_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY4"))
-       
-        self.summarizer_llm = LLM(model="cohere/command-r-plus", api_key=os.getenv("COHERE_API_KEY"))
-        self.summarizer_fallback1_llm = LLM(model="openrouter/openai/gpt-oss-20b:free", api_key=os.getenv("OPENROUTER_API_KEY1"))
-        self.summarizer_fallback2_llm = LLM(model="gemini/gemini-1.5-flash-latest", api_key=os.getenv("GEMINI_API_KEY1"))
-        
+        # Primary LLMs and fallbacks (models & keys expected to be in environment)
+        self.classifier_llm = LLM(model=os.getenv("CLASSIFIER_MODEL", "gemini/gemini-1.5-flash-latest"), api_key=os.getenv("GEMINI_API_KEY1"))
+        self.classifier_fallback1_llm = LLM(model=os.getenv("CLASSIFIER_FALLBACK1_MODEL", "openrouter/deepseek/deepseek-chat-v3.1:free"), api_key=os.getenv("OPENROUTER_API_KEY2"))
+        self.classifier_fallback2_llm = LLM(model=os.getenv("CLASSIFIER_FALLBACK2_MODEL", "cohere/command-r-plus"), api_key=os.getenv("COHERE_API_KEY"))
+
+        self.synthesizer_llm = LLM(model=os.getenv("SYNTH_MODEL", "openrouter/openai/gpt-oss-20b:free"), api_key=os.getenv("OPENROUTER_API_KEY1"))
+        self.synthesizer_fallbacks = [
+            LLM(model=os.getenv("SYNTH_FB1", "openrouter/deepseek/deepseek-chat-v3.1:free"), api_key=os.getenv("OPENROUTER_API_KEY2")),
+            LLM(model=os.getenv("SYNTH_FB2", "gemini/gemini-1.5-flash-latest"), api_key=os.getenv("GEMINI_API_KEY4")),
+        ]
+
+        self.summarizer_llm = LLM(model=os.getenv("SUM_MODEL", "cohere/command-r-plus"), api_key=os.getenv("COHERE_API_KEY"))
+
+        # Memory manager and RAG tools
         self.memory_manager = MemoryManager()
-        
-        # Initialize operation_map - ADD THIS IF MISSING
+        self.rag_tool = RagTool()
+        self.long_term_rag_tool = LongTermRagTool()
+
+        # Initialize operation mapping
         self.operation_map = self._initialize_operation_map()
-        
+
+        # agent/task configs are expected to be provided via CrewBase
         super().__init__()
-    
-    def _initialize_operation_map(self):
-        """Initialize the operation mapping - customize based on your operations"""
-        ops_tool = OperationsTool()
-        return {
-            'custom_search': getattr(ops_tool, 'custom_search', self._dummy_operation),
-            'search_files': getattr(ops_tool, 'search_files', self._dummy_operation),
-            'document_translate': getattr(ops_tool, 'document_translate', self._dummy_operation),
-            'run_command': getattr(ops_tool, 'run_command', self._dummy_operation),
-            # Add other operations as needed
-        }
-    
-    def _dummy_operation(self, **kwargs):
-        """Fallback for missing operations"""
-        return True, f"Operation executed with params: {kwargs}"
-    
-    def parse_json_with_retry(self, raw: str, retries: int = 1) -> Dict:
-        """Parse JSON with cleanup and retry logic"""
-        for _ in range(retries):
-            cleaned = re.sub(r'```json|```|markdown', '', raw).strip()
+
+    # ----------------------- Helpers -----------------------
+    def parse_json_with_retry(self, raw: str, retries: int = 2) -> Dict:
+        """Try to parse JSON from LLM output with some cleanup retries.
+
+        Returns a dict fallbacking to a safe direct-response dict on complete failure.
+        """
+        if not raw:
+            return {"mode": "direct", "display_response": "Empty model response."}
+
+        cleaned = raw
+        for attempt in range(retries):
+            # Strip common markdown/code fences
+            cleaned = re.sub(r'```(?:json)?', '', cleaned)
+            cleaned = cleaned.replace('```', '').replace('markdown', '').strip()
+            # Attempt to load with json5 first (tolerant)
             try:
                 return json5.loads(cleaned)
-            except Exception as e:
-                logger.warning(f"JSON parse attempt failed: {e}")
-        
-        # Fallback
-        logger.error(f"JSON parsing completely failed for: {raw[:100]}...")
-        return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
-    
-    async def get_classification(self, user_query: str, file_path: str = None, session_id: str = None) -> Dict:
-        """Extract classification logic for API to call separately"""
-        try:
-            user_query = user_query.strip()
-            if not user_query:
-                return {"mode": "direct", "display_response": "No query provided."}
-            
-            # Assemble inputs
-            history = ChatHistory.load_history(session_id)
-            user_profile = self.memory_manager.get_user_profile()
-            file_content = self._process_file(file_path)
-            
-            # Load operations from json
-            file_tool = FileManagerTool()
-            ops_path = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
-            available_operations_raw = file_tool._run(ops_path)
-            
-            # Robust JSON extraction
-            json_match = re.search(r'\{.*\}', available_operations_raw, re.DOTALL)
-            if json_match:
-                available_operations_content = json_match.group(0)
+            except Exception:
+                try:
+                    return json.loads(cleaned)
+                except Exception:
+                    # Try to extract first JSON-looking block
+                    m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+                    if m:
+                        try:
+                            return json.loads(m.group(0))
+                        except Exception:
+                            pass
+            # If not successful, make a milder cleanup for next iteration
+            cleaned = re.sub(r'[^\x00-\x7F]+', ' ', cleaned)
+
+        logger.error("JSON parsing failed for model output (truncated): %s", (raw[:200] + '...') if raw else raw)
+        return {"mode": "direct", "display_response": f"Could not parse model response. Raw: {raw[:200]}..."}
+
+    def _initialize_operation_map(self) -> Dict[str, Any]:
+        """Create operation map by checking OperationsTool and providing safe fallbacks.
+
+        The OperationsTool implementation should expose either wrapper methods
+        (e.g. _open_app_wrapper) or an operation_map dict with callables. If an operation
+        is missing, a dummy fallback will be used so workflows won't crash.
+        """
+        ops = OperationsTool()
+        operation_map: Dict[str, Any] = {}
+
+        # Commonly used operations (extend as required by operations.json)
+        candidates = [
+            'custom_search', 'search_files', 'document_translate', 'document_summarize',
+            'run_command', 'powerbi_generate_dashboard', 'open_app', 'searchMail', 'send_email'
+        ]
+
+        for name in candidates:
+            wrapper_name = f'_{name}_wrapper'
+            if hasattr(ops, wrapper_name):
+                operation_map[name] = getattr(ops, wrapper_name)
             else:
-                available_operations_content = "{}"
-            
+                # If OperationsTool exposes a dict mapping, prefer it
+                fallback = getattr(ops, 'operation_map', {}).get(name)
+                if fallback:
+                    operation_map[name] = fallback
+                else:
+                    # Final fallback: local wrapper using ops._run if available
+                    operation_map[name] = self._create_operation_wrapper(name, ops)
+
+        logger.info("Operation map initialized with %d operations.", len(operation_map))
+        return operation_map
+
+    def _create_operation_wrapper(self, op_name: str, ops_tool: OperationsTool):
+        """Return a callable wrapper that calls ops_tool._run with a standard payload.
+
+        The wrapper returns (success: bool, result: Any)
+        """
+        def wrapper(**kwargs):
             try:
-                available_operations = json.loads(available_operations_content.strip()).get("operations", [])
-            except json.JSONDecodeError:
-                logger.warning("Invalid operations JSON. Using empty list.")
-                available_operations = []
-            
-            available_ops_info = "\\n".join([
-                f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}" 
-                for op in available_operations
-            ])
-            
-            full_history = json.dumps(history)
-            if len(full_history) > 2000:
-                history_summary = ChatHistory.summarize(history)
-                full_history = f"Summary: {history_summary}"
-            
-            os_info = f"{platform.system()} {platform.release()}"
-            
-            inputs = {
-                'user_query': user_query,
-                'file_content': file_content,
-                'full_history': full_history,
-                'available_ops_info': available_ops_info,
-                'user_profile': json.dumps(user_profile),
-                'os_info': os_info
-            }
-            
-            # Execute classification task
-            classify_task = self.classify_query()
-            classify_task.description = classify_task.description.format(**inputs)
-            classify_agent = self.classifier()
-            
-            classification_raw = await self._execute_task_with_fallbacks(
-                classify_agent, classify_task, [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
-            )
-            
-            classification = self.parse_json_with_retry(classification_raw)
-            operations = classification.get('operations', [])
-            if not all(isinstance(op, dict) and 'name' in op for op in operations):
-                logger.warning("Invalid operations format from classification. Falling back to direct mode.")
-                classification['mode'] = 'direct'
-                classification['display_response'] = "Invalid operations plan. Please rephrase."
-            return classification
-            
+                payload = [{'name': op_name, 'parameters': kwargs}]
+                if hasattr(ops_tool, '_run'):
+                    result = ops_tool._run(payload)
+                else:
+                    # If _run is not available, return a descriptive fallback
+                    return True, f"Fallback executed for {op_name} with params: {kwargs}"
+
+                # Normalize response: operations implementations are encouraged to prefix with ✅/❌
+                if isinstance(result, str):
+                    if result.startswith('✅'):
+                        return True, result
+                    if result.startswith('❌'):
+                        return False, result
+                return True, result
+
+            except Exception as e:
+                logger.exception("Operation wrapper for %s failed: %s", op_name, e)
+                return False, f"Operation {op_name} failed: {str(e)}"
+
+        return wrapper
+
+    # ----------------------- File & Context helpers -----------------------
+    def _process_file(self, file_path: Optional[str]) -> str:
+        if not file_path:
+            return ""
+        if not os.path.exists(file_path):
+            return ""
+
+        ext = os.path.splitext(file_path)[1].lower()
+        ft = FileManagerTool()
+        try:
+            content = ft._run(file_path)
+            if ext == '.pdf':
+                # avoid huge dumps
+                return f"PDF Content Extracted: {content[:2000]}..."
+            return content
         except Exception as e:
-            logger.error(f"Error in get_classification: {e}")
-            traceback.print_exc()
-            return {"mode": "direct", "display_response": f"Classification error: {str(e)}"}
-    
-    # === Agents ===
+            logger.warning("File processing failed for %s: %s", file_path, e)
+            return f"Error processing file: {str(e)}"
+
+    # ----------------------- Crew agents & tasks -----------------------
     @agent
     def classifier(self) -> Agent:
-        return Agent(config=self.agents_config['classifier'], llm=self.classifier_llm, verbose=True)
-    
+        return Agent(config=self.agents_config['classifier'], llm=self.classifier_llm, verbose=False)
+
     @agent
     def synthesizer(self) -> Agent:
-        return Agent(config=self.agents_config['synthesizer'], llm=self.synthesizer_llm, verbose=True)
-    
+        return Agent(config=self.agents_config['synthesizer'], llm=self.synthesizer_llm, verbose=False)
+
     @agent
     def summarizer(self) -> Agent:
-        return Agent(config=self.agents_config['summarizer'], llm=self.summarizer_llm, verbose=True)
-    
-    # === Tasks ===
+        return Agent(config=self.agents_config['summarizer'], llm=self.summarizer_llm, verbose=False)
+
     @task
     def classify_query(self) -> Task:
         return Task(config=self.tasks_config['classify_query'])
-    
+
     @task
     def synthesize_response(self) -> Task:
         return Task(config=self.tasks_config['synthesize_response'])
-    
+
     @task
     def summarize_history(self) -> Task:
         return Task(config=self.tasks_config['summarize_history'])
-    
-    # === Internal Execution Helpers ===
-    async def _execute_task_with_fallbacks(self, agent, task, fallbacks: Optional[List[LLM]] = None):
-        """Execute task with fallback LLMs on failure"""
+
+    # ----------------------- Task execution with fallbacks -----------------------
+    async def _execute_task_with_fallbacks(self, agent: Agent, task: Task, fallbacks: Optional[List[LLM]] = None) -> Any:
         if fallbacks is None:
             fallbacks = []
 
         try:
-            # CRITICAL FIX: Use CrewAI's proper task execution
-            # Instead of agent.execute_task, use the crew execution pattern
-            temp_crew = Crew(
-                agents=[agent],
-                tasks=[task],
-                process=Process.sequential,
-                verbose=False
-            )
-            
-            # Execute the crew and get result
+            temp_crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
             result = temp_crew.kickoff()
-            
-            # Handle different result types
+
+            # Normalize result
             if hasattr(result, 'raw'):
                 return result.raw
-            elif hasattr(result, 'result'):
+            if hasattr(result, 'result'):
                 return result.result
-            else:
-                return str(result)
-                
+            return str(result)
+
         except (RateLimitError, APIError) as e:
-            # Handle API errors with fallbacks
-            status_code = getattr(e, "status_code", None)
+            status_code = getattr(e, 'status_code', None)
+            # If non-retryable, re-raise
             if isinstance(e, APIError) and status_code not in (None, 429):
-                logger.exception("Non-retryable APIError from model %s: %s", getattr(agent.llm, "model", None), e)
+                logger.exception("Non-retryable APIError: %s", e)
                 raise
 
             if not fallbacks:
-                logger.error("Exhausted fallbacks for %s. Returning error string.", getattr(agent.llm, "model", None))
-                return "Error: LLM request failed. Please try again later."
+                logger.error("No fallbacks left for agent %s", getattr(agent.llm, 'model', None))
+                return f"Error: LLM request failed: {str(e)}"
 
-            # Switch to next fallback LLM and retry
             next_llm = fallbacks[0]
-            logger.warning("RateLimit/API error with %s. Switching to fallback %s and retrying.", 
-                          getattr(agent.llm, "model", None), getattr(next_llm, "model", None))
+            logger.warning("Switching LLM to fallback %s due to error: %s", getattr(next_llm, 'model', None), e)
             agent.llm = next_llm
             return await self._execute_task_with_fallbacks(agent, task, fallbacks[1:])
-            
+
         except Exception as e:
-            logger.exception("Unexpected error in _execute_task_with_fallbacks: %s", e)
+            logger.exception("Unexpected execution error: %s", e)
             return f"Task execution failed: {str(e)}"
-    
-    def _process_file(self, file_path: str) -> str:
-        """Extract text from file"""
-        if not file_path or not os.path.exists(file_path):
-            return ""
-        
-        ext = os.path.splitext(file_path)[1].lower()
-        file_tool = FileManagerTool()
-        
-        try:
-            if ext in ['.txt', '.doc', '.ppt']:
-                return file_tool._run(file_path)
-            elif ext == '.pdf':
-                content = file_tool._run(file_path)
-                return f"PDF Content Extracted: {content[:2000]}..."
-            else:
-                return f"Unsupported file type: {ext}. Only txt, pdf, doc, ppt supported."
-        except Exception as e:
-            logger.error(f"File processing error: {e}")
-            return f"Error processing file: {str(e)}"
-    
-    async def execute_agentic_background(self, operations: List[Dict], user_summarized_requirements: str, session_id: str, uid: str):
-        """Background: Execute ops, synthesize, save response"""
-        try:
-            # Execute operations
-            op_results = await self.perform_operations_async(operations, uid)
-            
-            # Synthesize response
-            synth_task = self.synthesize_response()
-            synth_task.description = synth_task.description.format(
-                user_summarized_requirements=user_summarized_requirements,
-                op_results=op_results
-            )
-            synth_agent = self.synthesizer()
-            
-            synth_raw = await self._execute_task_with_fallbacks(
-                synth_agent, synth_task, [self.synthesizer_fallback1_llm, self.synthesizer_fallback2_llm]
-            )
-            
-            synth = self.parse_json_with_retry(synth_raw)
-            final_response = synth.get('display_response', 'Synthesis failed.')
-            
-            # Extract and add facts to KB
-            extracted_facts = synth.get('extracted_fact', [])
-            if extracted_facts:
-                self.memory_manager.update_long_term({
-                    'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]
-                })
-                logger.info(f"Added {len(extracted_facts)} facts to KB.")
-            
-            # Save assistant response
-            await save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
-            
-        except Exception as e:
-            logger.error(f"Error in execute_agentic_background: {e}")
-            error_response = f"Background execution failed: {str(e)}"
-            await save_chat_message(session_id, uid, "assistant", error_response, datetime.now().isoformat())
-    
+
+    # ----------------------- Operations execution -----------------------
     async def perform_operations_async(self, operations: List[Dict[str, Any]], uid: str) -> str:
-        logger.debug(f"Operations type: {type(operations)}, content: {operations}")
-        
+        """Execute a list of operations asynchronously and report results as a joined string."""
+        logger.debug("Starting operations execution. Count=%d", len(operations) if operations else 0)
+
         if not operations:
             return "No operations to execute."
-        
+
         lines = []
         for op in operations:
-            logger.debug(f"Processing op type: {type(op)}, op: {op}")
             if not isinstance(op, dict) or 'name' not in op:
                 lines.append(f"Invalid operation format: {op}")
                 continue
-                
+
             name = op['name']
             params = op.get('parameters', {})
-            
+
             if name not in self.operation_map:
                 lines.append(f"Operation '{name}' not implemented.")
                 continue
-            
+
+            # Prepare operation object for queueing
+            operation_obj = {
+                'name': name,
+                'parameters': params,
+                'uid': uid,
+                'status': 'queued',
+                'timestamp': datetime.now().isoformat()
+            }
+
             try:
-                # Queue operation
-                op_id = queue_operation(uid, name, params)
-                if inspect.iscoroutine(op_id):
-                    op_id = await op_id
-                    
-                # Update status
-                update_operation_status(uid, op_id, 'running')
-                
-                # Execute operation
+                # Queue operation (best-effort)
+                try:
+                    op_id = queue_operation(uid, operation_obj)
+                    if inspect.iscoroutine(op_id):
+                        op_id = await op_id
+                except Exception as q_err:
+                    logger.warning("Queue operation failed: %s", q_err)
+                    op_id = f"local_{name}_{int(datetime.now().timestamp())}"
+
+                # Update running status
+                try:
+                    update_operation_status(uid, op_id, 'running')
+                except Exception:
+                    logger.debug("Could not update running status for op %s", name)
+
+                # Execute
                 func = self.operation_map[name]
+                logger.info("Executing operation %s with params: %s", name, params)
+
                 if asyncio.iscoroutinefunction(func):
                     success, result = await func(**params)
                 else:
                     success, result = func(**params)
-                    
-                # Update final status
-                update_operation_status(uid, op_id, 'success' if success else 'failed', result)
-                lines.append(f"Operation '{name}': {result}")
-                
+
+                # Update final status (best-effort)
+                try:
+                    update_operation_status(uid, op_id, 'success' if success else 'failed', str(result))
+                except Exception:
+                    logger.debug("Could not update final status for op %s", name)
+
+                lines.append(("✅" if success else "❌") + f" Operation '{name}': {result}")
+
             except Exception as e:
-                error_msg = str(e)
-                lines.append(f"Operation '{name}' failed: {error_msg}")
-                logger.error(f"Operation {name} failed: {e}")
-        
+                logger.exception("Operation %s failed: %s", name, e)
+                try:
+                    if 'op_id' in locals():
+                        update_operation_status(uid, op_id, 'failed', str(e))
+                except Exception:
+                    pass
+                lines.append(f"❌ Operation '{name}' failed: {str(e)}")
+
         return "\n".join(lines) if lines else "All operations completed."
+
     
+async def execute_agentic_background(self, operations: List[Dict[str, Any]], user_summarized_requirements: str, session_id: str, uid: str):
+    """
+    Background task to execute agentic operations and synthesize response.
+    Saves the final assistant response to chat history.
+    """
+    try:
+        logger.info(f"Starting background agentic execution for session {session_id}")
+        
+        # Execute operations
+        op_results = await self.perform_operations_async(operations, uid)
+        
+        # Synthesize response
+        synth_task = self.synthesize_response()
+        synth_task.description = synth_task.description.format(
+            user_summarized_requirements=user_summarized_requirements,
+            op_results=op_results
+        )
+        synth_agent = self.synthesizer()
+        
+        synth_raw = await self._execute_task_with_fallbacks(
+            synth_agent,
+            synth_task,
+            self.synthesizer_fallbacks
+        )
+        
+        synth = self.parse_json_with_retry(synth_raw)
+        final_response = synth.get('display_response', 'Synthesis completed.')
+        
+        # Extract and persist facts
+        extracted_facts = synth.get('extracted_fact', [])
+        if extracted_facts:
+            self.memory_manager.update_long_term({
+                'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]
+            })
+        
+        # Save assistant response to chat history
+        timestamp = datetime.now().isoformat()
+        save_result = save_chat_message(session_id, uid, "assistant", final_response, timestamp)
+        if inspect.iscoroutine(save_result):
+            await save_result
+            
+        logger.info(f"Background agentic execution completed for session {session_id}")
+        
+    except Exception as e:
+        logger.exception(f"Background agentic execution failed for session {session_id}: {e}")
+        
+        # Save error response
+        error_response = f"Background processing failed: {str(e)}"
+        timestamp = datetime.now().isoformat()
+        try:
+            save_result = save_chat_message(session_id, uid, "assistant", error_response, timestamp)
+            if inspect.iscoroutine(save_result):
+                await save_result
+        except Exception as save_err:
+            logger.error(f"Failed to save error response: {save_err}")
+
+
     def perform_operations(self, operations: List[Dict[str, Any]]) -> str:
-        """Synchronous version of perform_operations for backward compatibility"""
+        """Synchronous convenience wrapper for perform_operations_async (not blocking here)."""
+        # For backward compatibility, run sync operations by dispatching to operation_map
         if not operations:
             return "No operations to execute."
-        
-        lines = []
+
+        results = []
         for op in operations:
             name = op.get('name')
             params = op.get('parameters', {})
-            
+
             if name not in self.operation_map:
-                lines.append(f"Operation '{name}' not implemented.")
+                results.append(f"Operation '{name}' not implemented.")
                 continue
-            
-            # Queue and update status
-            op_id = queue_operation(name, params)
-            update_operation_status(op_id, 'running')
-            
+
             try:
                 func = self.operation_map[name]
-                success, result = func(**params)
-                update_operation_status(op_id, 'success' if success else 'failed', result)
-                lines.append(f"Operation '{name}': {result}")
-                
+                if asyncio.iscoroutinefunction(func):
+                    # run coroutine synchronously via event loop
+                    res = asyncio.get_event_loop().run_until_complete(func(**params))
+                else:
+                    res = func(**params)
+
+                success, out = res if isinstance(res, tuple) else (True, res)
+                results.append(f"Operation '{name}': {out}")
+
             except Exception as e:
-                error_msg = str(e)
-                update_operation_status(op_id, 'failed', error_msg)
-                lines.append(f"Operation '{name}' failed: {error_msg}")
-        
-        return "\n".join(lines) if lines else "All operations completed."
-    
-    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
-        """Optimized workflow execution"""
+                logger.exception("Sync operation %s failed: %s", name, e)
+                results.append(f"Operation '{name}' failed: {str(e)}")
+
+        return "\n".join(results)
+
+    # ----------------------- Main workflow -----------------------
+    async def get_classification(self, user_query: str, file_path: Optional[str] = None, session_id: Optional[str] = None) -> Dict:
+        """Return classification dict for a user query. Keeps integration with chat history and available operations."""
         try:
-            # Input validation
-            user_query = user_query.strip()
+            user_query = (user_query or "").strip()
             if not user_query:
-                return {"display_response": "No query provided.", "mode": "direct"}
-                
-            # Validate uid parameter
-            if uid is None:
-                logger.warning("uid parameter is None, some features may not work correctly")
-                uid = "anonymous"  # fallback value
-           
-            # Load context
+                return {"mode": "direct", "display_response": "No query provided."}
+
             history = ChatHistory.load_history(session_id)
             user_profile = self.memory_manager.get_user_profile()
             file_content = self._process_file(file_path)
-           
-            # Load operations
-            file_tool = FileManagerTool()
-            ops_path = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
-            available_operations_raw = file_tool._run(ops_path)
-            
-            json_match = re.search(r'\{.*\}', available_operations_raw, re.DOTALL)
-            if json_match:
-                available_operations_content = json_match.group(0)
-            else:
-                available_operations_content = "{}"
-            
+
+            # Load available operations for context (best-effort)
             try:
-                available_operations = json.loads(available_operations_content.strip()).get("operations", [])
-            except json.JSONDecodeError:
-                logger.warning("Invalid operations JSON. Using empty list.")
+                ft = FileManagerTool()
+                ops_raw = ft._run(os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json'))
+                m = re.search(r'\{.*\}', ops_raw, re.DOTALL)
+                ops_json = json.loads(m.group(0)) if m else {}
+                available_operations = ops_json.get('operations', [])
+            except Exception:
                 available_operations = []
-           
+
             available_ops_info = "\n".join([
-                f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}" 
+                f"{op.get('name')}: {op.get('description','')} | Required: {', '.join(op.get('required_parameters',[]))}"
                 for op in available_operations
             ])
-            
-            # Prepare inputs
+
             full_history = json.dumps(history)
             if len(full_history) > 2000:
-                history_summary = ChatHistory.summarize(history)
-                full_history = f"Summary: {history_summary}"
-            
-            os_info = f"{platform.system()} {platform.release()}"
+                full_history = f"Summary: {ChatHistory.summarize(history)}"
+
             inputs = {
                 'user_query': user_query,
                 'file_content': file_content,
                 'full_history': full_history,
                 'available_ops_info': available_ops_info,
                 'user_profile': json.dumps(user_profile),
-                'os_info': os_info
+                'os_info': f"{platform.system()} {platform.release()}"
             }
-            
-            # Classification
+
             classify_task = self.classify_query()
             classify_task.description = classify_task.description.format(**inputs)
             classify_agent = self.classifier()
-            
+
             classification_raw = await self._execute_task_with_fallbacks(
-                classify_agent, classify_task, [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
+                classify_agent,
+                classify_task,
+                [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
             )
-           
+
             classification = self.parse_json_with_retry(classification_raw)
-           
-            # Mode routing
+            return classification
+
+        except Exception as e:
+            logger.exception("Error in get_classification: %s", e)
+            return {"mode": "direct", "display_response": f"Classification error: {str(e)}"}
+
+    async def run_workflow(self, user_query: str, file_path: Optional[str] = None, session_id: Optional[str] = None, uid: Optional[str] = None) -> Dict[str, Any]:
+        """Core end-to-end workflow used by the frontend.
+
+        Returns a dict with display_response and mode. Keeps chat history, executes operations
+        when classification returns agentic plan, and synthesizes final assistant response.
+        """
+        try:
+            user_query = (user_query or "").strip()
+            if not user_query:
+                return {"display_response": "No query provided.", "mode": "direct"}
+
+            uid = uid or "anonymous"
+
+            history = ChatHistory.load_history(session_id)
+            user_profile = self.memory_manager.get_user_profile()
+            file_content = self._process_file(file_path)
+
+            classification = await self.get_classification(user_query, file_path, session_id)
             mode = classification.get('mode', 'direct')
+
             if mode == 'direct':
                 final_response = classification.get('display_response', 'No response generated.')
+
             else:  # agentic
                 operations = classification.get('operations', [])
                 if not isinstance(operations, list) or not all(isinstance(op, dict) and 'name' in op for op in operations):
@@ -444,52 +488,43 @@ class AiAgent:
                     mode = 'direct'
                 else:
                     user_summarized_requirements = classification.get('user_summarized_requirements', 'User intent unclear.')
-                   
-                    # Execute operations with uid parameter
+
                     op_results = await self.perform_operations_async(operations, uid)
-                   
-                    # Synthesize response
+
                     synth_task = self.synthesize_response()
                     synth_task.description = synth_task.description.format(
                         user_summarized_requirements=user_summarized_requirements,
                         op_results=op_results
                     )
                     synth_agent = self.synthesizer()
-                    
+
                     synth_raw = await self._execute_task_with_fallbacks(
-                        synth_agent, synth_task, [self.synthesizer_fallback1_llm, self.synthesizer_fallback2_llm]
+                        synth_agent,
+                        synth_task,
+                        self.synthesizer_fallbacks
                     )
-                    
+
                     synth = self.parse_json_with_retry(synth_raw)
                     final_response = synth.get('display_response', 'Synthesis failed.')
-                   
-                    # Extract and add to KB
+
+                    # Persist extracted facts if present
                     extracted_facts = synth.get('extracted_fact', [])
                     if extracted_facts:
                         self.memory_manager.update_long_term({
                             'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]
                         })
-                        logger.info(f"Added {len(extracted_facts)} facts to KB.")
-           
-            # Save history
+
+            # Save history and return
             history.append({"role": "user", "content": user_query + (f" [File: {file_path}]" if file_path else "")})
             history.append({"role": "assistant", "content": final_response})
             ChatHistory.save_history(history, session_id)
-           
-            # Periodic narrative
-            if len(history) % 10 == 0:
-                try:
-                    narrative = self.memory_manager.create_narrative_summary(json.dumps(history[-5:]))
-                except Exception as e:
-                    logger.warning(f"Narrative summary failed: {e}")
-           
+
             return {"display_response": final_response, "mode": mode}
-            
+
         except Exception as e:
-            logger.error(f"Error in run_workflow: {e}")
-            traceback.print_exc()
+            logger.exception("Error in run_workflow: %s", e)
             return {"display_response": f"Workflow error: {str(e)}", "mode": "error"}
-    
+
     @crew
     def crew(self) -> Crew:
         return Crew(agents=self.agents, tasks=self.tasks, process=Process.sequential, verbose=True)

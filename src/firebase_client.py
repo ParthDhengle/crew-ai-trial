@@ -7,6 +7,7 @@ from firebase_admin import credentials, firestore , auth
 from datetime import datetime, timedelta
 import json
 import uuid
+
 # Load environment variables
 load_dotenv()
 # Initialize Firebase
@@ -94,11 +95,15 @@ def update_user_profile(data: dict) -> bool:
     return update_document("users", USER_ID, data, subcollection=False)
 # Generic CRUD
 def add_document(uid: str, collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
-    """Add doc to users/{user_id}/{collection}/{doc_id} or top-level collection."""
-    user_ref = db.collection("users").document(uid)
-    ref = user_ref.collection(collection).document(doc_id) if doc_id else user_ref.collection(collection).document()
+    """Add doc to users/{uid}/{collection}/{doc_id} or top-level."""
+    if subcollection:
+        user_ref = db.collection("users").document(uid)
+        ref = user_ref.collection(collection).document(doc_id) if doc_id else user_ref.collection(collection).document()
+    else:
+        ref = db.collection(collection).document(doc_id) if doc_id else db.collection(collection).document()
     ref.set(data)
     return ref.id
+
 def get_document(collection: str, doc_id: str, subcollection: bool = True) -> dict:
     """Get doc."""
     doc = (get_user_ref().collection(collection).document(doc_id) if subcollection else
@@ -390,10 +395,15 @@ def get_rules(enabled_only: bool = True) -> list:
     filters = [("enabled", "==", True)] if enabled_only else None
     return query_collection("rules", filters)
 # Operations Queue
-def queue_operation(uid: str, op_name: str, params: dict) -> str:
-    """Queue operation (optional async)."""
+
+def queue_operation(uid: str, operation_data: dict) -> str:
+    """Queue operation under user. Fixed parameter structure."""
+    # Extract operation details from the operation_data dict
+    op_name = operation_data.get('name', 'unknown')
+    params = operation_data.get('parameters', {})
+    
     data = {
-        "user_id": uid,  # Add user_id
+        "user_id": uid,
         "op_name": op_name,
         "params": params,
         "status": "pending",
@@ -402,7 +412,25 @@ def queue_operation(uid: str, op_name: str, params: dict) -> str:
         "end_time": None,
         "result": None
     }
-    return add_document("operations_queue", data)
+    return add_document(uid, "operations_queue", data)
+
+
+def get_operations_queue(uid: str, status: str = None) -> list:
+    """Get user's ops queue."""
+    filters = [("user_id", "==", uid)] + ([("status", "==", status)] if status else [])
+    return query_collection(uid, "operations_queue", filters=filters)
+
+def update_operation_status(uid: str, op_id: str, status: str, result: str = None) -> bool:
+    """Update op status."""
+    data = {"status": status, "updated_at": datetime.now().isoformat()}
+    if status == 'running':
+        data["start_time"] = datetime.now().isoformat()
+    if status in ['success', 'failed']:
+        data["end_time"] = datetime.now().isoformat()
+    if result:
+        data["result"] = result
+    return update_document(uid, "operations_queue", op_id, data)
+
 # Add to end of file
 def get_tasks_by_user(status: str = None) -> list:
     """Get user's tasks (filtered by status)."""
@@ -415,17 +443,3 @@ def update_task_by_user(task_id: str, data: dict) -> bool:
 def delete_task_by_user(task_id: str) -> bool:
     """Delete user's task."""
     return delete_document("tasks", task_id)
-def get_operations_queue(status: str = None) -> list:
-    """Get user's operation queue."""
-    filters = [("user_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
-    return query_collection("operations_queue", filters=filters)
-def update_operation_status(op_id: str, status: str, result: str = None) -> bool:
-    """Update op status (e.g., running -> success)."""
-    data = {"status": status, "updated_at": datetime.now().isoformat()}
-    if status == 'running':
-        data["start_time"] = datetime.now().isoformat()
-    if status in ['success', 'failed']:
-        data["end_time"] = datetime.now().isoformat()
-    if result:
-        data["result"] = result
-    return update_document("operations_queue", op_id, data)

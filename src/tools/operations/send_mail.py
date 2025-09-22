@@ -174,7 +174,7 @@ def refine_email_with_fallback(body: str, feedback: str, recipient: str, subject
                     f"Ensure tone matches a professional yet clear communication style.",
                 backstory="Expert in professional email writing with years of experience in corporate communication.",
                 llm=llm,
-                verbose=False
+                verbose=2
             )
 
             # Build task with user context included
