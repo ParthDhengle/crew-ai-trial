@@ -233,56 +233,57 @@ async def get_chats(session_id: str, uid: str = Depends(get_current_uid)):
 @app.post("/process_query")
 async def process_query(request: QueryRequest, background_tasks: BackgroundTasks, uid: str = Depends(get_current_uid)):
     """
-    Classifies query, queues ops for agentic (pending), returns mode/ops/session_id immediately.
-    Executes workflow in background, updating statuses.
+    Processes the query using the updated AiAgent workflow.
+    For 'direct' mode: Returns response immediately.
+    For 'agentic' mode: Queues ops, returns mode/ops/session_id, executes in background.
     """
     try:
         timestamp = datetime.now().isoformat()
         
-        # Save user query and get session_id - ENSURE THIS IS AWAITED
+        # Save user query and get session_id
         session_id = await save_chat_message(request.session_id, uid, "user", request.query, timestamp)
         
         if not session_id:
             raise RuntimeError("Failed to create or retrieve session_id")
         
-        # CRITICAL FIX: Ensure session_id is a string, not a coroutine
+        # Ensure session_id is a string (not a coroutine)
         if inspect.iscoroutine(session_id):
             session_id = await session_id
         
         logger.info(f"Session ID type: {type(session_id)}, value: {session_id}")
         
-        # Run classification synchronously
+        # Run the full workflow synchronously (includes classification)
         crew_instance = AiAgent()
-        classification = await crew_instance.get_classification(
+        result = await crew_instance.run_workflow(
             request.query, 
             file_path=getattr(request, 'file_path', None),
             session_id=session_id
         )
         
-        # ENSURE classification is a dict, not a coroutine
-        if inspect.iscoroutine(classification):
-            classification = await classification
+        # Ensure result is a dict (not a coroutine)
+        if inspect.iscoroutine(result):
+            result = await result
         
-        mode = classification.get('mode', 'direct')
+        mode = result.get('mode', 'direct')
         
         if mode == 'direct':
-            final_response = classification.get('display_response', 'No response')
+            final_response = result.get('display_response', 'No response')
             
-            # Save assistant response - ENSURE THIS IS AWAITED
+            # Save assistant response
             save_result = save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
             if inspect.iscoroutine(save_result):
                 await save_result
             
-            # RETURN SERIALIZABLE DATA ONLY
+            # Return serializable data
             return {
                 "result": {
                     "display_response": final_response, 
                     "mode": mode
                 }, 
-                "session_id": str(session_id)  # Ensure string conversion
+                "session_id": str(session_id)
             }
         else:  # agentic
-            operations = classification.get('operations', [])
+            operations = result.get('operations', [])  # Assuming run_workflow returns this in agentic mode
             
             # Validate operations structure
             if not isinstance(operations, list):
@@ -294,7 +295,6 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 if isinstance(op, dict) and 'name' in op:
                     try:
                         op_id = queue_operation(op['name'], op.get('parameters', {}))
-                        # Ensure op_id is not a coroutine
                         if inspect.iscoroutine(op_id):
                             op_id = await op_id
                         op_ids.append(str(op_id))
@@ -311,9 +311,9 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                     "parameters": op.get('parameters', {})
                 })
             
-            user_summarized_requirements = str(classification.get('user_summarized_requirements', ''))
+            user_summarized_requirements = result.get('user_summarized_requirements', 'User intent unclear.')
             
-            # Add background task
+            # Add background task for execution
             background_tasks.add_task(
                 crew_instance.execute_agentic_background, 
                 operations, 
@@ -322,7 +322,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 uid
             )
             
-            # RETURN SERIALIZABLE DATA ONLY
+            # Return serializable data
             return {
                 "result": {
                     "mode": "agentic", 
@@ -335,7 +335,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         logger.error(f"Error in process_query: {e}")
         traceback.print_exc()
         
-        # Return a proper error response that's serializable
+        # Return a proper error response
         error_response = {
             "result": {
                 "mode": "error",
@@ -346,7 +346,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         raise HTTPException(status_code=500, detail=error_response)
 
-    # ---- get_chat_history (updated) ----
+
+# ---- get_chat_history (updated) ----
 @app.get("/chat_history")
 async def get_chat_history_api(session_id: str = None, uid: str = Depends(get_current_uid)):
     """
