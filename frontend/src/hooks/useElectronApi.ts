@@ -7,8 +7,11 @@ import type {
   Integration,
   NovaRole
 } from '@/api/types';
+
 import { apiClient } from '@/api/client';
 import { useNova } from '@/context/NovaContext';  // FIXED: Import useNova for state/dispatch
+
+
 
 /**
  * React hook wrapper for Electron API interactions
@@ -77,6 +80,7 @@ export const useElectronApi = () => {
  * Hook for managing agent operations state
  */
 export const useAgentOps = () => {
+
   const { state, dispatch } = useNova();  // FIXED: Added dispatch
   const [operations, setOperations] = useState<AgentOp[]>([]);  // FIXED: Defined operations state
   const [errorCount, setErrorCount] = useState(0);  // FIXED: Defined errorCount for backoff
@@ -131,10 +135,50 @@ export const useAgentOps = () => {
   const cancelOperation = useCallback((operationId: string) => {
     // TODO: Implement /operations/{id}/cancel if needed
     setOperations(ops => ops.filter(op => op.id !== operationId));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }, []);
 
   return { operations, cancelOperation };
+
+
 };
+
+
+
+
+
+
 
 export const useVoiceTranscription = () => {
   const [isRecording, setIsRecording] = useState(false);

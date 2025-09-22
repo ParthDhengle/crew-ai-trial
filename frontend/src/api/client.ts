@@ -202,11 +202,10 @@ class ApiClient {
   }
 
   // Operations endpoints
-  async getOperations(status?: string) {
+   async getOperations(status?: string) {
     const params = status ? `?status=${status}` : '';
     return this.request<AgentOp[]>(`/operations${params}`);
-  }
-
+  }s
   async queueOperation(name: string, parameters: any) {
     const response = await this.request<{ op_id: string }>('/operations', {
       method: 'POST',

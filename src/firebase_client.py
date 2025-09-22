@@ -1,4 +1,3 @@
-# Optimized src/firebase_client.py with reduced debug prints
 import os
 import shutil
 from dotenv import load_dotenv
@@ -18,16 +17,20 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
+
 USER_ID = os.getenv("USER_ID", "parth")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_BASE = os.path.join(PROJECT_ROOT, "knowledge", "storage")
+
 def set_user_id(uid: str):
     """Set the current USER_ID from auth UID."""
     global USER_ID
     USER_ID = uid
+
 def get_user_ref():
     """Get users doc ref for current user (uses dynamic USER_ID)."""
     return db.collection("users").document(USER_ID)
+
 # === Auth Functions ===
 def create_user(email: str, password: str = None, display_name: str = None) -> dict:
     """Create a new user with email/password. Returns user dict with uid."""
@@ -39,6 +42,7 @@ def create_user(email: str, password: str = None, display_name: str = None) -> d
         return user._data
     except Exception as e:
         raise ValueError(f"Failed to create user: {e}")
+
 def sign_in_with_email(email: str, password: str) -> str:
     """Sign in user and return ID token (for verification). For CLI, store in session/memory."""
     try:
@@ -53,6 +57,7 @@ def sign_in_with_email(email: str, password: str) -> str:
         raise ValueError("User not found. Sign up first.")
     except Exception as e:
         raise ValueError(f"Sign-in failed: {e}")
+
 def verify_id_token(id_token: str) -> str:
     """Verify ID token (for FastAPI endpoints). Returns UID."""
     try:
@@ -62,6 +67,7 @@ def verify_id_token(id_token: str) -> str:
         return uid
     except Exception as e:
         raise ValueError(f"Token verification failed: {e}")
+
 def get_user_by_uid(uid: str) -> dict:
     """Get user by UID."""
     try:
@@ -69,6 +75,7 @@ def get_user_by_uid(uid: str) -> dict:
         return user._data
     except Exception as e:
         raise ValueError(f"User fetch failed: {e}")
+
 # === Profile Functions (Updated to use auth UID) ===
 def get_user_profile() -> dict:
     """Get user profile, auto-set current_chat_session if missing."""
@@ -80,6 +87,7 @@ def get_user_profile() -> dict:
         db.collection("users").document(USER_ID).set(profile, merge=True)
     return profile
 def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC",
+
                       focus_hours: list = None, permissions: dict = None, integrations: dict = None) -> str:
     """Create/update profile using UID as doc ID."""
     set_user_id(uid) # Ensure global USER_ID is set
@@ -90,9 +98,11 @@ def set_user_profile(uid: str, email: str, display_name: str = None, timezone: s
         "updated_at": datetime.now().isoformat()
     }
     return add_document("users", data, uid, subcollection=False)
+
 def update_user_profile(data: dict) -> bool:
     """Update profile (uses current USER_ID)."""
     return update_document("users", USER_ID, data, subcollection=False)
+
 # Generic CRUD
 def add_document(uid: str, collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
     """Add doc to users/{uid}/{collection}/{doc_id} or top-level."""
@@ -137,6 +147,7 @@ def get_operations() -> list:
         with open(ops_path, "r") as f:
             return json.load(f).get("operations", [])
     return []
+
 def get_chat_history(session_id: str = None, uid: str = None) -> list:
     user_ref = db.collection('users').document(uid)
     if session_id:
@@ -355,6 +366,7 @@ async def save_chat_message(session_id: str, uid: str, role: str, content: str, 
         if len(user_msgs) == 1: # First user message
             title = user_msgs[0][:50] + ('...' if len(user_msgs[0]) > 50 else '')
             session_ref.update({'title': title})
+
    
     return session_id # Return session_id (new or existing)
 
@@ -403,6 +415,7 @@ def queue_operation(uid: str, operation_data: dict) -> str:
     params = operation_data.get('parameters', {})
     
     data = {
+
         "user_id": uid,
         "op_name": op_name,
         "params": params,
@@ -436,10 +449,12 @@ def get_tasks_by_user(status: str = None) -> list:
     """Get user's tasks (filtered by status)."""
     filters = [("owner_id", "==", USER_ID)] + ([("status", "==", status)] if status else [])
     return query_collection("tasks", filters=filters)
+
 def update_task_by_user(task_id: str, data: dict) -> bool:
     """Update user's task."""
     data["updated_at"] = datetime.now().isoformat()
     return update_document("tasks", task_id, data)
+
 def delete_task_by_user(task_id: str) -> bool:
     """Delete user's task."""
     return delete_document("tasks", task_id)
