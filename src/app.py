@@ -26,8 +26,7 @@ from typing import Optional,List
 from collections import defaultdict
 from fastapi import BackgroundTasks
 from fastapi.responses import StreamingResponse
-
-from operations_store import queue_operation_local, register_sse_queue, unregister_sse_queue, publish_event, get_operation_local, OP_STORE, update_operation_local
+from operations_store import queue_operation_local, register_sse_queue, unregister_sse_queue, publish_event, get_operation_local, OP_STORE, update_operation_local, OP_LOCK
 
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
@@ -260,7 +259,15 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             session_id = await session_id
         
         logger.info(f"Session ID type: {type(session_id)}, value: {session_id}")
-        
+         # Clear old ops for this session before processing new query
+        async with OP_LOCK:
+            to_delete = [oid for oid, op in list(OP_STORE.items()) if op.get('session_id') == session_id]
+            for oid in to_delete:
+                del OP_STORE[oid]
+        # Publish an event to notify clients (optional, but helps frontend reset)
+
+        await publish_event(session_id, {"type": "ops_cleared"})
+
         # Run the full workflow synchronously (includes classification)
         crew_instance = AiAgent()
         result = await crew_instance.run_workflow(

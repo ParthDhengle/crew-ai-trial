@@ -38,6 +38,8 @@ export function useAgentOps() {
           console.log("Agentic summary", payload.summary);
         } else if (payload.type === "agentic_error") {
           console.error("Agentic execution error:", payload.error);
+        }else if (payload.type === "ops_cleared") {
+          setOperations([]);  // Clear frontend state
         }
       } catch (e) {
         console.error("Failed to parse SSE payload", e);
