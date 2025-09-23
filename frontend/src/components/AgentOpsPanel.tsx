@@ -43,7 +43,7 @@ export default function AgentOpsPanel({
   className = '',
   collapsible = true 
 }: AgentOpsPanelProps) {
-  const { operations, cancelOperation } = useAgentOps();
+  const { operations, cancelOperation, agentStatus } = useAgentOps();
   const { state, dispatch } = useNova();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 

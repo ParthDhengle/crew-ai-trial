@@ -18,7 +18,7 @@ from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager # Updated for KB
 from datetime import datetime
 from operations_store import queue_operation_local, update_operation_local, get_operation_local, publish_event;
-
+import asyncio
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -222,9 +222,21 @@ class AiAgent:
                 mode = 'direct' # Fallback
             else:
                 user_summarized_requirements = classification.get('user_summarized_requirements', 'User intent unclear.')
-               
+                from operations_store import queue_operation_local
+                for op in operations:
+                    op_id = await queue_operation_local(op['name'], op.get('parameters', {}), session_id)
+                    op['op_id'] = op_id
+                
+                # Publish immediate frontend update that operations are created
+                from operations_store import publish_event
+                await publish_event(session_id, {
+                    "type": "agentic_mode_activated", 
+                    "message": "Nova agentic mode activated",
+                    "operations_count": len(operations)
+                })
+            
                 # 4. Execute Operations (sequential, append results)
-                op_results = await self.perform_operations(operations)
+                op_results = await self.perform_operations_with_realtime_updates(operations, session_id, uid)
                
                 # 5. Synthesizer (inputs: requirements + results)
                 synth_task = self.synthesize_response()
@@ -240,6 +252,11 @@ class AiAgent:
                
                 final_response = synth.get('display_response', 'Synthesis failed.')
                
+                await publish_event(session_id, {
+                    "type": "synthesis_complete",
+                    "response": final_response
+                })
+
                 # 6. Extract & Add to KB
                 extracted_facts = synth.get('extracted_fact', [])
                 if extracted_facts:
@@ -261,145 +278,174 @@ class AiAgent:
        
         return {"display_response": final_response, "mode": mode, **({"operations": operations} if mode == "agentic" else {})}
     
-    
-    async def perform_operations(self,
 
-                operations: List[Dict[str, Any]],
-
-                session_id: str = None,
-
-                uid: str = None,
-
-                queue_ops: bool = False) -> str:
-
+    async def perform_operations_with_realtime_updates(self, 
+                                                    operations: List[Dict[str, Any]], 
+                                                    session_id: str = None, 
+                                                    uid: str = None) -> str:
         """
-
-        Execute operations sequentially using local in-memory OP_STORE and publish SSE updates.
-
-        - operations: list of dicts, each can contain 'op_id' if already created.
-
-        - session_id: used to publish SSE events to clients connected to this session.
-
-        - queue_ops: if True, create op entries (queue_operation_local) for ops without op_id.
-
-        Returns: aggregated string of results.
-
+        Execute operations sequentially with REAL-TIME status updates after each operation.
+        This replaces the old perform_operations method for better UX.
         """
-
         if not operations:
-
             return "No operations to execute."
-
+        
         ops_tool = OperationsTool()
-
         lines = []
+        
+        for i, op in enumerate(operations):
+            name = op.get('name')
+            params = op.get('parameters', {})
+            op_id = op.get('op_id')
+            
+            if not op_id:
+                print(f"Warning: Operation {name} has no op_id, skipping real-time updates")
+                continue
+                
+            # 1. Check for cancellation before starting
+            db_op = await get_operation_local(op_id)
+            if db_op and db_op.get('status') == 'cancel_requested':
+                msg = f"Operation '{name}' cancelled before start."
+                lines.append(msg)
+                await update_operation_local(op_id, status="cancelled", result=msg, 
+                                        extra_fields={"completedAt": datetime.now().isoformat()})
+                continue
+            
+            # 2. Mark as RUNNING and publish update
+            await update_operation_local(op_id, status="running", 
+                                    extra_fields={"startedAt": datetime.now().isoformat()})
+            
+            # Publish immediate status update to frontend
+            await publish_event(session_id, {
+                "type": "operation_started",
+                "operation_id": op_id,
+                "operation_name": name,
+                "progress": f"{i+1}/{len(operations)}"
+            })
+            
+            # 3. Execute the operation
+            try:
+                single_op = [{'name': name, 'parameters': params}]
+                result = ops_tool._run(single_op)  # This is your sync operation execution
+                result_text = str(result)
+                lines.append(f"Operation '{name}': {result_text}")
+                
+                # 4. Mark as SUCCESS and publish immediate update
+                await update_operation_local(op_id, status="success", result=result_text, 
+                                        extra_fields={
+                                            "completedAt": datetime.now().isoformat(), 
+                                            "progress": 100
+                                        })
+                
+                # Publish success update
+                await publish_event(session_id, {
+                    "type": "operation_completed",
+                    "operation_id": op_id,
+                    "operation_name": name,
+                    "result": result_text,
+                    "progress": f"{i+1}/{len(operations)}"
+                })
+                
+                # Optional: Brief delay to ensure frontend updates are visible
+                await asyncio.sleep(0.1)
+                
+            except Exception as e:
+                err = f"Operation '{name}' failed: {str(e)}"
+                lines.append(err)
+                
+                # Mark as FAILED and publish update
+                await update_operation_local(op_id, status="failed", result=str(e), 
+                                        extra_fields={"completedAt": datetime.now().isoformat()})
+                
+                # Publish failure update
+                await publish_event(session_id, {
+                    "type": "operation_failed",
+                    "operation_id": op_id,
+                    "operation_name": name,
+                    "error": str(e),
+                    "progress": f"{i+1}/{len(operations)}"
+                })
+                continue
+        
+        # Publish final completion
+        await publish_event(session_id, {
+            "type": "all_operations_complete",
+            "total_operations": len(operations),
+            "results_summary": "\n".join(lines)
+        })
+        
+        return "\n".join(lines)
 
+    async def perform_operations(self,
+                operations: List[Dict[str, Any]],
+                session_id: str = None,
+                uid: str = None,
+                queue_ops: bool = False) -> str:
+        """
+        Execute operations sequentially using local in-memory OP_STORE and publish SSE updates.
+        - operations: list of dicts, each can contain 'op_id' if already created.
+        - session_id: used to publish SSE events to clients connected to this session.
+        - queue_ops: if True, create op entries (queue_operation_local) for ops without op_id.
+        Returns: aggregated string of results.
+        """
+        if not operations:
+            return "No operations to execute."
+        ops_tool = OperationsTool()
+        lines = []
         import asyncio
-
         async def _run():
-
             for op in operations:
-
                 name = op.get('name')
-
                 params = op.get('parameters', {})
-
                 op_id = op.get('op_id')
-
                 # create local op if requested
-
                 if queue_ops and not op_id:
-
                     op_id = await queue_operation_local(name, params, session_id)
-
                     op['op_id'] = op_id
-                # Refresh status: check if cancel requested
+                # Refresh status: check if cancel requeste
 
                 if op_id:
-
                     db_op = await get_operation_local(op_id)
-
                     if db_op and db_op.get('status') == 'cancel_requested':
-
                         msg = f"Operation '{name}' cancelled before start."
-
                         lines.append(msg)
-
                         await update_operation_local(op_id, status="cancelled", result=msg, extra_fields={"completedAt": datetime.now().isoformat()})
-
                         # notify chat timeline if you keep that functionality
-
                         try:
-
                             from firebase_client import save_chat_message
-
                             save_chat_message(session_id, uid, "assistant", msg, datetime.now().isoformat())
-
                         except Exception:
-
                             pass
-
                         continue
-
                 # mark running
-
                 if op_id:
-
                     await update_operation_local(op_id, status="running", extra_fields={"startedAt": datetime.now().isoformat()})
-
                 # Execute the operation
-
                 try:
-
                     single_op = [{'name': name, 'parameters': params}]
-
                     result = ops_tool._run(single_op) # sync call in your current design
-
                     result_text = str(result)
-
                     lines.append(f"Operation '{name}': {result_text}")
-
                     # update op as completed
-
                     if op_id:
-
                         await update_operation_local(op_id, status="success", result=result_text, extra_fields={"completedAt": datetime.now().isoformat(), "progress": 100})
-
                     # publish chat message if desired
-
-
                     try:
-
                         from firebase_client import save_chat_message
-
                         save_chat_message(session_id, uid, "assistant", f"Operation '{name}' completed: {result_text}", datetime.now().isoformat())
-
                     except Exception:
-
                         pass
-
                 except Exception as e:
-
                     err = f"Operation '{name}' failed: {str(e)}"
-
                     lines.append(err)
-
                     if op_id:
-
                         await update_operation_local(op_id, status="failed", result=str(e), extra_fields={"completedAt": datetime.now().isoformat()})
-
                     try:
-
                         from firebase_client import save_chat_message
-
                         save_chat_message(session_id, uid, "assistant", err, datetime.now().isoformat())
-
                     except Exception:
-
                         pass
-
                     continue
-
         # run the async runner from sync context
         await _run()
 

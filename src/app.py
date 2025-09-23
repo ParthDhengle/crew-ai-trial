@@ -267,7 +267,10 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         # Publish an event to notify clients (optional, but helps frontend reset)
 
         await publish_event(session_id, {"type": "ops_cleared"})
-
+        await publish_event(session_id, {
+            "type": "nova_thinking", 
+            "message": "Nova is analyzing your request..."
+        })
         # Run the full workflow synchronously (includes classification)
         crew_instance = AiAgent()
         result = await crew_instance.run_workflow(
@@ -291,6 +294,11 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             if inspect.iscoroutine(save_result):
                 await save_result
             
+            await publish_event(session_id, {
+                "type": "direct_response",
+                "message": final_response
+            })
+            
             # Return serializable data
             return {
                 "result": {
@@ -307,44 +315,26 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 operations = []
             
             # Queue operations and collect IDs
-            op_ids = []
+            response_ops = []
             for op in operations:
                 if isinstance(op, dict) and 'name' in op:
-                    try:
-                        op_id = await queue_operation_local(op['name'], op.get('parameters', {}), session_id)
-                        op_ids.append(str(op_id))
-                        op['op_id'] = op_id
-                    except Exception as e:
-                        logger.error(f"Failed to queue local operation {op['name']}: {e}")
-                        op_ids.append(f"error_{len(op_ids)}")
-            
-            # Prepare serializable response operations
-            response_ops = []
-            for i, (op_id, op) in enumerate(zip(op_ids, operations)):
-                response_ops.append({
-                    "id": str(op_id),
-                    "name": str(op.get('name', 'unknown')),
-                    "parameters": op.get('parameters', {})
-                })
-            
-            user_summarized_requirements = result.get('user_summarized_requirements', 'User intent unclear.')
-            for i, op in enumerate(operations):
-                if i < len(op_ids):
-                    op['op_id'] = op_ids[i]
-            # Add background task for execution
-            background_tasks.add_task(
-                crew_instance.execute_agentic_background, 
-                operations, 
-                user_summarized_requirements, 
-                session_id, 
-                uid
-            )
+                    response_ops.append({
+                        "id": str(op.get('op_id', 'unknown')),
+                        "name": str(op.get('name', 'unknown')),
+                        "parameters": op.get('parameters', {})
+                    })
+            await publish_event(session_id, {
+                "type": "agentic_mode_activated",
+                "message": "Nova agentic mode activated",
+                "operations_count": len(operations)
+            })
             
             # Return serializable data
             return {
                 "result": {
                     "mode": "agentic", 
-                    "operations": response_ops
+                    "operations": response_ops,
+                    "message": "Operations are being executed with real-time updates"
                 }, 
                 "session_id": str(session_id)
             }
@@ -353,6 +343,14 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         logger.error(f"Error in process_query: {e}")
         traceback.print_exc()
         
+        try:
+            await publish_event(session_id, {
+                "type": "error",
+                "message": f"Processing failed: {str(e)}"
+            })
+        except:
+            pass
+
         # Return a proper error response
         error_response = {
             "result": {
