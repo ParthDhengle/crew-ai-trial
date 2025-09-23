@@ -16,9 +16,8 @@ from tools.long_term_rag_tool import LongTermRagTool
 from chat_history import ChatHistory # Updated to Firebase
 from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager # Updated for KB
-from firebase_client import get_user_profile # For profile
-from firebase_client import queue_operation # For operation queueing
 from datetime import datetime
+from operations_store import queue_operation_local, update_operation_local, get_operation_local, publish_event;
 
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
@@ -96,16 +95,56 @@ class AiAgent:
         return ""
     
     async def execute_agentic_background(self, operations: List[Dict[str, Any]], user_summarized_requirements: str, session_id: str, uid: str):
+
         try:
-            op_results = self.perform_operations(operations)
-            # Save results to Firebase or update operation statuses
-            from firebase_client import save_chat_message, update_operation_status
-            await save_chat_message(session_id, uid, "assistant", f"Agentic execution completed: {op_results}", datetime.now().isoformat())
-            for op in operations:
-                op_id = queue_operation(op['name'], op.get('parameters', {}))
-                await update_operation_status(op_id, "completed", op_results)
+
+            # Run operations (they should already have op_id attached by process_query)
+
+            op_results = await self.perform_operations(operations, session_id=session_id, uid=uid, queue_ops=False)
+
+            # publish final summary to SSE listeners
+
+            from operations_store import publish_event
+
+            await publish_event(session_id, {"type": "agentic_summary", "summary": op_results})
+
+            # Save a final assistant chat message (optional)
+
+            try:
+
+                from firebase_client import save_chat_message
+
+                await save_chat_message(session_id, uid, "assistant", f"Agentic execution completed.\n{op_results}", datetime.now().isoformat())
+
+            except Exception:
+
+                # If save_chat_message is sync or missing, call sync fallback
+
+                try:
+
+                    from firebase_client import save_chat_message
+
+                    save_chat_message(session_id, uid, "assistant", f"Agentic execution completed.\n{op_results}", datetime.now().isoformat())
+
+                except Exception:
+
+                    pass
+
         except Exception as e:
+
             print(f"Error in agentic background task: {e}")
+
+            try:
+
+                from operations_store import publish_event
+
+                await publish_event(session_id, {"type": "agentic_error", "error": str(e)})
+
+            except Exception:
+
+                pass
+
+  
         
     # === Optimized Workflow (refined per requirements) ===
     async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None) :
@@ -185,7 +224,7 @@ class AiAgent:
                 user_summarized_requirements = classification.get('user_summarized_requirements', 'User intent unclear.')
                
                 # 4. Execute Operations (sequential, append results)
-                op_results = self.perform_operations(operations)
+                op_results = await self.perform_operations(operations)
                
                 # 5. Synthesizer (inputs: requirements + results)
                 synth_task = self.synthesize_response()
@@ -221,33 +260,151 @@ class AiAgent:
                 print(f"Warning: Narrative summary failed: {e}")
        
         return {"display_response": final_response, "mode": mode, **({"operations": operations} if mode == "agentic" else {})}
-    def perform_operations(self, operations: List[Dict[str, Any]]) -> str:
-        """Execute list of operations sequentially, append results to a single string."""
+    
+    
+    async def perform_operations(self,
+
+                operations: List[Dict[str, Any]],
+
+                session_id: str = None,
+
+                uid: str = None,
+
+                queue_ops: bool = False) -> str:
+
+        """
+
+        Execute operations sequentially using local in-memory OP_STORE and publish SSE updates.
+
+        - operations: list of dicts, each can contain 'op_id' if already created.
+
+        - session_id: used to publish SSE events to clients connected to this session.
+
+        - queue_ops: if True, create op entries (queue_operation_local) for ops without op_id.
+
+        Returns: aggregated string of results.
+
+        """
+
         if not operations:
+
             return "No operations to execute."
-       
+
         ops_tool = OperationsTool()
+
         lines = []
-        for op in operations:
-            name = op.get('name')
-            params = op.get('parameters', {})
+
+        import asyncio
+
+        async def _run():
+
+            for op in operations:
+
+                name = op.get('name')
+
+                params = op.get('parameters', {})
+
+                op_id = op.get('op_id')
+
+                # create local op if requested
+
+                if queue_ops and not op_id:
+
+                    op_id = await queue_operation_local(name, params, session_id)
+
+                    op['op_id'] = op_id
+                # Refresh status: check if cancel requested
+
+                if op_id:
+
+                    db_op = await get_operation_local(op_id)
+
+                    if db_op and db_op.get('status') == 'cancel_requested':
+
+                        msg = f"Operation '{name}' cancelled before start."
+
+                        lines.append(msg)
+
+                        await update_operation_local(op_id, status="cancelled", result=msg, extra_fields={"completedAt": datetime.now().isoformat()})
+
+                        # notify chat timeline if you keep that functionality
+
+                        try:
+
+                            from firebase_client import save_chat_message
+
+                            save_chat_message(session_id, uid, "assistant", msg, datetime.now().isoformat())
+
+                        except Exception:
+
+                            pass
+
+                        continue
+
+                # mark running
+
+                if op_id:
+
+                    await update_operation_local(op_id, status="running", extra_fields={"startedAt": datetime.now().isoformat()})
+
+                # Execute the operation
+
+                try:
+
+                    single_op = [{'name': name, 'parameters': params}]
+
+                    result = ops_tool._run(single_op) # sync call in your current design
+
+                    result_text = str(result)
+
+                    lines.append(f"Operation '{name}': {result_text}")
+
+                    # update op as completed
+
+                    if op_id:
+
+                        await update_operation_local(op_id, status="success", result=result_text, extra_fields={"completedAt": datetime.now().isoformat(), "progress": 100})
+
+                    # publish chat message if desired
 
 
+                    try:
 
+                        from firebase_client import save_chat_message
 
+                        save_chat_message(session_id, uid, "assistant", f"Operation '{name}' completed: {result_text}", datetime.now().isoformat())
 
+                    except Exception:
 
+                        pass
 
-            try:
-                # Execute single op (wrap in list for tool compat)
-                single_op = [{'name': name, 'parameters': params}]
-                result = ops_tool._run(single_op)
-                lines.append(f"Operation '{name}': {result}")
-            except Exception as e:
+                except Exception as e:
 
-                lines.append(f"Operation '{name}' failed: {str(e)}")
-       
+                    err = f"Operation '{name}' failed: {str(e)}"
+
+                    lines.append(err)
+
+                    if op_id:
+
+                        await update_operation_local(op_id, status="failed", result=str(e), extra_fields={"completedAt": datetime.now().isoformat()})
+
+                    try:
+
+                        from firebase_client import save_chat_message
+
+                        save_chat_message(session_id, uid, "assistant", err, datetime.now().isoformat())
+
+                    except Exception:
+
+                        pass
+
+                    continue
+
+        # run the async runner from sync context
+        await _run()
+
         return "\n".join(lines)
+
     @crew
     def crew(self) -> Crew:
         return Crew(agents=self.agents, tasks=self.tasks, process=Process.sequential, verbose=True)

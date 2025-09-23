@@ -233,3 +233,4 @@ export const getCurrentUser = () => {
   const { uid } = authManager.getAuth();
   return { uid };
 };
+export { API_BASE_URL };

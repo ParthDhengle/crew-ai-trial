@@ -7,12 +7,8 @@ import type {
   Integration,
   NovaRole
 } from '@/api/types';
-
 import { apiClient } from '@/api/client';
-import { useNova } from '@/context/NovaContext';  // FIXED: Import useNova for state/dispatch
-
-
-
+import { useNova } from '@/context/NovaContext'; // FIXED: Import useNova for state/dispatch
 /**
  * React hook wrapper for Electron API interactions
  * Provides typed access to window.api methods with React state management
@@ -23,7 +19,6 @@ export const useElectronApi = () => {
     window.api &&
     typeof window.api === 'object'
   );
-
   // Enhanced fallback for when running in browser (development)
   const mockApi = {
     requestExpand: async () => {
@@ -65,127 +60,103 @@ export const useElectronApi = () => {
     sendMessage: async (message: string, sessionId?: string) => ({ sessionId: sessionId || 'mock-session' }),
     notify: (title: string, body?: string) => console.log('Mock: notify', title, body),
   };
-
   const api = isElectron ? window.api : mockApi;
-
   console.log('HOOK: useElectronApi initialized, isElectron:', isElectron);
-
   return {
     api,
     isElectron,
   };
 };
-
 /**
- * Hook for managing agent operations state
+ * Hook for managing window state with improved error handling
  */
-export const useAgentOps = () => {
-
-  const { state, dispatch } = useNova();  // FIXED: Added dispatch
-  const [operations, setOperations] = useState<AgentOp[]>([]);  // FIXED: Defined operations state
-  const [errorCount, setErrorCount] = useState(0);  // FIXED: Defined errorCount for backoff
-  const [pollInterval, setPollInterval] = useState(2000);  // FIXED: Defined pollInterval (starts at 2s)
-
-  const fetchOps = useCallback(async () => {
+export const useWindowControls = () => {
+  const { api, isElectron } = useElectronApi();
+  const [isExpanding, setIsExpanding] = useState(false);
+  const contract = useCallback(async () => { // FIXED: Override to switch to mini
     try {
-      const opsData = await apiClient.getOperations();
-      const mappedOps: AgentOp[] = opsData.map((op: any) => ({
-        id: op.id,
-        title: op.op_name,
-        desc: JSON.stringify(op.params),
-        status: op.status,
-        startTime: op.start_time ? new Date(op.start_time).getTime() : undefined,
-        endTime: op.end_time ? new Date(op.end_time).getTime() : undefined,
-        result: op.result,
-      }));
-      setOperations(mappedOps);
-
-      // Check if all done (stop polling if no pending/running)
-      const isDone = !mappedOps.some(op => op.status === 'pending' || op.status === 'running');
-      if (isDone && state.isProcessing) {
-        dispatch({ type: 'SET_TYPING', payload: false });  // FIXED: Using SET_TYPING as per your code (or change to SET_PROCESSING)
+      if (isElectron) {
+        // Switch to mini instead of taskbar minimize
+        await api.requestMinimize?.();
+        console.log('HOOK: Minimized to mini widget');
+      } else {
+        console.log('Mock: windowMinimize (switching to mini)');
       }
-
-      // Success: Reset error count and interval
-      setErrorCount(0);
-      setPollInterval(2000);  // Reset to base interval
     } catch (error) {
-      console.error('Failed to fetch operations:', error);
-      setErrorCount(prev => prev + 1);  // Increment on error
+      console.error('Failed to minimize window:', error);
     }
-  }, [state.isProcessing, dispatch]);  // FIXED: Added deps
-
-  useEffect(() => {
-    if (!state.isProcessing) return; // Poll only during processing
-
-    fetchOps(); // Initial fetch
-    const interval = setInterval(fetchOps, pollInterval);  // FIXED: Use pollInterval
-
-    return () => clearInterval(interval);
-  }, [fetchOps, pollInterval, state.isProcessing]);  // FIXED: pollInterval as dep (recreates on change)
-
-  // Dynamic backoff: Update pollInterval based on errorCount
-  useEffect(() => {
-    const baseInterval = 2000;
-    const maxInterval = 30000; // 30s max
-    const newInterval = Math.min(baseInterval * Math.pow(2, errorCount), maxInterval);
-    setPollInterval(newInterval);
-  }, [errorCount]);  // FIXED: Recalculate on errorCount change
-
-  const cancelOperation = useCallback((operationId: string) => {
-    // TODO: Implement /operations/{id}/cancel if needed
-    setOperations(ops => ops.filter(op => op.id !== operationId));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  }, []);
-
-  return { operations, cancelOperation };
-
-
+  }, [api, isElectron]);
+  const minimize = useCallback(() => {
+    try {
+      api.windowMinimize?.(); // <- must be exposed from preload → main
+      console.log('HOOK: Minimized to taskbar');
+    } catch (error) {
+      console.error('Failed to minimize window:', error);
+    }
+  }, [api]);
+  const maximize = useCallback(() => {
+    try {
+      api.windowMaximize?.();
+    } catch (error) {
+      console.error('Failed to maximize window:', error);
+    }
+  }, [api]);
+  const close = useCallback(() => {
+    try {
+      api.windowClose?.();
+    } catch (error) {
+      console.error('Failed to close window:', error);
+    }
+  }, [api]);
+  const expand = useCallback(async () => {
+    if (isExpanding) {
+      console.log('HOOK: Expand already in progress, skipping...');
+      return { success: false, error: 'Expand already in progress' };
+    }
+    setIsExpanding(true);
+    console.log('HOOK: Calling api.requestExpand...');
+    try {
+      console.log('HOOK: About to await requestExpand...');
+      const result = await api.requestExpand?.();
+      console.log('HOOK: api.requestExpand succeeded:', result);
+      // FIXED: Reset immediately on success
+      setIsExpanding(false);
+      // Add a small delay to ensure window switch completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return result || { success: true };
+    } catch (error) {
+      console.error('HOOK: api.requestExpand failed:', error);
+      // FIXED: Reset on error too
+      setIsExpanding(false);
+      return { success: false, error: error.message };
+    }
+  }, [api, isExpanding]);
+  const miniClose = useCallback(() => {
+    try {
+      if (isElectron && api.miniClose) {
+        api.miniClose();
+      } else {
+        api.windowClose?.();
+      }
+    } catch (error) {
+      console.error('Failed to close mini window:', error);
+    }
+  }, [api, isElectron]);
+  return {
+    contract,
+    minimize,
+    maximize,
+    close,
+    expand,
+    miniClose,
+    isExpanding
+  };
 };
-
-
-
-
-
-
-
 export const useVoiceTranscription = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isPartial, setIsPartial] = useState(false);
   const { api } = useElectronApi();
-
   const startRecording = useCallback(async () => {
     const sessionId = `voice-${Date.now()}`;
     setIsRecording(true);
@@ -202,7 +173,6 @@ export const useVoiceTranscription = () => {
       setIsRecording(false);
     }
   }, [api]);
-
   const stopRecording = useCallback(async () => {
     const sessionId = `voice-${Date.now()}`;
     setIsRecording(false);
@@ -212,109 +182,11 @@ export const useVoiceTranscription = () => {
       console.error('Failed to stop recording:', error);
     }
   }, [api]);
-
   return {
     isRecording,
     transcript,
     isPartial,
     startRecording,
     stopRecording,
-  };
-};
-
-/**
- * Hook for managing window state with improved error handling
- */
-export const useWindowControls = () => {
-  const { api, isElectron } = useElectronApi();
-  const [isExpanding, setIsExpanding] = useState(false);
-
-  const contract = useCallback(async () => { // FIXED: Override to switch to mini
-    try {
-      if (isElectron) {
-        // Switch to mini instead of taskbar minimize
-        await api.requestMinimize?.();
-        console.log('HOOK: Minimized to mini widget');
-      } else {
-        console.log('Mock: windowMinimize (switching to mini)');
-      }
-    } catch (error) {
-      console.error('Failed to minimize window:', error);
-    }
-  }, [api, isElectron]);
-
-  const minimize = useCallback(() => {
-    try {
-      api.windowMinimize?.(); // <- must be exposed from preload → main
-      console.log('HOOK: Minimized to taskbar');
-    } catch (error) {
-      console.error('Failed to minimize window:', error);
-    }
-  }, [api]);
-
-  const maximize = useCallback(() => {
-    try {
-      api.windowMaximize?.();
-    } catch (error) {
-      console.error('Failed to maximize window:', error);
-    }
-  }, [api]);
-
-  const close = useCallback(() => {
-    try {
-      api.windowClose?.();
-    } catch (error) {
-      console.error('Failed to close window:', error);
-    }
-  }, [api]);
-
-  const expand = useCallback(async () => {
-    if (isExpanding) {
-      console.log('HOOK: Expand already in progress, skipping...');
-      return { success: false, error: 'Expand already in progress' };
-    }
-    setIsExpanding(true);
-    console.log('HOOK: Calling api.requestExpand...');
-
-    try {
-      console.log('HOOK: About to await requestExpand...');
-      const result = await api.requestExpand?.();
-      console.log('HOOK: api.requestExpand succeeded:', result);
-
-      // FIXED: Reset immediately on success
-      setIsExpanding(false);
-
-      // Add a small delay to ensure window switch completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      return result || { success: true };
-    } catch (error) {
-      console.error('HOOK: api.requestExpand failed:', error);
-      // FIXED: Reset on error too
-      setIsExpanding(false);
-      return { success: false, error: error.message };
-    }
-  }, [api, isExpanding]);
-
-  const miniClose = useCallback(() => {
-    try {
-      if (isElectron && api.miniClose) {
-        api.miniClose();
-      } else {
-        api.windowClose?.();
-      }
-    } catch (error) {
-      console.error('Failed to close mini window:', error);
-    }
-  }, [api, isElectron]);
-
-  return {
-    contract,
-    minimize,
-    maximize,
-    close,
-    expand,
-    miniClose,
-    isExpanding
   };
 };

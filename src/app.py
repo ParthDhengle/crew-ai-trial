@@ -15,9 +15,8 @@ from common_functions.User_preference import collect_preferences
 from utils.logger import setup_logger
 import inspect
 from firebase_client import (
-    create_user, sign_in_with_email, get_user_profile, set_user_profile, verify_id_token,
+    create_user, sign_in_with_email, get_user_profile, update_user_profile, verify_id_token,
     add_task, get_tasks_by_user, update_task_by_user, delete_task_by_user,
-    queue_operation, get_operations_queue, update_operation_status,
     save_chat_message, get_chat_history, add_chat_message, get_user_ref
 )
 from firebase_admin import auth
@@ -26,6 +25,10 @@ from fastapi.security import HTTPBearer
 from typing import Optional,List
 from collections import defaultdict
 from fastapi import BackgroundTasks
+from fastapi.responses import StreamingResponse
+
+from operations_store import queue_operation_local, register_sse_queue, unregister_sse_queue, publish_event, get_operation_local, OP_STORE, update_operation_local
+
 PROJECT_ROOT = find_project_root()
 logger = setup_logger()
 
@@ -42,7 +45,7 @@ app = FastAPI(title="AI Assistant API")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Vite dev + Electron
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], # Vite dev + Electron
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -184,22 +187,28 @@ async def delete_task(task_id: str, uid: str = Depends(get_current_uid)):
 # Operations
 @app.post("/operations")
 async def queue_operation(request: OperationRequest, uid: str = Depends(get_current_uid)):
-    global current_uid; current_uid = uid
-    op_id = queue_operation(request.name, request.parameters)
+    # Use local queue (session_id not required here; attach in process_query)
+    op_id = await queue_operation_local(request.name, request.parameters, session_id="")  # session_id optional
     return {"op_id": op_id}
 
 @app.get("/operations")
 async def get_operations(status: str = None, uid: str = Depends(get_current_uid)):
-    global current_uid; current_uid = uid
-    return get_operations_queue(status)
+     # Return all ops (or filter by status; no uid filter for simplicity)
+    ops = [op for op in OP_STORE.values() if not status or op["status"] == status]
+    return ops
 
 @app.put("/operations/{op_id}/status")
-async def update_op_status(op_id: str, status: str, result: str = None, uid: str = Depends(get_current_uid)):
-    global current_uid; current_uid = uid
-    success = update_operation_status(op_id, status, result)
-    if not success:
-        raise HTTPException(status_code=404, detail="Operation not found")
-    return {"success": True}
+async def update_op_status(op_id: str, status: str, uid: str = Depends(get_current_uid)):
+    """
+    Update operation status (supports cancel_requested).
+    """
+    try:
+        # use operations_store.update_operation_local to set status
+        from operations_store import update_operation_local
+        await update_operation_local(op_id, status=status, extra_fields={"updatedBy": uid, "updatedAt": datetime.now().isoformat()})
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Profile (protected)
 @app.get("/profile")
@@ -295,12 +304,11 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             for op in operations:
                 if isinstance(op, dict) and 'name' in op:
                     try:
-                        op_id = queue_operation(op['name'], op.get('parameters', {}))
-                        if inspect.iscoroutine(op_id):
-                            op_id = await op_id
+                        op_id = await queue_operation_local(op['name'], op.get('parameters', {}), session_id)
                         op_ids.append(str(op_id))
+                        op['op_id'] = op_id
                     except Exception as e:
-                        logger.error(f"Failed to queue operation {op['name']}: {e}")
+                        logger.error(f"Failed to queue local operation {op['name']}: {e}")
                         op_ids.append(f"error_{len(op_ids)}")
             
             # Prepare serializable response operations
@@ -313,7 +321,9 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 })
             
             user_summarized_requirements = result.get('user_summarized_requirements', 'User intent unclear.')
-            
+            for i, op in enumerate(operations):
+                if i < len(op_ids):
+                    op['op_id'] = op_ids[i]
             # Add background task for execution
             background_tasks.add_task(
                 crew_instance.execute_agentic_background, 
@@ -347,6 +357,32 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         raise HTTPException(status_code=500, detail=error_response)
 
+# SSE endpoint to stream operation events for a session
+@app.get("/operations/stream")
+async def operations_stream(session_id: str):
+    """
+    Server-Sent Events endpoint that streams operation events for a given session_id.
+    Clients should connect with EventSource('/operations/stream?session_id=...')
+    """
+    async def event_generator():
+        q = asyncio.Queue()
+        await register_sse_queue(session_id, q)
+        try:
+            # When a client connects, send current snapshot of operations for this session
+            # (send as a single 'initial' message)
+            current_ops = [op for op in OP_STORE.values() if op.get("session_id") == session_id]
+            await q.put({"type": "initial_state", "operations": current_ops})
+            while True:
+                payload = await q.get()
+                # SSE format: "data: <json>\n\n"
+                yield f"data: {json.dumps(payload)}\n\n"
+        except asyncio.CancelledError:
+            # cnnection closed by client
+
+            pass
+        finally:
+            await unregister_sse_queue(session_id, q)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # ---- get_chat_history (updated) ----
 @app.get("/chat_history")
