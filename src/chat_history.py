@@ -26,17 +26,9 @@ class ChatHistory:
     def load_history(session_id: str = None):
         if session_id is None:
             session_id = ChatHistory.get_session_id()
-        # Fetch recent history (last 50 docs, filter to session if provided)
         history_docs = get_chat_history(session_id)
-        # Sort by timestamp and limit to last 20 turns (user/assistant pairs)
         history_docs.sort(key=lambda x: x.get('timestamp', ''))
-        history = []
-        for doc in history_docs[-40:]:  # Up to 40 to get ~20 pairs
-            history.append({
-                "role": doc["role"],
-                "content": doc["content"]
-            })
-        # Ensure even number (trim if odd)
+        history = [{"role": doc["role"], "content": doc["content"]} for doc in history_docs[-16:]]  # Up to 16 for 8 pairs
         if len(history) % 2 == 1:
             history = history[:-1]
         print(f"Loaded {len(history)//2} turns from Firebase (session: {session_id}).")

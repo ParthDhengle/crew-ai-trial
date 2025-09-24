@@ -17,6 +17,13 @@ from .operations.run_terminal_command import run_command  # Note: returns dict, 
 from .operations.app_opening import open_app  # New import for open_app function
 from .operations.Mail_search import searchMail  # Import searchMail function
 from .operations.send_mail import send_email  # Import send_email function
+from .operations.tasks.create_task import create_task  # Import create_task function
+from .operations.tasks.update_task import update_task  # Import update_task function    
+from .operations.tasks.delete_task import delete_task  # Import delete_task function
+from .operations.tasks.mark_complete import mark_complete  # Import mark_complete function
+from .operations.tasks.read_task import read_task  # Import read_task function
+
+
 class OperationsTool:
     """Dispatcher for active operations only. Maps 'name' to funcs; validates via Firebase/json defs."""
 
@@ -28,16 +35,17 @@ class OperationsTool:
             "document_summarize": document_summarize,
             "document_translate": document_translate,
             "powerbi_generate_dashboard": powerbi_generate_dashboard,
-            # File search wrapper
             "search_files": self._search_files_wrapper,
-            # Command wrapper (converts dict to tuple)
             "run_command": self._run_command_wrapper,
-            # Open app wrapper
             "open_app": open_app,
-            # Mail search wrapper
-            "searchMail": searchMail,
-            # Send mail wrapper
-            "send_email": send_email,
+            "search_mail": searchMail,
+            "send_mail": send_email,
+            # Add task ops
+            "create_task": create_task,
+            "update_task": update_task,
+            "delete_task": delete_task,
+            "mark_complete": mark_complete,
+            "read_task": read_task,
         }
 
     def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:

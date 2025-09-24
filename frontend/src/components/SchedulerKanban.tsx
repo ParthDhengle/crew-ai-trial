@@ -1,603 +1,820 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus,
-  Calendar,
-  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   Clock,
-  MoreVertical,
-  Edit,
-  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Mail,
+  Edit3,
+  MoreHorizontal,
+  Calendar,
   Flag,
-  Bot
+  Bot,
+  AlertTriangle,
+  Trash2,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Switch } from '@/components/ui/switch';
-import { useNova } from '@/context/NovaContext';
-import type { SchedulerTask } from '@/api/types';
 
-/**
- * Nova Scheduler Kanban - Task management with drag & drop
- * 
- * Features:
- * - Three columns: To Do, In Progress, Done
- * - Drag & drop between columns
- * - Task creation and editing
- * - Priority levels (High, Medium, Low)
- * - Deadline tracking
- * - Agentic task toggle
- * - Quick actions (reschedule, mark done, convert to event)
- * - Beautiful animations with Framer Motion
- */
-
-type ColumnType = 'todo' | 'inprogress' | 'done';
-
-interface ColumnConfig {
-  id: ColumnType;
+// Types
+interface SchedulerTask {
+  id: string;
   title: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
+  description?: string;
+  startAt: string; // ISO UTC timestamp
+  endAt: string; // ISO UTC timestamp
+  date: string; // YYYY-MM-DD local date
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'pending' | 'completed' | 'cancelled';
+  tags?: string[];
+  isAgenticTask?: boolean;
+  aiSuggested?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const columns: ColumnConfig[] = [
+interface SchedulerKanbanProps {
+  apiBase?: string;
+}
+
+// Mock data for demonstration
+const mockTasks: SchedulerTask[] = [
   {
-    id: 'todo',
-    title: 'To Do',
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-400/5',
-    borderColor: 'border-blue-400/20',
+    id: 'task-1',
+    title: 'Team standup meeting',
+    description: 'Daily sync with the development team',
+    startAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+    endAt: new Date(Date.now() + 2.5 * 60 * 60 * 1000).toISOString(), // 2.5 hours from now
+    date: new Date().toISOString().split('T')[0],
+    priority: 'High',
+    status: 'pending',
+    tags: ['meeting', 'team'],
+    isAgenticTask: false,
+    aiSuggested: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: 'inprogress',
-    title: 'In Progress',
-    color: 'text-yellow-400',
-    bgColor: 'bg-yellow-400/5',
-    borderColor: 'border-yellow-400/20',
+    id: 'task-2',
+    title: 'Code review session',
+    description: 'Review pull requests for the new feature',
+    startAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours from now
+    endAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(), // 5 hours from now
+    date: new Date().toISOString().split('T')[0],
+    priority: 'Medium',
+    status: 'pending',
+    tags: ['development', 'review'],
+    isAgenticTask: true,
+    aiSuggested: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: 'done',
-    title: 'Done',
-    color: 'text-green-400',
-    bgColor: 'bg-green-400/5',
-    borderColor: 'border-green-400/20',
+    id: 'task-3',
+    title: 'Lunch break',
+    description: 'Time to recharge and refuel',
+    startAt: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // 6 hours from now
+    endAt: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString(), // 7 hours from now
+    date: new Date().toISOString().split('T')[0],
+    priority: 'Low',
+    status: 'completed',
+    tags: ['break', 'personal'],
+    isAgenticTask: false,
+    aiSuggested: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
+  {
+    id: 'task-4',
+    title: 'Project deadline review',
+    description: 'Overdue task needs attention',
+    startAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago (missed)
+    endAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago (missed)
+    date: new Date().toISOString().split('T')[0],
+    priority: 'High',
+    status: 'pending',
+    tags: ['urgent', 'deadline'],
+    isAgenticTask: false,
+    aiSuggested: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
 ];
 
-interface TaskCardProps {
-  task: SchedulerTask;
-  isDragging?: boolean;
-  onEdit: (task: SchedulerTask) => void;
-  onDelete: (taskId: string) => void;
-  onQuickAction: (action: string, task: SchedulerTask) => void;
-}
+// Helper functions
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
 
-function TaskCard({ task, isDragging, onEdit, onDelete, onQuickAction }: TaskCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging: isSortableDragging,
-  } = useSortable({ id: task.id });
+const formatTime = (date: Date): string => {
+  return date.toTimeString().slice(0, 5);
+};
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+const parseLocalTime = (dateStr: string, timeStr: string): Date => {
+  return new Date(`${dateStr}T${timeStr}:00`);
+};
+
+const getTimePosition = (time: string): number => {
+  const date = new Date(time);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  return (hours * 60 + minutes) / (24 * 60);
+};
+
+const getDuration = (startTime: string, endTime: string): number => {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+};
+
+const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ 
+  apiBase = '' 
+}) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [tasks, setTasks] = useState<SchedulerTask[]>(mockTasks);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<SchedulerTask | null>(null);
+  const [isCreateMode, setIsCreateMode] = useState(false);
+  const [draggedTask, setDraggedTask] = useState<SchedulerTask | null>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  type Priority = 'High' | 'Medium' | 'Low';
+  // Form state for task editing
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    priority: Priority;
+    isAgenticTask: boolean;
+    tags: string;
+  }>({
+    title: '',
+    description: '',
+    startTime: '09:00',
+    endTime: '10:00',
+    priority: 'Medium',
+    isAgenticTask: false,
+    tags: '',
+  });
+
+  // Fetch tasks for the selected date (mock implementation)
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Filter mock tasks for selected date
+      const dateStr = formatDate(selectedDate);
+      const filteredTasks = mockTasks.filter(task => task.date === dateStr);
+      setTasks(filteredTasks);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  // Navigation handlers
+  const goToPreviousDay = () => {
+    const prev = new Date(selectedDate);
+    prev.setDate(prev.getDate() - 1);
+    setSelectedDate(prev);
   };
 
+  const goToNextDay = () => {
+    const next = new Date(selectedDate);
+    next.setDate(next.getDate() + 1);
+    setSelectedDate(next);
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  // Task CRUD operations (mock implementations)
+  const createTask = async () => {
+    try {
+      const dateStr = formatDate(selectedDate);
+      const startAt = parseLocalTime(dateStr, formData.startTime).toISOString();
+      const endAt = parseLocalTime(dateStr, formData.endTime).toISOString();
+      
+      const newTask: SchedulerTask = {
+        id: `task-${Date.now()}`,
+        title: formData.title,
+        description: formData.description,
+        startAt,
+        endAt,
+        date: dateStr,
+        priority: formData.priority,
+        status: 'pending',
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        isAgenticTask: formData.isAgenticTask,
+        aiSuggested: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      setTasks(prev => [...prev, newTask]);
+      resetForm();
+    } catch (err) {
+      console.error('Error creating task:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create task');
+    }
+  };
+
+  const updateTask = async (taskId: string, updates: Partial<SchedulerTask>) => {
+    try {
+      setTasks(prev => prev.map(task => 
+        task.id === taskId 
+          ? { ...task, ...updates, updatedAt: new Date().toISOString() }
+          : task
+      ));
+    } catch (err) {
+      console.error('Error updating task:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update task');
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    try {
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete task');
+    }
+  };
+
+  const markCompleted = async (taskId: string) => {
+    await updateTask(taskId, { status: 'completed' });
+  };
+
+  const rescheduleTask = async (taskId: string) => {
+    // Mock implementation - move task 1 hour forward
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const newStartAt = new Date(new Date(task.startAt).getTime() + 60 * 60 * 1000).toISOString();
+      const newEndAt = new Date(new Date(task.endAt).getTime() + 60 * 60 * 1000).toISOString();
+      await updateTask(taskId, { startAt: newStartAt, endAt: newEndAt });
+    }
+  };
+
+  const notifyMissed = async (taskId: string) => {
+    console.log(`Notification sent for missed task: ${taskId}`);
+  };
+
+  // Form handlers
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      startTime: '09:00',
+      endTime: '10:00',
+      priority: 'Medium',
+      isAgenticTask: false,
+      tags: '',
+    });
+    setEditingTask(null);
+    setIsCreateMode(false);
+  };
+
+  const openEditDialog = (task: SchedulerTask) => {
+    const startTime = formatTime(new Date(task.startAt));
+    const endTime = formatTime(new Date(task.endAt));
+    
+    setFormData({
+      title: task.title,
+      description: task.description || '',
+      startTime,
+      endTime,
+      priority: task.priority,
+      isAgenticTask: task.isAgenticTask || false,
+      tags: task.tags?.join(', ') || '',
+    });
+    setEditingTask(task);
+    setIsCreateMode(false);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setIsCreateMode(true);
+  };
+
+  const handleSubmit = async () => {
+    if (isCreateMode) {
+      await createTask();
+    } else if (editingTask) {
+      const dateStr = formatDate(selectedDate);
+      const startAt = parseLocalTime(dateStr, formData.startTime).toISOString();
+      const endAt = parseLocalTime(dateStr, formData.endTime).toISOString();
+      
+      await updateTask(editingTask.id, {
+        title: formData.title,
+        description: formData.description,
+        startAt,
+        endAt,
+        priority: formData.priority,
+        isAgenticTask: formData.isAgenticTask,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+      });
+      resetForm();
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, task: SchedulerTask) => {
+    setDraggedTask(task);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, hourIndex: number) => {
+    e.preventDefault();
+    
+    if (!draggedTask) return;
+    
+    const dateStr = formatDate(selectedDate);
+    const startTime = `${hourIndex.toString().padStart(2, '0')}:00`;
+    const startAt = parseLocalTime(dateStr, startTime).toISOString();
+    
+    // Calculate duration and set end time
+    const originalDuration = new Date(draggedTask.endAt).getTime() - new Date(draggedTask.startAt).getTime();
+    const endAt = new Date(new Date(startAt).getTime() + originalDuration).toISOString();
+    
+    updateTask(draggedTask.id, { startAt, endAt });
+    setDraggedTask(null);
+  };
+
+  // Get tasks for the current day
+  const currentDayTasks = tasks.filter(task => {
+    const taskDate = new Date(task.startAt);
+    const selectedDateStr = formatDate(selectedDate);
+    const taskDateStr = formatDate(taskDate);
+    return taskDateStr === selectedDateStr;
+  });
+
+  // Get missed tasks
+  const now = new Date();
+  const missedTasks = tasks.filter(task => 
+    new Date(task.endAt) < now && task.status !== 'completed'
+  );
+
+  // Render timeline hours
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  // Priority configurations matching the theme
   const priorityConfig = {
     High: { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
     Medium: { color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
     Low: { color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
   };
 
-  const priority = priorityConfig[task.priority];
-  const isOverdue = new Date(task.deadline) < new Date();
-  const isDueSoon = new Date(task.deadline) < new Date(Date.now() + 24 * 60 * 60 * 1000);
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`card-nova p-4 cursor-grab active:cursor-grabbing group ${
-        isSortableDragging || isDragging ? 'opacity-50 rotate-2 scale-105' : ''
-      }`}
-    >
-      {/* Task Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="font-medium text-sm truncate">
-            {task.title}
-          </div>
-          {task.description && (
-            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {task.description}
+    <div className="flex h-screen bg-gray-950 text-white">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-gray-900/50 border-b border-gray-800 p-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={goToPreviousDay}
+                className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+                aria-label="Previous day"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={goToToday}
+                className="px-3 py-1 text-sm bg-blue-600/20 text-blue-400 rounded-md hover:bg-blue-600/30 border border-blue-600/20 transition-colors"
+              >
+                Today
+              </button>
+              
+              <button
+                onClick={goToNextDay}
+                className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+                aria-label="Next day"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="w-6 h-6 p-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical size={12} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(task)}>
-                <Edit className="mr-2 h-3 w-3" />
-                Edit Task
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction('reschedule', task)}>
-                <Calendar className="mr-2 h-3 w-3" />
-                Reschedule
-              </DropdownMenuItem>
-              {task.status !== 'done' && (
-                <DropdownMenuItem onClick={() => onQuickAction('markDone', task)}>
-                  <Flag className="mr-2 h-3 w-3" />
-                  Mark Done
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem 
-                className="text-destructive"
-                onClick={() => onDelete(task.id)}
-              >
-                <Trash2 className="mr-2 h-3 w-3" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Task Meta */}
-      <div className="space-y-2">
-        {/* Priority & Status */}
-        <div className="flex items-center gap-2">
-          <Badge 
-            variant="outline"
-            className={`text-xs ${priority.color} ${priority.bg} ${priority.border}`}
-          >
-            {task.priority}
-          </Badge>
-          
-          {task.isAgenticTask && (
-            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
-              <Bot size={8} className="mr-1" />
-              AI
-            </Badge>
-          )}
-        </div>
-
-        {/* Deadline */}
-        <div className={`flex items-center gap-1 text-xs ${
-          isOverdue ? 'text-red-400' : isDueSoon ? 'text-yellow-400' : 'text-muted-foreground'
-        }`}>
-          <Clock size={10} />
-          <span>
-            {new Date(task.deadline).toLocaleDateString()} at{' '}
-            {new Date(task.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-          {isOverdue && <AlertTriangle size={10} className="text-red-400" />}
-        </div>
-
-        {/* Tags */}
-        {task.tags && task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {task.tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0">
-                {tag}
-              </Badge>
-            ))}
-            {task.tags.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                +{task.tags.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-interface TaskEditDialogProps {
-  task?: SchedulerTask;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (task: Partial<SchedulerTask>) => void;
-}
-
-function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDialogProps) {
-  const [formData, setFormData] = useState({
-    title: task?.title || '',
-    description: task?.description || '',
-    deadline: task?.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '',
-    priority: task?.priority || 'Medium' as const,
-    tags: task?.tags?.join(', ') || '',
-    isAgenticTask: task?.isAgenticTask || false,
-  });
-
-  const handleSave = () => {
-    if (!formData.title.trim()) return;
-
-    onSave({
-      ...task,
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      deadline: new Date(formData.deadline).toISOString(),
-      priority: formData.priority,
-      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-      isAgenticTask: formData.isAgenticTask,
-    });
-
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {task ? 'Edit Task' : 'Create New Task'}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Task title..."
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Task description..."
-              className="mt-1 min-h-[80px]"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="deadline">Deadline</Label>
-              <Input
-                id="deadline"
-                type="datetime-local"
-                value={formData.deadline}
-                onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-                className="mt-1"
-              />
+            
+            <div className="text-center">
+              <h1 className="text-2xl font-semibold text-white">
+                {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </h1>
+              <p className="text-sm text-gray-400">
+                {formatDate(selectedDate)}
+              </p>
             </div>
+            
+            <button
+              onClick={openCreateDialog}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Task</span>
+            </button>
+          </div>
+        </div>
 
-            <div>
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value: 'High' | 'Medium' | 'Low') => setFormData(prev => ({ ...prev, priority: value }))} // Fixed: Specific type
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High">High Priority</SelectItem>
-                  <SelectItem value="Medium">Medium Priority</SelectItem>
-                  <SelectItem value="Low">Low Priority</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Timeline */}
+        <div className="flex-1 overflow-y-auto bg-gray-950">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-400">Loading tasks...</div>
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
-            <Input
-              id="tags"
-              value={formData.tags}
-              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-              placeholder="project, urgent, personal..."
-              className="mt-1"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="agentic"
-              checked={formData.isAgenticTask}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAgenticTask: checked }))}
-            />
-            <Label htmlFor="agentic" className="text-sm">
-              Make this an Agentic Task
-            </Label>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} className="flex-1 btn-nova">
-              {task ? 'Update Task' : 'Create Task'}
-            </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export default function SchedulerKanban() {
-  const { state, dispatch } = useNova();
-  const [activeTask, setActiveTask] = useState<SchedulerTask | null>(null);
-  const [editingTask, setEditingTask] = useState<SchedulerTask | undefined>();
-  const [showEditDialog, setShowEditDialog] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // Group tasks by status
-  const tasksByStatus = state.tasks.reduce((acc, task) => {
-    acc[task.status] = acc[task.status] || [];
-    acc[task.status].push(task);
-    return acc;
-  }, {} as Record<ColumnType, SchedulerTask[]>);
-
-  // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    const task = state.tasks.find(t => t.id === event.active.id);
-    setActiveTask(task || null);
-  };
-
-  // Handle drag end
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveTask(null);
-
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const newStatus = over.id as ColumnType;
-
-    // Update task status
-    dispatch({
-      type: 'UPDATE_TASK',
-      payload: {
-        id: taskId,
-        updates: { status: newStatus }
-      }
-    });
-  };
-
-  // Handle task creation/editing
-  const handleSaveTask = (taskData: Partial<SchedulerTask>) => {
-    if (editingTask) {
-      // Update existing task
-      dispatch({
-        type: 'UPDATE_TASK',
-        payload: {
-          id: editingTask.id,
-          updates: taskData
-        }
-      });
-    } else {
-      // Create new task
-      const newTask: SchedulerTask = {
-        id: `task-${Date.now()}`,
-        title: taskData.title!,
-        description: taskData.description || '',
-        deadline: taskData.deadline!,
-        priority: taskData.priority!,
-        status: 'todo',
-        tags: taskData.tags || [],
-        isAgenticTask: taskData.isAgenticTask || false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: 'ADD_TASK', payload: newTask });
-    }
-
-    setEditingTask(undefined);
-  };
-
-  // Handle task deletion
-  const handleDeleteTask = (taskId: string) => {
-    dispatch({ type: 'DELETE_TASK', payload: taskId });
-  };
-
-  // Handle quick actions
-  const handleQuickAction = (action: string, task: SchedulerTask) => {
-    switch (action) {
-      case 'reschedule':
-        // TODO: Open reschedule dialog
-        console.log('Rescheduling task:', task.id);
-        break;
-      case 'markDone':
-        dispatch({
-          type: 'UPDATE_TASK',
-          payload: {
-            id: task.id,
-            updates: { status: 'done' }
-          }
-        });
-        break;
-      default:
-        console.log('Unknown action:', action);
-    }
-  };
-
-  // Open task creation dialog
-  const openCreateDialog = () => {
-    setEditingTask(undefined);
-    setShowEditDialog(true);
-  };
-
-  // Open task edit dialog
-  const openEditDialog = (task: SchedulerTask) => {
-    setEditingTask(task);
-    setShowEditDialog(true);
-  };
-
-  return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Task Scheduler</h1>
-            <p className="text-muted-foreground">
-              Organize your tasks with drag & drop kanban board
-            </p>
-          </div>
-          <Button onClick={openCreateDialog} className="btn-nova gap-2">
-            <Plus size={16} />
-            New Task
-          </Button>
-        </div>
-      </div>
-
-      {/* Kanban Board */}
-      <div className="flex-1 p-6">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="grid grid-cols-3 gap-6 h-full">
-            {columns.map((column) => (
-              <div
-                key={column.id}
-                className={`flex flex-col rounded-xl border-2 ${column.borderColor} ${column.bgColor} p-4`}
-              >
-                {/* Column Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <h3 className={`font-semibold ${column.color}`}>
-                      {column.title}
-                    </h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {tasksByStatus[column.id]?.length || 0}
-                    </Badge>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-red-400">Error: {error}</div>
+            </div>
+          ) : (
+            <div ref={timelineRef} className="relative">
+              {hours.map((hour) => (
+                <div
+                  key={hour}
+                  className="flex border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, hour)}
+                >
+                  {/* Time Label */}
+                  <div className="w-20 flex-shrink-0 p-4 text-sm text-gray-500 border-r border-gray-800/50">
+                    {hour.toString().padStart(2, '0')}:00
+                  </div>
+                  
+                  {/* Hour Content */}
+                  <div className="flex-1 relative min-h-[60px] p-2">
+                    {/* Tasks for this hour */}
+                    {currentDayTasks
+                      .filter(task => {
+                        const taskStart = new Date(task.startAt);
+                        const taskHour = taskStart.getHours();
+                        return taskHour === hour;
+                      })
+                      .map(task => {
+                        const topPosition = getTimePosition(task.startAt) * 24 * 60 - (hour * 60);
+                        const duration = getDuration(task.startAt, task.endAt);
+                        const heightInMinutes = duration * 24 * 60;
+                        const priority = priorityConfig[task.priority];
+                        const isOverdue = new Date(task.endAt) < now;
+                        
+                        return (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, task)}
+                            className={`absolute left-2 right-2 bg-gray-900/80 backdrop-blur-sm border rounded-xl shadow-lg p-3 cursor-move hover:shadow-xl transition-all group ${
+                              priority.border
+                            } ${task.status === 'completed' ? 'opacity-60' : ''}`}
+                            style={{
+                              top: `${Math.max(0, topPosition)}px`,
+                              height: `${Math.max(40, heightInMinutes)}px`,
+                              borderLeftWidth: '4px',
+                            }}
+                          >
+                            <div className="flex items-start justify-between h-full">
+                              <div className="flex-1 min-w-0">
+                                <h3 className={`text-sm font-medium text-white truncate ${
+                                  task.status === 'completed' ? 'line-through' : ''
+                                }`}>
+                                  {task.title}
+                                </h3>
+                                
+                                {task.description && (
+                                  <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                    {task.description}
+                                  </p>
+                                )}
+                                
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex items-center space-x-1 text-xs text-gray-400">
+                                    <Clock className="w-3 h-3" />
+                                    <span>
+                                      {formatTime(new Date(task.startAt))} - {formatTime(new Date(task.endAt))}
+                                    </span>
+                                    {isOverdue && <AlertTriangle className="w-3 h-3 text-red-400" />}
+                                  </div>
+                                  
+                                  {/* Priority Badge */}
+                                  <div className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${priority.bg} ${priority.color} ${priority.border} border`}>
+                                    {task.priority}
+                                  </div>
+                                  
+                                  {task.aiSuggested && (
+                                    <div className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-600/20 text-purple-400 border border-purple-600/20">
+                                      AI
+                                    </div>
+                                  )}
+                                  
+                                  {task.isAgenticTask && (
+                                    <div className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-600/20">
+                                      <Bot className="w-3 h-3 mr-1" />
+                                      Agent
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Tags */}
+                                {task.tags && task.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {task.tags.slice(0, 2).map((tag) => (
+                                      <div key={tag} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-700/50 text-gray-300">
+                                        {tag}
+                                      </div>
+                                    ))}
+                                    {task.tags.length > 2 && (
+                                      <div className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-700/50 text-gray-300">
+                                        +{task.tags.length - 2}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Task Actions */}
+                              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                <button
+                                  onClick={() => openEditDialog(task)}
+                                  className="p-1 hover:bg-gray-700 rounded"
+                                  title="Edit task"
+                                >
+                                  <Edit3 className="w-3 h-3 text-gray-400" />
+                                </button>
+                                
+                                {task.status !== 'completed' && (
+                                  <button
+                                    onClick={() => markCompleted(task.id)}
+                                    className="p-1 hover:bg-gray-700 rounded"
+                                    title="Mark completed"
+                                  >
+                                    <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                  </button>
+                                )}
+                                
+                                <button
+                                  onClick={() => rescheduleTask(task.id)}
+                                  className="p-1 hover:bg-gray-700 rounded"
+                                  title="AI Reschedule"
+                                >
+                                  <AlertCircle className="w-3 h-3 text-blue-500" />
+                                </button>
+                                
+                                {isOverdue && task.status !== 'completed' && (
+                                  <button
+                                    onClick={() => notifyMissed(task.id)}
+                                    className="p-1 hover:bg-gray-700 rounded"
+                                    title="Notify missed"
+                                  >
+                                    <Mail className="w-3 h-3 text-orange-500" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
-
-                {/* Task List */}
-                <SortableContext
-                  items={tasksByStatus[column.id]?.map(t => t.id) || []}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-3 flex-1">
-                    <AnimatePresence>
-                      {tasksByStatus[column.id]?.map((task) => (
-                        <motion.div
-                          key={task.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                        >
-                          <TaskCard
-                            task={task}
-                            onEdit={openEditDialog}
-                            onDelete={handleDeleteTask}
-                            onQuickAction={handleQuickAction}
-                          />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </SortableContext>
-              </div>
-            ))}
-          </div>
-
-          {/* Drag Overlay */}
-          <DragOverlay>
-            {activeTask ? (
-              <TaskCard
-                task={activeTask}
-                isDragging
-                onEdit={() => {}}
-                onDelete={() => {}}
-                onQuickAction={() => {}}
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Task Edit Dialog */}
-      <TaskEditDialog
-        task={editingTask}
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        onSave={handleSaveTask}
-      />
+      {/* Right Panel */}
+      <div className="w-80 bg-gray-900/50 border-l border-gray-800 backdrop-blur-sm">
+        <div className="p-4">
+          {/* Quick Actions */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-white mb-3">Quick Actions</h3>
+            <div className="space-y-2">
+              <button
+                onClick={fetchTasks}
+                className="w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-gray-800/50 rounded-md transition-colors"
+              >
+                <AlertCircle className="w-4 h-4 text-blue-400" />
+                <span className="text-gray-300">Refresh Tasks</span>
+              </button>
+              
+              <button
+                onClick={openCreateDialog}
+                className="w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-gray-800/50 rounded-md transition-colors"
+              >
+                <Plus className="w-4 h-4 text-green-400" />
+                <span className="text-gray-300">Add Task</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Missed Tasks */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-white mb-3">
+              Missed Tasks ({missedTasks.length})
+            </h3>
+            
+            {missedTasks.length === 0 ? (
+              <p className="text-sm text-gray-500">No missed tasks</p>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {missedTasks.map(task => (
+                  <div
+                    key={task.id}
+                    className="p-3 bg-red-600/20 border border-red-600/30 rounded-md backdrop-blur-sm"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-red-300 truncate">
+                          {task.title}
+                        </h4>
+                        <p className="text-xs text-red-400 mt-1">
+                          Due: {formatTime(new Date(task.endAt))}
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={() => notifyMissed(task.id)}
+                        className="p-1 hover:bg-red-600/30 rounded"
+                        title="Send notification"
+                      >
+                        <Mail className="w-3 h-3 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* AI Suggestions */}
+          <div>
+            <h3 className="text-lg font-medium text-white mb-3">AI Suggestions</h3>
+            <div className="p-3 bg-purple-600/20 border border-purple-600/30 rounded-md backdrop-blur-sm">
+              <p className="text-sm text-purple-300">
+                Try drag & drop to quickly reschedule tasks, or use the AI reschedule feature for intelligent suggestions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit/Create Task Dialog */}
+      {(editingTask || isCreateMode) && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <h2 className="text-lg font-medium text-white mb-4">
+                {isCreateMode ? 'Create Task' : 'Edit Task'}
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="Task title"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    rows={3}
+                    placeholder="Task description (optional)"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Priority
+                  </label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as 'High' | 'Medium' | 'Low' }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                  >
+                    <option value="High">High Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="Low">Low Priority</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Tags (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.tags}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    placeholder="project, urgent, personal..."
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="agentic"
+                    checked={formData.isAgenticTask}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isAgenticTask: e.target.checked }))}
+                    className="rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label htmlFor="agentic" className="text-sm text-gray-300">
+                    Make this an Agentic Task
+                  </label>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={resetForm}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                
+                {!isCreateMode && editingTask && (
+                  <button
+                    onClick={() => {
+                      deleteTask(editingTask.id);
+                      resetForm();
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
+                
+                <button
+                  onClick={handleSubmit}
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-md transition-all"
+                  disabled={!formData.title.trim()}
+                >
+                  {isCreateMode ? 'Create' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default SchedulerKanban;

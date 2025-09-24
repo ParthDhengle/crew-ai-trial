@@ -245,6 +245,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
     For 'direct' mode: Returns response immediately.
     For 'agentic' mode: Queues ops, returns mode/ops/session_id, executes in background.
     """
+    from firebase_client import set_user_id
+    set_user_id(uid)
     try:
         timestamp = datetime.now().isoformat()
         
