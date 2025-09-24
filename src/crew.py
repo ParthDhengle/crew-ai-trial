@@ -105,126 +105,203 @@ class AiAgent:
             return "\n".join([doc.page_content for doc in results])
         return content
 
-    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None) :
+    async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
+        """
+        Enhanced workflow with proper error handling and uid management
+        """
         user_query = user_query.strip()
         if not user_query:
-            return "No query provided."
-       
-        history = ChatHistory.load_history(session_id)
-        user_profile = self.memory_manager.get_user_profile() 
-        file_content = self._process_file(file_path)
-       
-        file_tool = FileManagerTool()
-        ops_path = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
-        available_operations_raw = file_tool._run(ops_path)
-        json_match = re.search(r'\{.*\}', available_operations_raw, re.DOTALL)
-        available_operations_content = json_match.group(0) if json_match else "{}"
+            return {"display_response": "No query provided.", "mode": "direct"}
+        
+        if not uid:
+            return {"display_response": "User authentication required.", "mode": "direct"}
+        
         try:
-            available_operations = json.loads(available_operations_content.strip()).get("operations", [])
-        except json.JSONDecodeError:
-            available_operations = []
-       
-        available_ops_info = "\n".join([f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}" for op in available_operations])
-        
-        full_history = json.dumps(history[-8:])
-        if len(full_history) > 2000: 
-            history_summary = ChatHistory.summarize(history[-8:])
-            full_history = f"Summary: {history_summary}"
-        
-        relevant_facts = self.memory_manager.retrieve_long_term(user_query)
-        
-        os_info = f"{platform.system()} {platform.release()}"
-        inputs = {
-            'user_query': user_query,
-            'file_content': file_content,
-            'full_history': full_history,
-            'available_ops_info': available_ops_info,
-            'user_profile': json.dumps(user_profile),
-            'relevant_facts': relevant_facts,
-            'os_info': os_info
-        }
-        
-        classify_task = self.classify_query()
-        classify_task.description = classify_task.description.format(**inputs)
-        classify_agent = self.classifier()
-        classification_raw = self._execute_task_with_fallbacks(
-            classify_agent, classify_task, [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
-        )
-       
-        def parse_json_with_retry(raw: str, retries: int = 1) -> Dict:
-            for _ in range(retries):
-                cleaned = re.sub(r'```json|```', '', raw).strip()
-                try:
-                    return json5.loads(cleaned)
-                except:
-                    pass
-            return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
-       
-        classification = parse_json_with_retry(classification_raw)
-       
-        mode = classification.get('mode', 'direct')
-        if mode == 'direct':
-            final_response = classification.get('display_response', 'No response generated.')
-        else: 
-            operations = classification.get('operations', [])
-            if not isinstance(operations, list) or not all(isinstance(op, dict) and 'name' in op for op in operations):
-                final_response = "Invalid operations plan generated. Please rephrase your query."
-                mode = 'direct' 
-            else:
-                user_summarized_requirements = classification.get('user_summarized_query', 'User intent unclear.')
-                if user_summarized_requirements:
-                    # Store in summaries.json or Firebase
-                    summary_data = {"date": datetime.now().isoformat().split('T')[0], "summary": user_summarized_requirements}
-                    add_summary(summary_data['date'], summary_data['summary'])
-                
-                from operations_store import queue_operation_local
-                for op in operations:
-                    op_id = await queue_operation_local(op['name'], op.get('parameters', {}), session_id)
-                    op['op_id'] = op_id
-                
-                await publish_event(session_id, {
-                    "type": "agentic_mode_activated", 
-                    "message": "Nova agentic mode activated",
-                    "operations_count": len(operations)
-                })
+            # Load chat history
+            history = ChatHistory.load_history(session_id)
+            user_profile = self.memory_manager.get_user_profile()
+            file_content = self._process_file(file_path) if file_path else None
             
-                op_results = await self.perform_operations_with_realtime_updates(operations, session_id, uid)
-               
-                synth_task = self.synthesize_response()
-                synth_task.description = synth_task.description.format(
-                    user_summarized_requirements=user_summarized_requirements,
-                    op_results=op_results
-                )
-                synth_agent = self.synthesizer()
-                synth_raw = self._execute_task_with_fallbacks(
-                    synth_agent, synth_task, [self.synthesizer_fallback1_llm, self.synthesizer_fallback2_llm]
-                )
-                synth = parse_json_with_retry(synth_raw)
-               
-                final_response = synth.get('display_response', 'Synthesis failed.')
-               
-                await publish_event(session_id, {
-                    "type": "synthesis_complete",
-                    "response": final_response
-                })
-
-                extracted_facts = synth.get('extracted_fact', [])
-                if extracted_facts:
-                    self.memory_manager.update_long_term({'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]})
-       
-        history = []
-        history.append({"role": "user", "content": user_query + (f" [File: {file_path}]" if file_path else "")})
-        history.append({"role": "assistant", "content": final_response})
-        ChatHistory.save_history(history, session_id, uid=uid)
-       
-        if len(history) % 10 == 0:
+            # Load available operations
+            file_tool = FileManagerTool()
+            ops_path = os.path.join(PROJECT_ROOT, 'knowledge', 'operations.json')
+            available_operations_raw = file_tool._run(ops_path)
+            json_match = re.search(r'\{.*\}', available_operations_raw, re.DOTALL)
+            available_operations_content = json_match.group(0) if json_match else "{}"
+            
             try:
-                narrative = self.memory_manager.create_narrative_summary(json.dumps(history[-5:]))
+                available_operations = json.loads(available_operations_content.strip()).get("operations", [])
+            except json.JSONDecodeError:
+                available_operations = []
+            
+            available_ops_info = "\n".join([
+                f"{op['name']}: {op['description']} | Required params: {', '.join(op['required_parameters'])} | Optional params: {', '.join(op.get('optional_parameters', []))}"
+                for op in available_operations
+            ])
+            
+            # Prepare history
+            full_history = json.dumps(history[-8:])
+            if len(full_history) > 2000:
+                history_summary = ChatHistory.summarize(history[-8:])
+                full_history = f"Summary: {history_summary}"
+            
+            # Get relevant facts
+            relevant_facts = self.memory_manager.retrieve_long_term(user_query)
+            
+            # System info
+            os_info = f"{platform.system()} {platform.release()}"
+            
+            inputs = {
+                'user_query': user_query,
+                'file_content': file_content or "",
+                'full_history': full_history,
+                'available_ops_info': available_ops_info,
+                'user_profile': json.dumps(user_profile),
+                'relevant_facts': relevant_facts,
+                'os_info': os_info
+            }
+            
+            # Classify query
+            classify_task = self.classify_query()
+            classify_task.description = classify_task.description.format(**inputs)
+            classify_agent = self.classifier()
+            classification_raw = self._execute_task_with_fallbacks(
+                classify_agent, classify_task, [self.classifier_fallback1_llm, self.classifier_fallback2_llm]
+            )
+            
+            def parse_json_with_retry(raw: str, retries: int = 1) -> Dict:
+                for _ in range(retries):
+                    cleaned = re.sub(r'```json|```', '', raw).strip()
+                    try:
+                        return json5.loads(cleaned)
+                    except:
+                        pass
+                return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
+            
+            classification = parse_json_with_retry(classification_raw)
+            
+            # Handle user summary
+            user_summarized_query = classification.get('user_summarized_query', 'User intent unclear.')
+            if user_summarized_query and user_summarized_query != 'User intent unclear.':
+                try:
+                    summary_data = {
+                        "date": datetime.now().isoformat().split('T')[0], 
+                        "summary": user_summarized_query
+                    }
+                    add_summary(uid, summary_data['date'], summary_data['summary'])
+                    print(f"Summary added for user {uid}")
+                except Exception as e:
+                    print(f"Warning: Failed to add summary: {e}")
+            
+            # Extract facts early
+            extracted_facts = classification.get('facts', [])
+            if extracted_facts:
+                try:
+                    self.memory_manager.update_long_term({
+                        'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]
+                    })
+                except Exception as e:
+                    print(f"Warning: Failed to update long-term memory: {e}")
+            
+            mode = classification.get('mode', 'direct')
+            
+            if mode == 'direct':
+                final_response = classification.get('display_response', 'No response generated.')
+            else:
+                operations = classification.get('operations', [])
+                if not isinstance(operations, list) or not all(isinstance(op, dict) and 'name' in op for op in operations):
+                    final_response = "Invalid operations plan generated. Please rephrase your query."
+                    mode = 'direct'
+                else:
+                    try:
+                        # Queue operations
+                        from operations_store import queue_operation_local
+                        for op in operations:
+                            op_id = await queue_operation_local(op['name'], op.get('parameters', {}), session_id)
+                            op['op_id'] = op_id
+                        
+                        # Publish event
+                        await publish_event(session_id, {
+                            "type": "agentic_mode_activated",
+                            "message": "Nova agentic mode activated",
+                            "operations_count": len(operations)
+                        })
+                        
+                        # Perform operations
+                        op_results = await self.perform_operations_with_realtime_updates(operations, session_id, uid)
+                        
+                        # Synthesize response
+                        synth_task = self.synthesize_response()
+                        synth_task.description = synth_task.description.format(
+                            user_summarized_requirements=user_summarized_query,
+                            op_results=op_results
+                        )
+                        synth_agent = self.synthesizer()
+                        synth_raw = self._execute_task_with_fallbacks(
+                            synth_agent, synth_task, [self.synthesizer_fallback1_llm, self.synthesizer_fallback2_llm]
+                        )
+                        synth = parse_json_with_retry(synth_raw)
+                        
+                        final_response = synth.get('display_response', 'Synthesis failed.')
+                        
+                        # Publish completion event
+                        await publish_event(session_id, {
+                            "type": "synthesis_complete",
+                            "response": final_response
+                        })
+                        
+                        # Extract facts from synthesis
+                        extracted_facts = synth.get('extracted_fact', [])
+                        if extracted_facts:
+                            try:
+                                self.memory_manager.update_long_term({
+                                    'facts': extracted_facts if isinstance(extracted_facts, list) else [extracted_facts]
+                                })
+                            except Exception as e:
+                                print(f"Warning: Failed to update long-term memory from synthesis: {e}")
+                                
+                    except Exception as e:
+                        print(f"Error in agentic mode: {e}")
+                        final_response = f"Error executing operations: {str(e)}"
+                        mode = 'direct'
+            
+            # Save chat history
+            try:
+                new_history = [
+                    {"role": "user", "content": user_query + (f" [File: {file_path}]" if file_path else "")},
+                    {"role": "assistant", "content": final_response}
+                ]
+                ChatHistory.save_history(new_history, session_id, uid=uid)
+                
+                # Create narrative summary periodically
+                current_history = ChatHistory.load_history(session_id)
+                if len(current_history) % 10 == 0:
+                    try:
+                        narrative = self.memory_manager.create_narrative_summary(json.dumps(current_history[-5:]))
+                        print(f"Narrative summary created for session {session_id}")
+                    except Exception as e:
+                        print(f"Warning: Narrative summary failed: {e}")
+                        
             except Exception as e:
-                print(f"Warning: Narrative summary failed: {e}")
-       
-        return {"display_response": final_response, "mode": mode, **({"operations": operations} if mode == "agentic" else {})}
-    
+                print(f"Error saving chat history: {e}")
+            
+            # Return response
+            result = {
+                "display_response": final_response,
+                "mode": mode
+            }
+            
+            if mode == "agentic":
+                result["operations"] = operations
+                
+            return result
+            
+        except Exception as e:
+            print(f"Error in run_workflow: {e}")
+            return {
+                "display_response": f"An error occurred while processing your request: {str(e)}",
+                "mode": "direct"
+            }
 
     async def perform_operations_with_realtime_updates(self, 
                                                     operations: List[Dict[str, Any]], 

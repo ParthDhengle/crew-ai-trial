@@ -382,13 +382,13 @@ def search_kb(query: str, top_k: int = 5) -> list:
     kb = query_collection("knowledge_base", limit=top_k * 2)
     return [entry for entry in kb if query.lower() in entry.get("content_md", "").lower()][:top_k]
 # Summaries
-def add_summary(date_: str, summary_text: str, metrics: dict = None) -> str:
+def add_summary(uid:str, date_: str, summary_text: str, metrics: dict = None) -> str:
     """Add narrative summary."""
     data = {
         "date": date_, "summary_text": summary_text, "metrics": metrics or {},
         "created_at": datetime.now().isoformat()
     }
-    return add_document("summaries", data)
+    return add_document(uid, "summaries", data)
 def get_summaries(days: int = 7) -> list:
     """Get recent summaries."""
     cutoff = (datetime.now() - timedelta(days=days)).isoformat()

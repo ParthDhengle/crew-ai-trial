@@ -1,5 +1,6 @@
 import os
 import sys
+import requests
 import json
 import warnings
 from datetime import datetime
@@ -65,42 +66,36 @@ async def get_current_uid(token: str = Depends(security)):
         except ValueError as e:
             print(f"DEBUG: ID token verification failed: {e}")
             
-            # For development/testing, decode custom tokens
-            # In production, this should be removed
-            if token.credentials.startswith('eyJ'):  # JWT tokens start with eyJ
-                print("DEBUG: Attempting custom token decode...")
-                try:
-                    import base64
-                    import json
-                    
-                    # Decode JWT token (simplified - no signature verification for dev)
-                    parts = token.credentials.split('.')
-                    print(f"DEBUG: Token has {len(parts)} parts")
-                    if len(parts) == 3:
-                        # Decode the payload (middle part)
-                        payload = parts[1]
-                        # Add padding if needed
-                        payload += '=' * (4 - len(payload) % 4)
-                        decoded = json.loads(base64.b64decode(payload))
-                        print(f"DEBUG: Decoded payload: {decoded}")
-                        uid = decoded.get('uid')
-                        if uid:
-                            print(f"DEBUG: Custom token decode successful, UID: {uid}")
-                            return uid
-                    
-                    # Fallback for testing
-                    print("DEBUG: Using fallback UID")
-                    return "test-user-uid"
-                except Exception as e:
-                    print(f"DEBUG: Token decode error: {e}")
-                    return "test-user-uid"  # Fallback for testing
+            # Secure fallback: Exchange custom token for ID token via REST API
+            print("DEBUG: Attempting secure custom token exchange...")
+            api_key = os.getenv("FIREBASE_WEB_API_KEY")
+            if not api_key:
+                raise ValueError("FIREBASE_WEB_API_KEY not set")
+            
+            url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key={api_key}"
+            body = {
+                "token": token.credentials,
+                "returnSecureToken": True
+            }
+            response = requests.post(url, json=body)
+            
+            if response.ok:
+                data = response.json()
+                id_token = data.get("idToken")
+                if not id_token:
+                    raise ValueError("No ID token in exchange response")
+                
+                # Verify the new ID token to get UID
+                uid = verify_id_token(id_token)
+                print(f"DEBUG: Custom token exchange successful, UID: {uid}")
+                return uid
             else:
-                print("DEBUG: Token doesn't start with eyJ")
-                raise ValueError("Invalid token format")
+                error = response.json().get("error", {}).get("message", "Unknown error")
+                raise ValueError(f"Custom token exchange failed: {error}")
+    
     except ValueError as e:
         print(f"DEBUG: Final error: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
-
 # Pydantic models
 class LoginRequest(BaseModel):
     email: str
