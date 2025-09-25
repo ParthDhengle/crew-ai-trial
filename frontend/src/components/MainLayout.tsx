@@ -140,7 +140,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </div>
           
           {/* Agent Ops Panel - Only in chat/scheduler */}
-          {['chat', 'scheduler'].includes(state.view) && (
+          {['chat'].includes(state.view) && (
             <motion.div
               initial={{ x: 300 }}
               animate={{ x: 0 }}

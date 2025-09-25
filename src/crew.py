@@ -302,7 +302,7 @@ class AiAgent:
                 "display_response": f"An error occurred while processing your request: {str(e)}",
                 "mode": "direct"
             }
-
+       
     async def perform_operations_with_realtime_updates(self, 
                                                     operations: List[Dict[str, Any]], 
                                                     session_id: str = None, 

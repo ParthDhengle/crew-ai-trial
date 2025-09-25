@@ -54,48 +54,91 @@ app.add_middleware(
 # Security
 security = HTTPBearer()
 
+
 async def get_current_uid(token: str = Depends(security)):
     try:
         print(f"DEBUG: Received token: {token.credentials[:50]}...")
         
         # First try to verify as ID token
         try:
-            uid = verify_id_token(token.credentials)
+            decoded_token = auth.verify_id_token(token.credentials)
+            uid = decoded_token.get('uid')
             print(f"DEBUG: ID token verification successful, UID: {uid}")
             return uid
-        except ValueError as e:
+        except Exception as e:
             print(f"DEBUG: ID token verification failed: {e}")
             
-            # Secure fallback: Exchange custom token for ID token via REST API
-            print("DEBUG: Attempting secure custom token exchange...")
-            api_key = os.getenv("FIREBASE_WEB_API_KEY")
-            if not api_key:
-                raise ValueError("FIREBASE_WEB_API_KEY not set")
-            
-            url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key={api_key}"
-            body = {
-                "token": token.credentials,
-                "returnSecureToken": True
-            }
-            response = requests.post(url, json=body)
-            
-            if response.ok:
-                data = response.json()
-                id_token = data.get("idToken")
-                if not id_token:
-                    raise ValueError("No ID token in exchange response")
-                
-                # Verify the new ID token to get UID
-                uid = verify_id_token(id_token)
-                print(f"DEBUG: Custom token exchange successful, UID: {uid}")
+            # Try custom token verification
+            try:
+                # Verify custom token directly with Firebase Admin SDK
+                decoded_token = auth.verify_session_cookie(token.credentials)
+                uid = decoded_token.get('uid')
+                print(f"DEBUG: Session cookie verification successful, UID: {uid}")
                 return uid
-            else:
-                error = response.json().get("error", {}).get("message", "Unknown error")
-                raise ValueError(f"Custom token exchange failed: {error}")
+            except Exception as e2:
+                print(f"DEBUG: Session cookie verification failed: {e2}")
+                
+                # Last resort: Exchange custom token for ID token via REST API
+                print("DEBUG: Attempting secure custom token exchange...")
+                api_key = os.getenv("FIREBASE_WEB_API_KEY")
+                if not api_key:
+                    raise ValueError("FIREBASE_WEB_API_KEY not set")
+                
+                url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key={api_key}"
+                body = {
+                    "token": token.credentials,
+                    "returnSecureToken": True
+                }
+                
+                response = requests.post(url, json=body, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    id_token = data.get("idToken")
+                    if not id_token:
+                        raise ValueError("No ID token in exchange response")
+                    
+                    # Verify the new ID token to get UID
+                    decoded_token = auth.verify_id_token(id_token)
+                    uid = decoded_token.get('uid')
+                    print(f"DEBUG: Custom token exchange successful, UID: {uid}")
+                    return uid
+                else:
+                    error_data = response.json() if response.text else {}
+                    error_message = error_data.get("error", {}).get("message", "Unknown error")
+                    print(f"DEBUG: Custom token exchange failed with status {response.status_code}: {error_message}")
+                    raise ValueError(f"Custom token exchange failed: {error_message}")
     
-    except ValueError as e:
+    except Exception as e:
         print(f"DEBUG: Final error: {e}")
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+# Helper function to create custom tokens (for testing)
+def create_custom_token(uid: str, additional_claims: dict = None) -> str:
+    """
+    Create a custom token for testing purposes.
+    This should typically be done on your backend when a user authenticates.
+    """
+    try:
+        custom_token = auth.create_custom_token(uid, additional_claims)
+        return custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token
+    except Exception as e:
+        print(f"Error creating custom token: {e}")
+        raise
+
+# Test endpoint to generate tokens (remove in production)
+@app.post("/test/create_token")
+async def create_test_token(uid: str):
+    """
+    Test endpoint to create a custom token.
+    Remove this in production!
+    """
+    try:
+        token = create_custom_token(uid)
+        return {"custom_token": token}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # Pydantic models
 class LoginRequest(BaseModel):
     email: str
@@ -282,14 +325,15 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             result = await result
         
         mode = result.get('mode', 'direct')
+        final_response = result.get('display_response', 'No response generated.')  # Extract once, for both modes
         
+        # Save assistant response (moved up, for both modes)
+        save_result = save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
+        if inspect.iscoroutine(save_result):
+            await save_result
+
         if mode == 'direct':
             final_response = result.get('display_response', 'No response')
-            
-            # Save assistant response
-            save_result = save_chat_message(session_id, uid, "assistant", final_response, datetime.now().isoformat())
-            if inspect.iscoroutine(save_result):
-                await save_result
             
             await publish_event(session_id, {
                 "type": "direct_response",
@@ -331,6 +375,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 "result": {
                     "mode": "agentic", 
                     "operations": response_ops,
+                    "display_response": final_response,
                     "message": "Operations are being executed with real-time updates"
                 }, 
                 "session_id": str(session_id)

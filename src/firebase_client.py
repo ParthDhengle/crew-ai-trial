@@ -7,16 +7,61 @@ from datetime import datetime, timedelta
 import json
 import uuid
 
-# Load environment variables
 load_dotenv()
-# Initialize Firebase
-if not firebase_admin._apps:
-    cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if not cred_path or not os.path.exists(cred_path):
-        raise ValueError(f"GOOGLE_APPLICATION_CREDENTIALS not set or invalid: {cred_path}")
-    cred = credentials.Certificate(cred_path)
-    firebase_admin.initialize_app(cred)
-db = firestore.client()
+
+def initialize_firebase():
+    """Initialize Firebase with proper error handling"""
+    try:
+        # Check if already initialized
+        if firebase_admin._apps:
+            print("Firebase already initialized")
+            return firestore.client()
+        
+        # Get credentials path
+        cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        if not cred_path:
+            raise ValueError("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
+        
+        if not os.path.exists(cred_path):
+            raise ValueError(f"Firebase credentials file not found: {cred_path}")
+        
+        # Initialize Firebase
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        
+        print("Firebase initialized successfully")
+        return firestore.client()
+        
+    except Exception as e:
+        print(f"Error initializing Firebase: {e}")
+        raise
+
+# Initialize Firebase and get Firestore client
+db = initialize_firebase()
+
+def verify_id_token(id_token: str) -> str:
+    """Verify ID token and return UID"""
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        return decoded_token.get('uid')
+    except Exception as e:
+        print(f"ID token verification failed: {e}")
+        raise ValueError(f"Token verification failed: {e}")
+
+def verify_custom_token_locally(custom_token: str) -> bool:
+    """
+    Note: Firebase Admin SDK doesn't directly verify custom tokens.
+    Custom tokens are meant to be exchanged for ID tokens.
+    This is a helper to check token format.
+    """
+    try:
+        # Custom tokens are JWTs, we can decode header to check format
+        import jwt
+        header = jwt.get_unverified_header(custom_token)
+        return header.get('alg') == 'RS256' and 'kid' in header
+    except:
+        return False
+    
 
 USER_ID = os.getenv("USER_ID", "parth")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -382,13 +427,33 @@ def search_kb(query: str, top_k: int = 5) -> list:
     kb = query_collection("knowledge_base", limit=top_k * 2)
     return [entry for entry in kb if query.lower() in entry.get("content_md", "").lower()][:top_k]
 # Summaries
-def add_summary(uid:str, date_: str, summary_text: str, metrics: dict = None) -> str:
-    """Add narrative summary."""
-    data = {
-        "date": date_, "summary_text": summary_text, "metrics": metrics or {},
-        "created_at": datetime.now().isoformat()
-    }
-    return add_document(uid, "summaries", data)
+def add_summary(uid: str, date: str, summary_text: str, metrics: dict = None) -> str:
+    """Add narrative summary with proper error handling."""
+    try:
+        if not uid or not date or not summary_text:
+            raise ValueError("uid, date_, and summary_text are required")
+            
+        from datetime import datetime
+        
+        data = {
+            "date": date,
+            "summary_text": summary_text,
+            "metrics": metrics or {},
+            "created_at": datetime.now().isoformat(),
+            "uid": uid  # Include uid in the document for better querying
+        }
+        
+        # Add to user's summaries subcollection
+        doc_ref = db.collection('users').document(uid).collection('summaries').document()
+        doc_ref.set(data)
+        
+        print(f"Summary added successfully for user {uid}")
+        return doc_ref.id
+        
+    except Exception as e:
+        print(f"Error adding summary: {e}")
+        raise
+
 def get_summaries(days: int = 7) -> list:
     """Get recent summaries."""
     cutoff = (datetime.now() - timedelta(days=days)).isoformat()
