@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
-from ...common_functions.Find_project_root import find_project_root
+from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
 
 # Configure logging

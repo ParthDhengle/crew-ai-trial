@@ -23,6 +23,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { getAuth } from 'firebase/auth';
 
 // Google Calendar Component with Dynamic Refresh
 const GoogleCalendarEmbed = ({
@@ -37,7 +38,7 @@ const GoogleCalendarEmbed = ({
 
   return (
     <iframe
-      key={refreshKey} // Force re-render when refreshKey changes
+      key={refreshKey}
       title="Google Calendar"
       src={src}
       style={{
@@ -69,74 +70,132 @@ interface SchedulerTask {
   reminderMinutes?: number;
   createdAt: string;
   updatedAt: string;
+  googleEventId?: string; // Store the Google Calendar event ID
 }
 
 interface SchedulerKanbanProps {
-  apiBase?: string;
+  // No props needed since we'll use Firebase auth directly
 }
 
-// Mock data
-const mockTasks: SchedulerTask[] = [
-  {
-    id: 'task-1',
-    title: 'Team standup meeting',
-    description: 'Daily sync with the development team to discuss progress and blockers',
-    startAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    endAt: new Date(Date.now() + 2.5 * 60 * 60 * 1000).toISOString(),
-    date: new Date().toISOString().split('T')[0],
-    priority: 'High',
-    status: 'pending',
-    tags: ['meeting', 'team', 'development'],
-    isAgenticTask: false,
-    aiSuggested: true,
-    location: 'Conference Room A',
-    attendees: ['john@company.com', 'sarah@company.com'],
-    reminderMinutes: 15,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-2',
-    title: 'Code review session',
-    description: 'Review pull requests for the new feature implementation',
-    startAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-    endAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-    date: new Date().toISOString().split('T')[0],
-    priority: 'Medium',
-    status: 'pending',
-    tags: ['development', 'review', 'code'],
-    isAgenticTask: true,
-    aiSuggested: false,
-    location: 'Virtual',
-    attendees: ['dev-team@company.com'],
-    reminderMinutes: 30,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-3',
-    title: 'Client presentation',
-    description: 'Present Q4 results to key stakeholders',
-    startAt: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
-    endAt: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString(),
-    date: new Date().toISOString().split('T')[0],
-    priority: 'High',
-    status: 'pending',
-    tags: ['presentation', 'client', 'important'],
-    isAgenticTask: false,
-    aiSuggested: false,
-    location: 'Boardroom',
-    attendees: ['client@external.com', 'manager@company.com'],
-    reminderMinutes: 60,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
+// Enhanced API Client for Calendar Events (representing tasks)
+class SchedulerAPIClient {
+  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
+    const authInstance = getAuth();
+    let token: string | undefined;
+    
+    if (authInstance.currentUser) {
+      token = await authInstance.currentUser.getIdToken(false);
+    }
 
-const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) => {
+    const response = await fetch(`http://127.0.0.1:8001${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        await authInstance.signOut();
+        throw new Error('Authentication failed. Please login again.');
+      }
+      
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  // Event API calls (representing tasks as calendar events)
+  async createEvent(eventData: any) {
+    return this.request('/api/events', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async updateEvent(eventId: string, eventData: any) {
+    return this.request(`/api/events/primary/${eventId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async deleteEvent(eventId: string) {
+    return this.request(`/api/events/primary/${eventId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listEvents(params: any = {}) {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+    
+    return this.request(`/api/events?${queryParams}`);
+  }
+
+  // Task API calls (for task metadata if needed)
+  async createTask(taskData: any) {
+    return this.request('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify(taskData),
+    });
+  }
+
+  async updateTask(taskId: string, taskData: any) {
+    return this.request(`/api/tasks/@default/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(taskData),
+    });
+  }
+
+  async deleteTask(taskId: string) {
+    return this.request(`/api/tasks/@default/${taskId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async listTasks(params: any = {}) {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+    
+    return this.request(`/api/tasks?${queryParams}`);
+  }
+}
+
+const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
+  // Initialize API client
+  const apiClient = new SchedulerAPIClient();
+
+  // Check authentication status
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const authInstance = getAuth();
+    const unsubscribe = authInstance.onAuthStateChanged((user) => {
+      setIsAuthenticated(!!user);
+      setAuthChecked(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [tasks, setTasks] = useState<SchedulerTask[]>(mockTasks);
-  const [filteredTasks, setFilteredTasks] = useState<SchedulerTask[]>(mockTasks);
+  const [tasks, setTasks] = useState<SchedulerTask[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<SchedulerTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<SchedulerTask | null>(null);
@@ -184,7 +243,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
     setCalendarRefreshKey(prev => prev + 1);
     setLastRefresh(new Date());
     
-    // Simulate refresh delay for better UX
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
@@ -196,14 +254,13 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
 
     const interval = setInterval(() => {
       refreshCalendar();
-    }, 2 * 60 * 1000); // 2 minutes
+    }, 2 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [autoRefresh, refreshCalendar]);
 
   // Refresh calendar after task operations
   const refreshAfterTaskOperation = useCallback(() => {
-    // Small delay to allow backend processing
     setTimeout(() => {
       refreshCalendar();
     }, 1000);
@@ -218,171 +275,125 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
     return date.toTimeString().slice(0, 5);
   };
 
-  // API calls (ready for backend integration)
+  // Convert SchedulerTask to Google Calendar Event format
+  const taskToCalendarEvent = (task: SchedulerTask) => {
+    return {
+      summary: `📋 ${task.title}`, // Add task emoji to distinguish from regular events
+      description: `${task.description || ''}\n\n--- Task Details ---\nPriority: ${task.priority}\nStatus: ${task.status}\nTags: ${task.tags?.join(', ') || 'None'}\nAgentic Task: ${task.isAgenticTask ? 'Yes' : 'No'}\n\nCreated by AI Scheduler`,
+      start: {
+        dateTime: task.startAt,
+        timeZone: 'Asia/Kolkata',
+      },
+      end: {
+        dateTime: task.endAt,
+        timeZone: 'Asia/Kolkata',
+      },
+      location: task.location,
+      attendees: task.attendees?.map(email => ({ email })) || [],
+      reminders: {
+        useDefault: false,
+        overrides: task.reminderMinutes ? [
+          { method: 'popup', minutes: task.reminderMinutes },
+          { method: 'email', minutes: task.reminderMinutes }
+        ] : []
+      },
+      extendedProperties: {
+        private: {
+          taskId: task.id,
+          isTaskEvent: 'true',
+          priority: task.priority,
+          status: task.status,
+          isAgenticTask: task.isAgenticTask?.toString() || 'false',
+          tags: task.tags?.join(',') || '',
+          createdByAIScheduler: 'true'
+        }
+      },
+      // Color-code by priority (Google Calendar color IDs)
+      colorId: task.priority === 'High' ? '11' : task.priority === 'Medium' ? '5' : '2'
+    };
+  };
+
+  // Convert Google Calendar Event back to SchedulerTask
+  const calendarEventToTask = (event: any): SchedulerTask | null => {
+    const extProps = event.extendedProperties?.private;
+    if (!extProps?.isTaskEvent) return null;
+
+    return {
+      id: extProps.taskId,
+      googleEventId: event.id,
+      title: event.summary?.replace(/^📋 /, '') || '', // Remove task emoji
+      description: event.description?.split('\n\n--- Task Details ---')[0] || '',
+      startAt: event.start?.dateTime || event.start?.date,
+      endAt: event.end?.dateTime || event.end?.date,
+      date: new Date(event.start?.dateTime || event.start?.date).toISOString().split('T')[0],
+      priority: (extProps.priority as 'High' | 'Medium' | 'Low') || 'Medium',
+      status: (extProps.status as 'pending' | 'completed' | 'cancelled') || 'pending',
+      tags: extProps.tags ? extProps.tags.split(',').filter(Boolean) : [],
+      isAgenticTask: extProps.isAgenticTask === 'true',
+      location: event.location || '',
+      attendees: event.attendees?.map((a: any) => a.email) || [],
+      reminderMinutes: event.reminders?.overrides?.[0]?.minutes || 15,
+      createdAt: event.created,
+      updatedAt: event.updated,
+      aiSuggested: false,
+    };
+  };
+
+  // Fetch tasks from backend
   const fetchTasks = useCallback(async () => {
+    if (!isAuthenticated) {
+      setError('Authentication required');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${apiBase}/tasks?date=${formatDate(selectedDate)}`);
-      // const data = await response.json();
-      // setTasks(data);
+      // Get current week range for events
+      const now = new Date();
+      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+      const endOfWeek = new Date(now.setDate(startOfWeek.getDate() + 7));
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setTasks(mockTasks);
+      // Fetch calendar events that represent tasks
+      const events = await apiClient.listEvents({
+        timeMin: startOfWeek.toISOString(),
+        timeMax: endOfWeek.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 100
+      });
+
+      // Convert events to tasks (only those created by our app)
+      const taskEvents = events
+        .map(calendarEventToTask)
+        .filter(Boolean) as SchedulerTask[];
+
+      setTasks(taskEvents);
+      
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, apiBase]);
+  }, [isAuthenticated, apiClient]);
 
-  // Convert task to Google Calendar event
-  const createGoogleCalendarEvent = async (task: SchedulerTask) => {
-    try {
-      // TODO: Implement Google Calendar API integration
-      // This will create an actual event in Google Calendar so it shows in the iframe
-      
-      const eventData = {
-        summary: task.title,
-        description: task.description,
-        start: {
-          dateTime: task.startAt,
-          timeZone: 'Asia/Kolkata',
-        },
-        end: {
-          dateTime: task.endAt,
-          timeZone: 'Asia/Kolkata',
-        },
-        location: task.location,
-        attendees: task.attendees?.map(email => ({ email })),
-        reminders: {
-          useDefault: false,
-          overrides: task.reminderMinutes ? [
-            { method: 'popup', minutes: task.reminderMinutes },
-            { method: 'email', minutes: task.reminderMinutes }
-          ] : []
-        },
-        // Add custom metadata to identify this as a task-generated event
-        extendedProperties: {
-          private: {
-            taskId: task.id,
-            isTaskEvent: 'true',
-            priority: task.priority,
-            isAgenticTask: task.isAgenticTask?.toString() || 'false',
-            tags: task.tags?.join(',') || ''
-          }
-        },
-        // Color-code by priority
-        colorId: task.priority === 'High' ? '11' : task.priority === 'Medium' ? '5' : '2'
-      };
-
-      // Example API call structure (implement in your backend):
-      /*
-      const response = await fetch(`${apiBase}/google-calendar/events`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(eventData)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create Google Calendar event');
-      }
-      
-      const createdEvent = await response.json();
-      return createdEvent;
-      */
-      
-      console.log('Would create Google Calendar event:', eventData);
-      return { id: `gcal-${Date.now()}`, ...eventData };
-      
-    } catch (err) {
-      console.error('Error creating Google Calendar event:', err);
-      throw err;
-    }
-  };
-
-  const updateGoogleCalendarEvent = async (task: SchedulerTask, eventId: string) => {
-    try {
-      // TODO: Implement Google Calendar API update
-      const eventData = {
-        summary: task.title,
-        description: task.description,
-        start: {
-          dateTime: task.startAt,
-          timeZone: 'Asia/Kolkata',
-        },
-        end: {
-          dateTime: task.endAt,
-          timeZone: 'Asia/Kolkata',
-        },
-        location: task.location,
-        attendees: task.attendees?.map(email => ({ email })),
-        extendedProperties: {
-          private: {
-            taskId: task.id,
-            isTaskEvent: 'true',
-            priority: task.priority,
-            isAgenticTask: task.isAgenticTask?.toString() || 'false',
-            tags: task.tags?.join(',') || ''
-          }
-        },
-        colorId: task.priority === 'High' ? '11' : task.priority === 'Medium' ? '5' : '2'
-      };
-
-      // Example API call:
-      /*
-      const response = await fetch(`${apiBase}/google-calendar/events/${eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(eventData)
-      });
-      */
-      
-      console.log('Would update Google Calendar event:', eventId, eventData);
-      
-    } catch (err) {
-      console.error('Error updating Google Calendar event:', err);
-      throw err;
-    }
-  };
-
-  const deleteGoogleCalendarEvent = async (eventId: string) => {
-    try {
-      // TODO: Implement Google Calendar API delete
-      /*
-      await fetch(`${apiBase}/google-calendar/events/${eventId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${userToken}`
-        }
-      });
-      */
-      
-      console.log('Would delete Google Calendar event:', eventId);
-      
-    } catch (err) {
-      console.error('Error deleting Google Calendar event:', err);
-      throw err;
-    }
-  };
-
+  // Create a new task
   const createTask = async () => {
+    if (!isAuthenticated) {
+      setError('Authentication required');
+      return;
+    }
+
     try {
+      setLoading(true);
+      
       const startAt = new Date(`${formData.date}T${formData.startTime}:00`).toISOString();
       const endAt = new Date(`${formData.date}T${formData.endTime}:00`).toISOString();
       
       const newTask: SchedulerTask = {
-        id: `task-${Date.now()}`,
+        id: `task-${Date.now()}`, // Temporary ID, will be replaced by backend
         title: formData.title,
         description: formData.description,
         startAt,
@@ -399,84 +410,84 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      // Create Google Calendar event (which represents our task)
+      const eventData = taskToCalendarEvent(newTask);
+      const createdEvent = await apiClient.createEvent(eventData);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${apiBase}/tasks`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(newTask)
-      // });
-      // const createdTask = await response.json();
-      
-      setTasks(prev => [...prev, newTask]);
-      
-      // 🎯 NEW: Auto-create Google Calendar event so task appears in iframe
-      try {
-        await createGoogleCalendarEvent(newTask);
-        console.log('✅ Task created and synced to Google Calendar');
-      } catch (calendarError) {
-        console.warn('⚠️ Task created but failed to sync to Google Calendar:', calendarError);
-        // Don't fail the entire operation if calendar sync fails
-      }
-      
-      refreshAfterTaskOperation(); // Refresh calendar
+      // Update task with Google event ID
+      const taskWithEventId = {
+        ...newTask,
+        googleEventId: createdEvent.id,
+        id: createdEvent.extendedProperties?.private?.taskId || newTask.id
+      };
+
+      setTasks(prev => [...prev, taskWithEventId]);
+      refreshAfterTaskOperation();
       resetForm();
+      
     } catch (err) {
       console.error('Error creating task:', err);
       setError(err instanceof Error ? err.message : 'Failed to create task');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Update an existing task
   const updateTask = async (taskId: string, updates: Partial<SchedulerTask>) => {
+    if (!isAuthenticated) {
+      setError('Authentication required');
+      return;
+    }
+
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`${apiBase}/tasks/${taskId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(updates)
-      // });
-      
-      const updatedTask = { ...tasks.find(t => t.id === taskId)!, ...updates, updatedAt: new Date().toISOString() };
+      const existingTask = tasks.find(t => t.id === taskId);
+      if (!existingTask || !existingTask.googleEventId) {
+        throw new Error('Task not found or missing Google Calendar event');
+      }
+
+      const updatedTask = { 
+        ...existingTask, 
+        ...updates, 
+        updatedAt: new Date().toISOString() 
+      };
+
+      // Update Google Calendar event
+      const eventData = taskToCalendarEvent(updatedTask);
+      await apiClient.updateEvent(existingTask.googleEventId, eventData);
       
       setTasks(prev => prev.map(task => 
         task.id === taskId ? updatedTask : task
       ));
       
-      // 🎯 NEW: Update corresponding Google Calendar event
-      try {
-        // In a real implementation, you'd store the Google Calendar event ID with the task
-        // For now, we'll assume eventId is derived from taskId or stored separately
-        const eventId = `gcal-event-${taskId}`; // This should come from your database
-        await updateGoogleCalendarEvent(updatedTask, eventId);
-        console.log('✅ Task updated and synced to Google Calendar');
-      } catch (calendarError) {
-        console.warn('⚠️ Task updated but failed to sync to Google Calendar:', calendarError);
-      }
+      refreshAfterTaskOperation();
       
-      refreshAfterTaskOperation(); // Refresh calendar
     } catch (err) {
       console.error('Error updating task:', err);
       setError(err instanceof Error ? err.message : 'Failed to update task');
     }
   };
 
+  // Delete a task
   const deleteTask = async (taskId: string) => {
+    if (!isAuthenticated) {
+      setError('Authentication required');
+      return;
+    }
+
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`${apiBase}/tasks/${taskId}`, { method: 'DELETE' });
+      const existingTask = tasks.find(t => t.id === taskId);
+      if (!existingTask || !existingTask.googleEventId) {
+        throw new Error('Task not found or missing Google Calendar event');
+      }
+
+      // Delete Google Calendar event
+      await apiClient.deleteEvent(existingTask.googleEventId);
       
       setTasks(prev => prev.filter(task => task.id !== taskId));
+      refreshAfterTaskOperation();
       
-      // 🎯 NEW: Delete corresponding Google Calendar event
-      try {
-        const eventId = `gcal-event-${taskId}`; // This should come from your database
-        await deleteGoogleCalendarEvent(eventId);
-        console.log('✅ Task deleted and removed from Google Calendar');
-      } catch (calendarError) {
-        console.warn('⚠️ Task deleted but failed to remove from Google Calendar:', calendarError);
-      }
-      
-      refreshAfterTaskOperation(); // Refresh calendar
     } catch (err) {
       console.error('Error deleting task:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete task');
@@ -487,7 +498,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
   useEffect(() => {
     let filtered = tasks;
 
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(task =>
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -496,17 +506,14 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
       );
     }
 
-    // Status filter
     if (filterStatus !== 'all') {
       filtered = filtered.filter(task => task.status === filterStatus);
     }
 
-    // Priority filter
     if (filterPriority !== 'all') {
       filtered = filtered.filter(task => task.priority === filterPriority);
     }
 
-    // Show/hide completed
     if (!showCompleted) {
       filtered = filtered.filter(task => task.status !== 'completed');
     }
@@ -613,6 +620,43 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
     new Date(task.endAt) < new Date() && task.status === 'pending'
   );
 
+  // Show loading while checking auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="bg-gray-900/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
+          <div className="flex flex-col items-center space-y-4">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-400" />
+            <p className="text-white font-medium">Checking authentication...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication error if no token
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="bg-gray-900/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 max-w-md w-full mx-4">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-4">Authentication Required</h2>
+            <p className="text-gray-400 mb-6">
+              Please log in to access your AI Scheduler. You need to connect your Google Calendar to manage tasks.
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header */}
@@ -625,6 +669,13 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   AI Scheduler
                 </h1>
+                {/* Connection Status */}
+                <div className="flex items-center space-x-2 text-xs">
+                  <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
+                  <span className="text-gray-400">
+                    {isAuthenticated ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
               </div>
               
               <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg p-1">
@@ -713,7 +764,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
 
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'pending' | 'completed')}
               className="px-3 py-1.5 bg-gray-800/50 border border-gray-600/50 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="all">All Status</option>
@@ -723,13 +774,13 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = ({ apiBase = '/api' }) =
 
             <select
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as any)}
+              onChange={(e) => setFilterPriority(e.target.value as 'all' | 'High' | 'Medium' | 'Low')}
               className="px-3 py-1.5 bg-gray-800/50 border border-gray-600/50 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <option value="all">All Priority</option>
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
+              <option value="all">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
             </select>
 
             <label className="flex items-center space-x-2 text-sm text-gray-400">

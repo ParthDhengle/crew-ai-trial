@@ -16,19 +16,55 @@ export type AgentOp = {
   endTime?: number;
   result?: string;
 };
+// frontend/src/api/types.ts (add to existing types)
 
-export type SchedulerTask = {
+export interface SchedulerTask {
   id: string;
   title: string;
-  description: string;
-  deadline: string; // ISO date string
+  description?: string;
+  startAt: string;
+  endAt: string;
+  date: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'todo' | 'inprogress' | 'done';
+  status: 'pending' | 'completed' | 'cancelled';
   tags?: string[];
   isAgenticTask?: boolean;
+  aiSuggested?: boolean;
+  location?: string;
+  attendees?: string[];
+  reminderMinutes?: number;
   createdAt: string;
   updatedAt: string;
-};
+  googleEventId?: string;
+}
+
+export interface GoogleCalendarEvent {
+  id: string;
+  summary: string;
+  description?: string;
+  start: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+  end: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+  location?: string;
+  attendees?: Array<{ email: string }>;
+  reminders?: {
+    useDefault: boolean;
+    overrides?: Array<{ method: string; minutes: number }>;
+  };
+  extendedProperties?: {
+    private?: Record<string, string>;
+  };
+  colorId?: string;
+  created?: string;
+  updated?: string;
+}
 
 export type ChatMessage = {
   id: string;
