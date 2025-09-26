@@ -109,7 +109,7 @@ const mockIntegrations: Integration[] = [
 ];
 
 const initialState: NovaState = {
-  currentSession:[0] as unknown as ChatSession,
+  currentSession: null,
   sessions: [],
   isTyping: false,
   tasks: [],
@@ -237,47 +237,48 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
   // Load initial data from API
   useEffect(() => {
     const loadInitialData = async () => {
-    try {
-      // Load chat sessions
-      const sessions = await chatService.getChatSessions();
-      dispatch({ type: 'SET_SESSIONS', payload: sessions });
-      
-      let currentSession = sessions[0] || chatService.createNewSession();
-      if (!currentSession) {
-        const history = await chatService.getChatHistory(currentSession.id);
-        currentSession = { ...currentSession, messages: history };}
-      dispatch({ type: 'SET_CURRENT_SESSION', payload: currentSession });
-      
-      // Load messages for current session
-      if (currentSession) {
-        const history = await chatService.getChatHistory(currentSession.id);
-        // Update current session with messages (if not already loaded)
-        dispatch({
-          type: 'SET_CURRENT_SESSION',
-          payload: { ...currentSession, messages: history }
-        });
+      try {
+        // Load chat sessions
+        const sessions = await chatService.getChatSessions();
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
+
+        // Choose first existing session or create a local one for UI
+        let currentSession = sessions[0] || chatService.createNewSession();
+        dispatch({ type: 'SET_CURRENT_SESSION', payload: currentSession });
+
+        // Load messages for current session if it exists in backend
+        if (currentSession?.id) {
+          const history = await chatService.getChatHistory(currentSession.id);
+          dispatch({
+            type: 'SET_CURRENT_SESSION',
+            payload: { ...currentSession, messages: history }
+          });
+        }
+
+        // Load tasks (may 401 if Google integration not connected)
+        try {
+          const tasks = await apiClient.getTasks();
+          dispatch({ type: 'SET_TASKS', payload: tasks });
+        } catch (taskError) {
+          dispatch({ type: 'SET_TASKS', payload: [] });
+        }
+
+        // Load operations
+        const operations = await apiClient.getOperations();
+        dispatch({ type: 'SET_OPERATIONS', payload: operations });
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
+        // Safe defaults
+        dispatch({ type: 'SET_SESSIONS', payload: [] });
+        dispatch({ type: 'SET_TASKS', payload: [] });
+        dispatch({ type: 'SET_OPERATIONS', payload: [] });
+        // Create a default local session for UI usability
+        const defaultSession = { id: 'default', title: 'New Chat', messages: [], createdAt: Date.now(), updatedAt: Date.now() } as ChatSession;
+        dispatch({ type: 'SET_CURRENT_SESSION', payload: defaultSession });
       }
-
-      // Load tasks
-      const tasks = await apiClient.getTasks();
-      dispatch({ type: 'SET_TASKS', payload: tasks });
-
-      // Load operations
-      const operations = await apiClient.getOperations();
-      dispatch({ type: 'SET_OPERATIONS', payload: operations });
-    } catch (error) {
-      console.error('Failed to load initial data:', error);
-    // Set defaults to avoid undefined
-    dispatch({ type: 'SET_SESSIONS', payload: [] });
-    dispatch({ type: 'SET_TASKS', payload: [] });
-    dispatch({ type: 'SET_OPERATIONS', payload: [] });
-    // Create a default session
-    const defaultSession = { id: 'default', title: 'New Chat', messages: [], createdAt: Date.now(), updatedAt: Date.now() };
-    dispatch({ type: 'SET_CURRENT_SESSION', payload: defaultSession });
-    }
-  };
-  loadInitialData();
-}, []);
+    };
+    loadInitialData();
+  }, []);
 
 
 

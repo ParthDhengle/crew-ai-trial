@@ -105,6 +105,56 @@ class AiAgent:
             return "\n".join([doc.page_content for doc in results])
         return content
 
+
+    def _format_user_profile_for_llm(self, profile_data: dict) -> str:
+        """Format user profile data into comprehensive context for the LLM"""
+        if not profile_data:
+            return "No user profile data available."
+        
+        name = profile_data.get('Name') or profile_data.get('display_name', 'User')
+        role = profile_data.get('role', 'Not specified')
+        location = profile_data.get('location', 'Not specified')
+        productive_time = profile_data.get('productive_time', 'Not specified')
+        top_motivation = profile_data.get('top_motivation', 'Not specified')
+        ai_tone = profile_data.get('ai_tone', 'neutral')
+        
+        # Map values to human-readable text
+        productive_time_map = {
+            'morning': 'Most productive in the morning (6AM-12PM)',
+            'afternoon': 'Most productive in the afternoon (12PM-6PM)', 
+            'evening': 'Most productive in the evening (6PM-10PM)',
+            'night': 'Most productive at night (10PM-6AM)'
+        }
+        
+        motivation_map = {
+            'achieving_goals': 'Motivated by achieving goals and completing tasks',
+            'recognition_praise': 'Motivated by recognition and praise from others',
+            'learning_growth': 'Motivated by learning new things and personal growth',
+            'personal_satisfaction': 'Motivated by inner satisfaction and fulfillment'
+        }
+        
+        tone_map = {
+            'casual_friendly': 'Prefers casual, friendly, and warm communication',
+            'professional_formal': 'Prefers professional, formal, and structured communication',
+            'neutral': 'Prefers balanced, neutral, and informative communication'
+        }
+        
+        return f"""USER PROFILE CONTEXT:
+    Name: {name}
+    Role/Occupation: {role.title() if role != 'Not specified' else role}
+    Location: {location}
+    {productive_time_map.get(productive_time, f'Productive time: {productive_time}')}
+    {motivation_map.get(top_motivation, f'Primary motivation: {top_motivation}')}
+    {tone_map.get(ai_tone, f'Communication preference: {ai_tone}')}
+
+    PERSONALIZATION GUIDELINES:
+    - Address the user by name when appropriate
+    - Consider their role/occupation context in responses
+    - Adapt communication style based on their preferred tone
+    - Consider their productive time when suggesting scheduling or time-sensitive tasks
+    - Frame responses to align with their primary motivation
+    - Use location context for time zones, local references, or regional considerations"""
+
     async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
         """
         Enhanced workflow with proper error handling and uid management
@@ -119,7 +169,9 @@ class AiAgent:
         try:
             # Load chat history
             history = ChatHistory.load_history(session_id)
-            user_profile = self.memory_manager.get_user_profile()
+            user_profile_raw = self.memory_manager.get_user_profile(uid)
+            user_profile = self._format_user_profile_for_llm(user_profile_raw)
+
             file_content = self._process_file(file_path) if file_path else None
             
             # Load available operations
@@ -155,8 +207,8 @@ class AiAgent:
                 'user_query': user_query,
                 'file_content': file_content or "",
                 'full_history': full_history,
-                'available_ops_info': available_ops_info,
                 'user_profile': json.dumps(user_profile),
+                'available_ops_info': available_ops_info,
                 'relevant_facts': relevant_facts,
                 'os_info': os_info
             }
@@ -173,12 +225,15 @@ class AiAgent:
                 for _ in range(retries):
                     cleaned = re.sub(r'```json|```', '', raw).strip()
                     try:
-                        return json5.loads(cleaned)
+                        parsed = json5.loads(cleaned)
+                        if not isinstance(parsed, dict):  # Force dict if parsed is not (e.g., str/list)
+                            parsed = {'error': 'Invalid JSON structure', 'raw': str(parsed)}
+                        return parsed
                     except:
                         pass
-                return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase."}
+                return {'mode': 'direct', 'display_response': f"Classification failed: {raw[:100]}... Please rephrase.", 'extracted_fact': []}  # Always dict with safe defaults
             
-            classification = parse_json_with_retry(classification_raw)
+            classification = parse_json_with_retry(raw=classification_raw)
             
             # Handle user summary
             user_summarized_query = classification.get('user_summarized_query', 'User intent unclear.')

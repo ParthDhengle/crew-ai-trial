@@ -21,8 +21,8 @@ PBI_FUNCTIONS_AVAILABLE = False
 
 # Absolute imports to avoid relative import issues
 try:
-    from src.utils.logger import setup_logger
-    from src.common_functions.Find_project_root import find_project_root
+    from utils.logger import setup_logger
+    from common_functions.Find_project_root import find_project_root
 except ImportError:
     def setup_logger():
         import logging

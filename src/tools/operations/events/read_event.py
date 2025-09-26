@@ -1,48 +1,65 @@
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from firebase_client import get_user_profile
-from datetime import datetime
-from datetime import timedelta
-import google.auth.transport.requests
-def read_event(event_id: str = None, calendar_id: str = 'primary', time_min: str = None, time_max: str = None) -> tuple[bool, str]:
-    """
-    Read a Google Calendar event or list events.
-    - If event_id: Get single event.
-    - Else: List events between time_min/time_max (ISO strings).
-    """
+from typing import Optional, List, Tuple, Dict
+import os
+from dotenv import load_dotenv
+import json
+load_dotenv()
+client_secret_path = os.getenv("GOOGLE_CLIENT_SECRET_PATH")
+
+GOOGLE_CLIENT_ID = None
+GOOGLE_CLIENT_SECRET = None
+
+if client_secret_path and os.path.exists(client_secret_path):
+    with open(client_secret_path, "r") as f:
+        data = json.load(f)
+        # Some Google JSONs have "installed" key, some have "web"
+        creds = data.get("installed") or data.get("web")
+        GOOGLE_CLIENT_ID = creds.get("client_id")
+        GOOGLE_CLIENT_SECRET = creds.get("client_secret")
+
+
+def update_event(event_id: str, title: Optional[str] = None, start_time: Optional[str] = None, 
+                 end_time: Optional[str] = None, description: Optional[str] = None, 
+                 location: Optional[str] = None, attendees: Optional[List[str]] = None) -> Tuple[bool, str]:
     try:
         profile = get_user_profile()
         tokens = profile.get('integrations', {}).get('google_calendar', {}).get('tokens', {})
-        if not tokens or 'access_token' not in tokens:
-            return False, "Google Calendar integration not set up."
-
+        if not tokens:
+            return False, "Google Calendar not connected"
+        
         creds = Credentials(
             token=tokens.get('access_token'),
             refresh_token=tokens.get('refresh_token'),
-            token_uri=tokens.get('token_uri', 'https://oauth2.googleapis.com/token'),
-            client_id=tokens.get('client_id'),
-            client_secret=tokens.get('client_secret'),
-            scopes=['https://www.googleapis.com/auth/calendar.events.readonly']
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET
         )
+        
         if creds.expired and creds.refresh_token:
-            creds.refresh(google.auth.transport.requests.Request())
-
+            creds.refresh(Request())
+        
         service = build('calendar', 'v3', credentials=creds)
-
-        if event_id:
-            event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
-            return True, f"✅ Event '{event['summary']}' (ID: {event_id}) from {event['start']['dateTime']} to {event['end']['dateTime']}."
-        else:
-            # List events
-            time_min = time_min or datetime.now().isoformat() + 'Z'  # UTC now
-            time_max = time_max or (datetime.now() + timedelta(days=30)).isoformat() + 'Z'
-            events_result = service.events().list(
-                calendarId=calendar_id, timeMin=time_min, timeMax=time_max, singleEvents=True, orderBy='startTime'
-            ).execute()
-            events = events_result.get('items', [])
-            if not events:
-                return True, "No events found in the specified time range."
-            event_list = "\n".join([f"- '{e['summary']}': {e['start']['dateTime']} to {e['end']['dateTime']}" for e in events])
-            return True, f"✅ Upcoming events in '{calendar_id}':\n{event_list}"
+        
+        event = service.events().get(calendarId='primary', eventId=event_id).execute()
+        
+        if title:
+            event['summary'] = title
+        if description:
+            event['description'] = description
+        if location:
+            event['location'] = location
+        if start_time:
+            event['start']['dateTime'] = start_time
+        if end_time:
+            event['end']['dateTime'] = end_time
+        if attendees:
+            event['attendees'] = [{'email': email} for email in attendees]
+        
+        updated_event = service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
+        return True, f"Event updated: {updated_event.get('htmlLink')}"
+    
     except Exception as e:
-        return False, f"❌ Failed to read events: {str(e)}."
+        return False, str(e)

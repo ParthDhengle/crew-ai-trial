@@ -2,7 +2,6 @@
 """
 Test script to verify the backend API is working correctly
 """
-
 import requests
 import json
 import sys

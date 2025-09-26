@@ -14,6 +14,20 @@ from firebase_client import add_chat_message
 import os
 project_root = find_project_root()
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
+import asyncio
+
+async def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str) -> str:
+    """
+    Save a single chat message to Firebase and return the session ID.
+    Wrapper around add_chat_message to maintain compatibility with app.py.
+    """
+    if session_id is None:
+        session_id = f"session_{datetime.now().strftime('%Y-%m-%d')}_{uuid.uuid4().hex[:8]}"
+    await asyncio.get_event_loop().run_in_executor(
+        None, lambda: add_chat_message(uid, role, content, session_id, timestamp)
+    )
+    print(f"Saved message to Firebase (session: {session_id}, role: {role}).")
+    return session_id
 
 class ChatHistory:
     @staticmethod

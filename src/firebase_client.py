@@ -6,7 +6,10 @@ from firebase_admin import credentials, firestore , auth
 from datetime import datetime, timedelta
 import json
 import uuid
-
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer
+from firebase_admin import auth
+from google.cloud.firestore_v1.field_path import FieldPath
 load_dotenv()
 
 def initialize_firebase():
@@ -39,6 +42,18 @@ def initialize_firebase():
 # Initialize Firebase and get Firestore client
 db = initialize_firebase()
 
+security = HTTPBearer()
+
+async def get_current_uid(token: str = Depends(security)):
+    try:
+        decoded_token = auth.verify_id_token(token.credentials)
+        uid = decoded_token.get('uid')
+        return uid
+    except Exception as e:
+        print(f"Token verification error: {str(e)}")  # NEW: Log exact error
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+    
+    
 def verify_id_token(id_token: str) -> str:
     """Verify ID token and return UID"""
     try:
@@ -78,16 +93,18 @@ def get_user_ref():
 
 # === Auth Functions ===
 def create_user(email: str, password: str = None, display_name: str = None) -> dict:
-    """Create a new user with email/password. Returns user dict with uid."""
+    if not isinstance(email, str) or not isinstance(password, (str, type(None))) or not isinstance(display_name, (str, type(None))):
+        raise ValueError("Invalid input types for email, password, or display_name")
+    if password and len(password) < 6:
+        raise ValueError("Password must be at least 6 characters")
     try:
         user = auth.create_user(email=email, password=password, display_name=display_name)
-        # Auto-create profile doc
         set_user_profile(user.uid, email, display_name=display_name)
         print(f"✅ User created: UID {user.uid}")
-        return user._data
+        return {"uid": user.uid}
     except Exception as e:
-        raise ValueError(f"Failed to create user: {e}")
-
+        raise ValueError(f"Failed to create user: {str(e)}")
+    
 def sign_in_with_email(email: str, password: str) -> str:
     """Sign in user and return ID token (for verification). For CLI, store in session/memory."""
     try:
@@ -122,15 +139,15 @@ def get_user_by_uid(uid: str) -> dict:
         raise ValueError(f"User fetch failed: {e}")
 
 # === Profile Functions (Updated to use auth UID) ===
-def get_user_profile() -> dict:
-    """Get user profile, auto-set current_chat_session if missing."""
-    doc = db.collection("users").document(USER_ID).get()
+def get_user_profile(uid: str) -> dict:
+    doc = db.collection("users").document(uid).get()
     profile = doc.to_dict() if doc.exists else {}
     if 'current_chat_session' not in profile:
         import uuid
         profile['current_chat_session'] = str(uuid.uuid4())
-        db.collection("users").document(USER_ID).set(profile, merge=True)
+        db.collection("users").document(uid).set(profile, merge=True)
     return profile
+
 def set_user_profile(uid: str, email: str, display_name: str = None, timezone: str = "UTC",
 
                       focus_hours: list = None, permissions: dict = None, integrations: dict = None) -> str:
@@ -144,9 +161,9 @@ def set_user_profile(uid: str, email: str, display_name: str = None, timezone: s
     }
     return add_document("users", data, uid, subcollection=False)
 
-def update_user_profile(data: dict) -> bool:
+def update_user_profile(uid:str, data: dict) -> bool:
     """Update profile (uses current USER_ID)."""
-    return update_document("users", USER_ID, data, subcollection=False)
+    return update_document("users", uid, data, subcollection=False)
 
 # Generic CRUD
 def add_document(uid: str, collection: str, data: dict, doc_id: str = None, subcollection: bool = True) -> str:
@@ -174,6 +191,7 @@ def update_document(collection: str, doc_id: str, data: dict, subcollection: boo
         return False
 def query_collection(collection: str, filters: list = None, limit: int = None, subcollection: bool = True) -> list:
     """Query collection."""
+    
     query = get_user_ref().collection(collection) if subcollection else db.collection(collection)
     if filters:
         for field, op, value in filters:
@@ -233,7 +251,7 @@ def delete_document(collection: str, doc_id: str, subcollection: bool = True) ->
     except Exception:
         return False
 # Local Storage Helpers
-def upload_file(file_path: str, storage_path: str) -> str:
+def upload_file(uid:str, file_path: str, storage_path: str) -> str:
     """Copy file to knowledge/storage/users/{USER_ID}/{storage_path}."""
     dest_path = os.path.join(STORAGE_BASE, "users", USER_ID, storage_path)
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -318,14 +336,14 @@ def log_audit(op_id: str, op_name: str, params: dict, result: str, reversible: b
     }
     return add_document("audit_logs", data)
 # Snapshots
-def create_snapshot(paths: list, retention_days: int = 30) -> str:
+def create_snapshot(uid: str, paths: list, retention_days: int = 30) -> str:
     """Create snapshot: Copy files to knowledge/storage/snapshots/{USER_ID}/{snap_id}/."""
     snap_id = add_document("snapshots", {
         "paths": paths, "created_at": datetime.now().isoformat(),
         "retention_days": retention_days, "object_store_uri": f"snapshots/{USER_ID}/{snap_id}"
     })
     for i, p in enumerate(paths):
-        upload_file(p, f"snapshots/{snap_id}/{i}_{os.path.basename(p)}")
+        upload_file(uid, p, f"snapshots/{snap_id}/{i}_{os.path.basename(p)}")
     return snap_id
 def list_snapshots() -> list:
     """List snapshots."""
@@ -414,6 +432,43 @@ async def save_chat_message(session_id: str, uid: str, role: str, content: str, 
 
    
     return session_id # Return session_id (new or existing)
+
+def set_initial_profile(uid: str, email: str, display_name: str = None) -> str:
+    """Create initial profile with minimal data - will be completed via profile setup."""
+    set_user_id(uid)
+    data = {
+        "uid": uid, 
+        "email": email, 
+        "Name": display_name, 
+        "display_name": display_name,
+        "timezone": "UTC", 
+        "focus_hours": [],
+        "permissions": {}, 
+        "integrations": {},
+        "profile_completed": False,  # Track if profile setup is complete
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    return add_document("users", data, uid, subcollection=False)
+
+def complete_user_profile(uid: str, profile_data: dict) -> bool:
+    """Complete user profile with personalization data."""
+    try:
+        profile_data['profile_completed'] = True
+        profile_data['updated_at'] = datetime.now().isoformat()
+        success = update_document("users", uid, profile_data, subcollection=False)
+        if success:
+            print(f"Profile completed for user {uid}")
+        return success
+    except Exception as e:
+        print(f"Error completing profile: {e}")
+        return False
+
+def is_profile_complete(uid: str) -> bool:
+    """Check if user has completed their profile setup."""
+    profile = get_user_profile(uid)
+    return profile.get('profile_completed', False)
+
 
 def add_kb_entry(title: str, content_md: str, tags: list = None, references: list = None) -> str:
     """Add KB entry (facts/notes)."""

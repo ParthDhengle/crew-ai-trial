@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
-from common_functions.Find_project_root import find_project_root
+from ...common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
 
 # Configure logging
@@ -287,3 +287,7 @@ def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
     except Exception as e:
         logger.error(f"❌ Error sending email: {e}")
         return False, "Error {e}"
+
+if  __name__ == "__main__":
+    # Example usage
+    send_email("John Doe", "Meeting Reminder", "Don't forget our meeting tomorrow at 10 AM.")

@@ -6,15 +6,22 @@ import type {
   AgentOp,
   NovaRole
 } from './types';
-
 // API Configuration
 const API_BASE_URL = 'http://127.0.0.1:8001';
-
+import { getAuth } from 'firebase/auth';
+import { useAuth } from '@/context/AuthContext';
 // Auth token management
 class AuthManager {
   private token: string | null = null;
   private uid: string | null = null;
 
+  setToken(token: string) {
+    this.token = token;
+  }
+  private getHeaders() {
+    const { token } = this.getAuth();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
   setAuth(token: string, uid: string) {
     this.token = token;
     this.uid = uid;
@@ -52,13 +59,25 @@ class ApiClient {
   constructor(baseURL: string) {
     this.baseURL = baseURL;
   }
+  private token: string | null = null;
 
+  setToken(token: string) {
+    this.token = token;
+  }
+
+  private getHeaders() {
+    return this.token ? { Authorization: `Bearer ${this.token}` } : {};
+  }
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const { token } = authManager.getAuth();
-   
+    const authInstance = getAuth(); // NEW: Get auth instance
+    let token: string | undefined;
+    if (authInstance.currentUser) {
+      token = await authInstance.currentUser.getIdToken(/* forceRefresh */ false); // Fetch fresh if needed
+    }
+
     const config: RequestInit = {
       ...options,
       headers: {
@@ -74,6 +93,8 @@ class ApiClient {
       if (!response.ok) {
         if (response.status === 401) {
           authManager.clearAuth();
+          // NEW: Also sign out from Firebase
+          await authInstance.signOut();
           throw new Error('Authentication failed. Please login again.');
         }
        
@@ -90,7 +111,11 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    const response = await this.request<{ uid: string; custom_token: string }>('/auth/login', {
+    const response = await this.request<{ 
+      uid: string; 
+      custom_token: string; 
+      profile_complete: boolean; // ADD THIS LINE
+    }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -100,7 +125,11 @@ class ApiClient {
   }
 
   async signup(email: string, password: string) {
-    const response = await this.request<{ uid: string; custom_token: string }>('/auth/signup', {
+    const response = await this.request<{ 
+      uid: string; 
+      custom_token: string; 
+      profile_complete: boolean; // ADD THIS LINE
+    }>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -144,9 +173,15 @@ class ApiClient {
 
   // Task endpoints
   async getTasks() {
-    return this.request<SchedulerTask[]>('/tasks');
+    return this.request<SchedulerTask[]>('/api/tasks');
   }
-
+  async completeProfile(profileData: any) {
+    const response = await this.request<{ success: boolean; profile_complete: boolean }>('/profile/complete', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+    return response;
+  }
   async createTask(task: Omit<SchedulerTask, 'id' | 'createdAt' | 'updatedAt'>) {
     const response = await this.request<{ task_id: string }>('/tasks', {
       method: 'POST',
@@ -191,7 +226,7 @@ class ApiClient {
 
   // Profile endpoints
   async getProfile() {
-    return this.request<any>('/profile');
+    return this.request('/profile');
   }
 
   async updateProfile(updates: any) {
@@ -202,10 +237,10 @@ class ApiClient {
   }
 
   // Operations endpoints
-   async getOperations(status?: string) {
+  async getOperations(status?: string) {
     const params = status ? `?status=${status}` : '';
     return this.request<AgentOp[]>(`/operations${params}`);
-  }s
+  }
   async queueOperation(name: string, parameters: any) {
     const response = await this.request<{ op_id: string }>('/operations', {
       method: 'POST',
@@ -226,7 +261,7 @@ export const apiClient = new ApiClient(API_BASE_URL);
 export { authManager };
 
 // Helper function to check if user is authenticated
-export const isAuthenticated = () => authManager.isAuthenticated();
+export const isAuthenticated = () => useAuth().isAuthenticated;
 
 // Helper function to get current user info
 export const getCurrentUser = () => {

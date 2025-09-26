@@ -8,6 +8,7 @@ export interface ChatServiceCallbacks {
   onError?: (error: Error) => void;
   onSessionUpdate?: (session: ChatSession) => void;
 }
+import { getAuth } from 'firebase/auth';
 
 class ChatService {
   private callbacks: ChatServiceCallbacks = {};
@@ -21,7 +22,7 @@ class ChatService {
 
   // Send a message and get AI response
   async sendMessage(content: string, sessionId?: string): Promise<ChatMessage> {
-    if (!authManager.isAuthenticated()) {
+    if (!getAuth().currentUser) {
       throw new Error('User not authenticated');
     }
     if (this.isProcessing) {
