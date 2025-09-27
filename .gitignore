@@ -25,3 +25,6 @@ index.faiss
 index.pkl
 NOVA_firebase_credentials.json
 app.log
+
+client_secret_web.json
+client_secret_desktop.json

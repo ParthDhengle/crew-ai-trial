@@ -178,29 +178,13 @@ class SchedulerAPIClient {
 
 const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
   const { user } = useAuth();
-  const calendarEmail = user?.email || "parthdhengle2004@gmail.com"; // Fallback
-  // Initialize API client
+  const calendarEmail = user?.email || "parthdhengle12@gmail.com";
   const apiClient = new SchedulerAPIClient();
 
-  // Check authentication status
+  // ALL STATE DECLARATIONS FIRST
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
-  // Check authentication on mount
-  if (!setupComplete) {
-    return <GoogleSetupWizard onSuccess={() => setSetupComplete(true)} />;
-  }
-  
-  useEffect(() => {
-    const authInstance = getAuth();
-    const unsubscribe = authInstance.onAuthStateChanged((user) => {
-      setIsAuthenticated(!!user);
-      setAuthChecked(true);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [tasks, setTasks] = useState<SchedulerTask[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<SchedulerTask[]>([]);
@@ -218,26 +202,13 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Form state
-  const [formData, setFormData] = useState<{
-    title: string;
-    description: string;
-    startTime: string;
-    endTime: string;
-    date: string;
-    priority: 'High' | 'Medium' | 'Low';
-    isAgenticTask: boolean;
-    tags: string;
-    location: string;
-    attendees: string;
-    reminderMinutes: number;
-  }>({
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     startTime: '09:00',
     endTime: '10:00',
     date: new Date().toISOString().split('T')[0],
-    priority: 'Medium',
+    priority: 'Medium' as 'High' | 'Medium' | 'Low',
     isAgenticTask: false,
     tags: '',
     location: '',
@@ -245,36 +216,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     reminderMinutes: 15,
   });
 
-  // Calendar refresh functions
-  const refreshCalendar = useCallback(() => {
-    setIsRefreshing(true);
-    setCalendarRefreshKey(prev => prev + 1);
-    setLastRefresh(new Date());
-    
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
-  }, []);
-
-  // Auto-refresh calendar every 2 minutes when enabled
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      refreshCalendar();
-    }, 2 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, refreshCalendar]);
-
-  // Refresh calendar after task operations
-  const refreshAfterTaskOperation = useCallback(() => {
-    setTimeout(() => {
-      refreshCalendar();
-    }, 1000);
-  }, [refreshCalendar]);
-
-  // Helper functions
+  // Helper functions (moved up before effects)
   const formatDate = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
@@ -347,7 +289,27 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     };
   };
 
-  // Fetch tasks from backend
+  // ALL EFFECTS AND CALLBACKS (ALL HOOKS MUST BE BEFORE ANY RETURNS)
+  useEffect(() => {
+    const authInstance = getAuth();
+    const unsubscribe = authInstance.onAuthStateChanged((user) => {
+      setIsAuthenticated(!!user);
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const refreshCalendar = useCallback(() => {
+    setIsRefreshing(true);
+    setCalendarRefreshKey(prev => prev + 1);
+    setLastRefresh(new Date());
+    setTimeout(() => setIsRefreshing(false), 1000);
+  }, []);
+
+  const refreshAfterTaskOperation = useCallback(() => {
+    setTimeout(() => refreshCalendar(), 1000);
+  }, [refreshCalendar]);
+
   const fetchTasks = useCallback(async () => {
     if (!isAuthenticated) {
       setError('Authentication required');
@@ -358,12 +320,10 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     setError(null);
 
     try {
-      // Get current week range for events
       const now = new Date();
       const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
       const endOfWeek = new Date(now.setDate(startOfWeek.getDate() + 7));
       
-      // Fetch calendar events that represent tasks
       const events = await apiClient.listEvents({
         timeMin: startOfWeek.toISOString(),
         timeMax: endOfWeek.toISOString(),
@@ -372,7 +332,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
         maxResults: 100
       });
 
-      // Convert events to tasks (only those created by our app)
       const taskEvents = events
         .map(calendarEventToTask)
         .filter(Boolean) as SchedulerTask[];
@@ -385,8 +344,47 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, apiClient]);
+  }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(refreshCalendar, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshCalendar]);
+
+  // Consolidated filtering useEffect (removed duplicate)
+  useEffect(() => {
+    let filtered = tasks;
+
+    if (searchQuery) {
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(task => task.status === filterStatus);
+    }
+
+    if (filterPriority !== 'all') {
+      filtered = filtered.filter(task => task.priority === filterPriority);
+    }
+
+    if (!showCompleted) {
+      filtered = filtered.filter(task => task.status !== 'completed');
+    }
+
+    setFilteredTasks(filtered);
+  }, [tasks, searchQuery, filterStatus, filterPriority, showCompleted]);
+
+  useEffect(() => {
+    if (!setupComplete || !isAuthenticated) return;
+    fetchTasks();
+  }, [fetchTasks, setupComplete, isAuthenticated]);
+
+  // Action functions (moved up before conditionals)
   // Create a new task
   const createTask = async () => {
     if (!isAuthenticated) {
@@ -502,37 +500,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     }
   };
 
-  // Filter and search logic
-  useEffect(() => {
-    let filtered = tasks;
-
-    if (searchQuery) {
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(task => task.status === filterStatus);
-    }
-
-    if (filterPriority !== 'all') {
-      filtered = filtered.filter(task => task.priority === filterPriority);
-    }
-
-    if (!showCompleted) {
-      filtered = filtered.filter(task => task.status !== 'completed');
-    }
-
-    setFilteredTasks(filtered);
-  }, [tasks, searchQuery, filterStatus, filterPriority, showCompleted]);
-
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
-
   // Form handlers
   const resetForm = () => {
     setFormData({
@@ -613,22 +580,11 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     }
   };
 
-  // Get upcoming tasks for today
-  const todayTasks = filteredTasks.filter(task => {
-    const taskDate = new Date(task.startAt);
-    const today = new Date();
-    return taskDate.toDateString() === today.toDateString();
-  }).sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS AND DEFINITIONS
+  if (!setupComplete) {
+    return <GoogleSetupWizard onSuccess={() => setSetupComplete(true)} />;
+  }
 
-  const upcomingTasks = todayTasks.filter(task => 
-    new Date(task.startAt) > new Date() && task.status === 'pending'
-  ).slice(0, 5);
-
-  const overdueTasks = filteredTasks.filter(task => 
-    new Date(task.endAt) < new Date() && task.status === 'pending'
-  );
-
-  // Show loading while checking auth
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -642,7 +598,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     );
   }
 
-  // Show authentication error if no token
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -665,6 +620,21 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
     );
   }
 
+  // Get upcoming tasks for today
+  const todayTasks = filteredTasks.filter(task => {
+    const taskDate = new Date(task.startAt);
+    const today = new Date();
+    return taskDate.toDateString() === today.toDateString();
+  }).sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+
+  const upcomingTasks = todayTasks.filter(task => 
+    new Date(task.startAt) > new Date() && task.status === 'pending'
+  ).slice(0, 5);
+
+  const overdueTasks = filteredTasks.filter(task => 
+    new Date(task.endAt) < new Date() && task.status === 'pending'
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header */}
@@ -686,21 +656,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg p-1">
-                {(['WEEK', 'MONTH', 'AGENDA'] as const).map((view) => (
-                  <button
-                    key={view}
-                    onClick={() => setCalendarView(view)}
-                    className={`px-3 py-1.5 text-sm rounded-md transition-all ${
-                      calendarView === view
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
-                    }`}
-                  >
-                    {view}
-                  </button>
-                ))}
-              </div>
+              
             </div>
 
             <div className="flex items-center space-x-4">
@@ -719,16 +675,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
                   Last: {lastRefresh.toLocaleTimeString()}
                 </div>
               </div>
-
-              {/* Manual refresh */}
-              <button
-                onClick={refreshCalendar}
-                disabled={isRefreshing}
-                className="p-2 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 rounded-lg transition-all disabled:opacity-50"
-                title="Refresh Calendar"
-              >
-                <RefreshCw className={`w-5 h-5 text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
 
               {/* Search */}
               <div className="relative">
@@ -974,16 +920,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
                 <span className="text-gray-300">Schedule for Today</span>
               </button>
               
-              <button
-                onClick={() => {
-                  fetchTasks();
-                  refreshCalendar(); // Also refresh calendar
-                }}
-                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-800/50 rounded-lg transition-all border border-gray-700/50"
-              >
-                <RefreshCw className="w-5 h-5 text-purple-400" />
-                <span className="text-gray-300">Sync Tasks & Calendar</span>
-              </button>
+              
             </div>
 
             {/* Integration Status */}
@@ -1027,14 +964,6 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
                 </div>
               </div>
               
-              <button
-                onClick={refreshCalendar}
-                disabled={isRefreshing}
-                className="bg-gray-900/80 backdrop-blur-sm hover:bg-gray-800/80 border border-gray-700/50 rounded-lg p-2 transition-all disabled:opacity-50"
-                title="Refresh Calendar Now"
-              >
-                <RefreshCw className={`w-4 h-4 text-gray-300 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
             </div>
 
             {/* Loading overlay for calendar refresh */}

@@ -1,86 +1,130 @@
 {
     "operations": [
-      {
-        "name": "custom_search",
-        "required_parameters": ["query"],
-        "optional_parameters": ["num_results", "site_restrict"],
-        "description": "Performs a web search using Google Custom Search JSON API, with options to restrict to a site and limit results.",
-        "capabilities": "network",
-        "preview": "search results summary",
-        "undo": "N/A"
-      },
-      {
-        "name": "document_summarize",
-        "required_parameters": ["file_path", "query"],
-        "optional_parameters": ["max_length"],
-        "description": "Summarizes the content of a PDF, Word, or text file based on the user query.",
-        "capabilities": "fs_read, nlp",
-        "preview": "summary preview",
-        "undo": "N/A"
-      },
-      {
-        "name": "document_translate",
-        "required_parameters": ["file_path", "query", "target_lang"],
-        "optional_parameters": [],
-        "description": "Translates the content of a PDF, Word, or text file to the specified target language.",
-        "capabilities": "fs_read, nlp",
-        "preview": "translation preview",
-        "undo": "N/A"
-      },
-      {
-        "name": "search_files",
-        "required_parameters": ["query"],
-        "optional_parameters": ["path", "use_semantic"],
-        "description": "Searches for files (PDF, DOCX, TXT) using keywords or semantic content matching.",
-        "capabilities": "file_search",
-        "preview": "list of files with paths, titles, and content snippets",
-        "undo": "N/A"
-      },
-      {
-        "name": "powerbi_generate_dashboard",
-        "required_parameters": ["csv_file", "query"],
-        "optional_parameters": [],
-        "description": "Generates a Power BI dashboard from a CSV file based on a user query describing desired visuals.",
-        "capabilities": "fs_read, network",
-        "preview": "dashboard plan & files",
-        "undo": "N/A"
-      },
-      {
-        "name": "run_command",
-        "required_parameters": ["command"],
-        "optional_parameters": [],
-        "description": "Executes Windows cmd.exe commands for file/directory operations with auto-correction. Pass ONLY executable commands (e.g., 'ren file1.txt file2.txt', 'mkdir folder', 'copy src.txt dest.txt', 'del file.txt', 'dir'). Supports all Windows file operations with syntax validation. Auto-converts common patterns (rename→ren, remove→del). Rejects natural language - requires valid Windows command syntax only.",
-        "capabilities": "system_control",
-        "preview": "command validation",
-        "undo": "N/A"
-      },
-      {
-        "name": "open_app",
-        "required_parameters": ["app_name"],
-        "optional_parameters": [],
-        "description": "Opens a Windows application by name. Matches against installed apps (Start Menu, Desktop, PATH executables, Registry, UWP apps) and user-defined aliases. If no exact app is found, falls back to web search. Supports auto-launch based on similarity score.",
-        "capabilities": "system_control",
-        "preview": "launch validation & app search",
-        "undo": "N/A"
-      },
-      {
-        "name": "search_mail",
-        "required_parameters": ["semantic_query"],
-        "optional_parameters": ["limit"],
-        "description": "Searches recent Gmail messages and extracts up to 10 semantically relevant chunks using TF-IDF similarity. Useful for finding important info from recent emails when exact keyword matches are not available.",
-        "capabilities": "communication",
-        "preview": "semantic email search & chunk extraction",
-        "undo": "N/A"
-      },
-      {
-        "name": "send_mail",
-        "required_parameters": ["to", "subject", "body"],
-        "optional_parameters": [],
-        "description": "Compose and send an email to the given recipient. If the user only provides a draft or short notes, the LLM must refine or fully write the email body in a professional, complete format according to the user’s needs before sending.",
-        "capabilities": "communication",
-        "preview": "AI-assisted email writing & sending",
-        "undo": "Cannot be undone once email is sent"
-      }
-  
+        {
+            "name": "custom_search",
+            "required_parameters": ["query"],
+            "optional_parameters": ["num_results", "site_restrict"],
+            "description": "Performs a web search using Google Custom Search JSON API, with options to restrict to a site and limit results.",
+            "capabilities": "network",
+            "preview": "search results summary",
+            "undo": "N/A"
+        },
+        {
+            "name": "document_summarize",
+            "required_parameters": ["file_path", "query"],
+            "optional_parameters": ["max_length"],
+            "description": "Summarizes the content of a PDF, Word, or text file based on the user query.",
+            "capabilities": "fs_read, nlp",
+            "preview": "summary preview",
+            "undo": "N/A"
+        },
+        {
+            "name": "document_translate",
+            "required_parameters": ["file_path", "query", "target_lang"],
+            "optional_parameters": [],
+            "description": "Translates the content of a PDF, Word, or text file to the specified target language.",
+            "capabilities": "fs_read, nlp",
+            "preview": "translation preview",
+            "undo": "N/A"
+        },
+        {
+            "name": "search_files",
+            "required_parameters": ["query"],
+            "optional_parameters": ["path", "use_semantic"],
+            "description": "Searches for files (PDF, DOCX, TXT) using keywords or semantic content matching.",
+            "capabilities": "file_search",
+            "preview": "list of files with paths, titles, and content snippets",
+            "undo": "N/A"
+        },
+        {
+            "name": "powerbi_generate_dashboard",
+            "required_parameters": ["csv_file", "query"],
+            "optional_parameters": [],
+            "description": "Generates a Power BI dashboard from a CSV file based on a user query describing desired visuals.",
+            "capabilities": "fs_read, network",
+            "preview": "dashboard plan & files",
+            "undo": "N/A"
+        },
+        {
+            "name": "run_command",
+            "required_parameters": ["command"],
+            "optional_parameters": [],
+            "description": "Executes Windows cmd.exe commands for file/directory operations with auto-correction. Pass ONLY executable commands (e.g., 'ren file1.txt file2.txt', 'mkdir folder', 'copy src.txt dest.txt', 'del file.txt', 'dir'). Supports all Windows file operations with syntax validation. Auto-converts common patterns (rename→ren, remove→del). Rejects natural language - requires valid Windows command syntax only.",
+            "capabilities": "system_control",
+            "preview": "command validation",
+            "undo": "N/A"
+        },
+        {
+            "name": "open_app",
+            "required_parameters": ["app_name"],
+            "optional_parameters": [],
+            "description": "Opens a Windows application by name. Matches against installed apps (Start Menu, Desktop, PATH executables, Registry, UWP apps) and user-defined aliases. If no exact app is found, falls back to web search. Supports auto-launch based on similarity score.",
+            "capabilities": "system_control",
+            "preview": "launch validation & app search",
+            "undo": "N/A"
+        },
+        {
+            "name": "search_mail",
+            "required_parameters": ["semantic_query"],
+            "optional_parameters": ["limit"],
+            "description": "Searches recent Gmail messages and extracts up to 10 semantically relevant chunks using TF-IDF similarity. Useful for finding important info from recent emails when exact keyword matches are not available.",
+            "capabilities": "communication",
+            "preview": "semantic email search & chunk extraction",
+            "undo": "N/A"
+        },
+        {
+            "name": "send_mail",
+            "required_parameters": ["to", "subject", "body"],
+            "optional_parameters": [],
+            "description": "Compose and send an email to the given recipient. If the user only provides a draft or short notes, the LLM must refine or fully write the email body in a professional, complete format according to the user’s needs before sending.",
+            "capabilities": "communication",
+            "preview": "AI-assisted email writing & sending",
+            "undo": "Cannot be undone once email is sent"
+        },
+        {
+            "name": "create_task",
+            "required_parameters": ["title"],
+            "optional_parameters": ["description", "deadline", "priority", "tags"],
+            "description": "Creates a new task as a Google Calendar event. Deadline should be in YYYY-MM-DD format for all-day events.",
+            "capabilities": "communication",
+            "preview": "task creation",
+            "undo": "N/A"
+        },
+        {
+            "name": "update_task",
+            "required_parameters": ["task_id"],
+            "optional_parameters": ["status", "title", "description", "deadline", "priority", "tags"],
+            "description": "Updates an existing task (Google Calendar event). Status can be 'needsAction' or 'completed'.",
+            "capabilities": "communication",
+            "preview": "task update",
+            "undo": "N/A"
+        },
+        {
+            "name": "delete_task",
+            "required_parameters": ["task_id"],
+            "optional_parameters": [],
+            "description": "Deletes a task (Google Calendar event).",
+            "capabilities": "communication",
+            "preview": "task deletion",
+            "undo": "N/A"
+        },
+        {
+            "name": "mark_complete",
+            "required_parameters": ["task_id"],
+            "optional_parameters": [],
+            "description": "Marks a task as complete by updating its status in the Google Calendar event.",
+            "capabilities": "communication",
+            "preview": "task completion",
+            "undo": "N/A"
+        },
+        {
+            "name": "read_task",
+            "required_parameters": [],
+            "optional_parameters": ["status"],
+            "description": "Reads tasks (Google Calendar events marked as tasks), optionally filtered by status ('needsAction' or 'completed').",
+            "capabilities": "communication",
+            "preview": "task list",
+            "undo": "N/A"
+        }
     ]
-  }
+}

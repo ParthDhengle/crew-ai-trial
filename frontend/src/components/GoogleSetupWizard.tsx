@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,16 +15,19 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [clientId, setClientId] = useState('');
-  const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);  // NEW: State for check
-  const [isLoadingCheck, setIsLoadingCheck] = useState(true);  // NEW
+  const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);
+  const [isLoadingCheck, setIsLoadingCheck] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     const checkCredentials = async () => {
       try {
         const status = await apiClient.getGoogleAuthStatus();
         setHasCredentials(status.connected);
+        if (status.connected) {
+          onSuccess?.();
+        }
       } catch (err) {
-        setHasCredentials(false);  // Assume not connected on error
+        setHasCredentials(false);
       } finally {
         setIsLoadingCheck(false);
       }
@@ -32,7 +35,13 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
     checkCredentials();
   }, []);
 
-  useEffect(() => {  // NEW: Dynamic load on step 2
+  useEffect(() => {
+    if (hasCredentials && !isLoadingCheck) {
+      onSuccess?.();
+    }
+  }, [hasCredentials, isLoadingCheck, onSuccess]);
+
+  useEffect(() => {
     if (step === 2 && !window.google) {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
@@ -49,11 +58,11 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
   }, [step]);
 
   if (isLoadingCheck) {
-    return <div>Loading...</div>;  // Or a spinner
+    return <div>Loading...</div>;
   }
 
   if (hasCredentials) {
-    return <div>Google Calendar already connected. Proceed to Scheduler.</div>;  // Or render Kanban directly
+    return <div>Google Calendar already connected. Proceeding to Scheduler...</div>;
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,6 +117,7 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
       client_id: clientId,
       scope: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
       ux_mode: 'popup',
+      include_granted_scopes: false,
       callback: async (response: any) => {
         if (response.error) {
           setError(`OAuth failed: ${response.error}`);
@@ -117,12 +127,12 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
         
         try {
           await apiClient.completeOAuth(response.code);
-          const status = await apiClient.getGoogleAuthStatus();  // NEW: Re-check
-            if (status.connected) {
-                onSuccess?.();
-            } else {
-                setError('Setup completed but status not updated. Please refresh.');
-            }
+          const status = await apiClient.getGoogleAuthStatus();
+          if (status.connected) {
+            onSuccess?.();
+          } else {
+            setError('Setup completed but status not updated. Please refresh.');
+          }
         } catch (err) {
           setError(err.message || 'Failed to complete setup');
         } finally {

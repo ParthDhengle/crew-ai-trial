@@ -65,40 +65,7 @@ type NovaAction =
 
 
 const mockTasks: SchedulerTask[] = [
-  {
-    id: 'task-1',
-    title: 'Prepare Q4 presentation',
-    description: 'Create slides for quarterly review meeting with stakeholders',
-    deadline: '2024-10-15T14:00:00Z',
-    priority: 'High',
-    status: 'todo',
-    tags: ['presentation', 'quarterly'],
-    isAgenticTask: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-2', 
-    title: 'Code review for API updates',
-    description: 'Review pull requests for authentication service improvements',
-    deadline: '2024-10-12T17:00:00Z',
-    priority: 'Medium',
-    status: 'inprogress', 
-    tags: ['development', 'api'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-3',
-    title: 'Team standup notes',
-    description: 'Document key decisions and action items from daily standups',
-    deadline: '2024-10-11T09:30:00Z', 
-    priority: 'Low',
-    status: 'done',
-    tags: ['documentation'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
+  
 ];
 
 const mockIntegrations: Integration[] = [
