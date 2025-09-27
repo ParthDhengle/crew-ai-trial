@@ -188,7 +188,7 @@ class ApiClient {
       body: JSON.stringify({
         title: task.title,
         description: task.description,
-        deadline: task.deadline,
+        deadline: task.endAt,
         priority: task.priority,
         tags: task.tags || [],
       }),
@@ -209,7 +209,7 @@ class ApiClient {
         status: updates.status,
         title: updates.title,
         description: updates.description,
-        deadline: updates.deadline,
+        deadline: updates.endAt,
         priority: updates.priority,
         tags: updates.tags,
       }),
@@ -228,7 +228,9 @@ class ApiClient {
   async getProfile() {
     return this.request('/profile');
   }
-
+  async getGoogleAuthStatus() {
+    return this.request<{ connected: boolean; has_client_secret: boolean; has_tokens: boolean }>('/api/google-auth/status');
+  }
   async updateProfile(updates: any) {
     await this.request('/profile', {
       method: 'PUT',

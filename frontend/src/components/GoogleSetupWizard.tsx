@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,46 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [clientId, setClientId] = useState('');
+  const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);  // NEW: State for check
+  const [isLoadingCheck, setIsLoadingCheck] = useState(true);  // NEW
+
+    useEffect(() => {
+    const checkCredentials = async () => {
+      try {
+        const status = await apiClient.getGoogleAuthStatus();
+        setHasCredentials(status.connected);
+      } catch (err) {
+        setHasCredentials(false);  // Assume not connected on error
+      } finally {
+        setIsLoadingCheck(false);
+      }
+    };
+    checkCredentials();
+  }, []);
+
+  useEffect(() => {  // NEW: Dynamic load on step 2
+    if (step === 2 && !window.google) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => console.log('GIS script loaded');
+      script.onerror = () => setError('Failed to load Google API script');
+      document.body.appendChild(script);
+
+      return () => {
+        document.body.removeChild(script);
+      };
+    }
+  }, [step]);
+
+  if (isLoadingCheck) {
+    return <div>Loading...</div>;  // Or a spinner
+  }
+
+  if (hasCredentials) {
+    return <div>Google Calendar already connected. Proceed to Scheduler.</div>;  // Or render Kanban directly
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -77,7 +117,12 @@ const GoogleSetupWizard = ({ onSuccess }: { onSuccess?: () => void }) => {
         
         try {
           await apiClient.completeOAuth(response.code);
-          onSuccess?.();
+          const status = await apiClient.getGoogleAuthStatus();  // NEW: Re-check
+            if (status.connected) {
+                onSuccess?.();
+            } else {
+                setError('Setup completed but status not updated. Please refresh.');
+            }
         } catch (err) {
           setError(err.message || 'Failed to complete setup');
         } finally {

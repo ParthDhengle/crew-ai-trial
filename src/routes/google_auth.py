@@ -72,3 +72,23 @@ async def complete_oauth(data: Dict, uid: str = Depends(get_current_uid)):
     except Exception as e:
         print(f"OAuth completion failed: {str(e)}")
         raise HTTPException(500, f"OAuth failed: {str(e)}")
+    
+
+@google_auth_router.get("/status")
+async def get_google_auth_status(uid: str = Depends(get_current_uid)):
+    try:
+        user_doc = db.collection('users').document(uid).get()
+        if not user_doc.exists:
+            return {"connected": False, "message": "User not found"}
+        
+        integrations = user_doc.to_dict().get('integrations', {}).get('google_calendar', {})
+        has_client_secret = bool(integrations.get('client_id') and integrations.get('client_secret'))
+        has_tokens = bool(integrations.get('tokens', {}).get('refresh_token'))
+        
+        return {
+            "connected": has_client_secret and has_tokens,
+            "has_client_secret": has_client_secret,
+            "has_tokens": has_tokens
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Failed to get status: {str(e)}")

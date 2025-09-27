@@ -167,5 +167,14 @@ declare global {
       onThemeChange(cb: (theme: 'dark' | 'light') => void): Unsubscribe;
       getAppVersion(): Promise<string>;
     };
+    google?: {
+      accounts: {
+        oauth2: {
+          initCodeClient: (config: any) => {
+            requestCode: () => void;
+          };
+        };
+      };
+    };
   }
 }

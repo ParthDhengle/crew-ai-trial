@@ -24,17 +24,19 @@ import {
   Save
 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
+import { useAuth } from '@/context/AuthContext';
+import GoogleSetupWizard from './GoogleSetupWizard';
 
 // Google Calendar Component with Dynamic Refresh
 const GoogleCalendarEmbed = ({
-  calendarId = "parthdhengle2004@gmail.com",
+  calendarId = 'primary',
   mode = "WEEK",
   timezone = "Asia/Kolkata",
   width = "100%",
   height = "700px",
   refreshKey = 0,
 }) => {
-  const src = `https://calendar.google.com/calendar/embed?src=parthdhengle2004%40gmail.com&ctz=Asia%2FKolkata&_=${refreshKey}`;
+  const src = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calendarId)}&ctz=${encodeURIComponent(timezone)}&mode=${mode}&_=${refreshKey}`;
 
   return (
     <iframe
@@ -175,14 +177,20 @@ class SchedulerAPIClient {
 }
 
 const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
+  const { user } = useAuth();
+  const calendarEmail = user?.email || "parthdhengle2004@gmail.com"; // Fallback
   // Initialize API client
   const apiClient = new SchedulerAPIClient();
 
   // Check authentication status
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-
+  const [setupComplete, setSetupComplete] = useState(false);
   // Check authentication on mount
+  if (!setupComplete) {
+    return <GoogleSetupWizard onSuccess={() => setSetupComplete(true)} />;
+  }
+  
   useEffect(() => {
     const authInstance = getAuth();
     const unsubscribe = authInstance.onAuthStateChanged((user) => {
@@ -348,7 +356,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
 
     setLoading(true);
     setError(null);
-    
+
     try {
       // Get current week range for events
       const now = new Date();
@@ -1043,6 +1051,7 @@ const SchedulerKanban: React.FC<SchedulerKanbanProps> = () => {
 
             <div className="h-full p-4">
               <GoogleCalendarEmbed
+                calendarId={calendarEmail}
                 mode={calendarView}
                 width="100%"
                 height="100%"
