@@ -9,20 +9,7 @@ from firebase_client import db
 from typing import Dict
 import os
 from dotenv import load_dotenv
-import json
-load_dotenv()
-client_secret_path = os.getenv("GOOGLE_CLIENT_SECRET_PATH")
 
-GOOGLE_CLIENT_ID = None
-GOOGLE_CLIENT_SECRET = None
-
-if client_secret_path and os.path.exists(client_secret_path):
-    with open(client_secret_path, "r") as f:
-        data = json.load(f)
-        # Some Google JSONs have "installed" key, some have "web"
-        creds = data.get("installed") or data.get("web")
-        GOOGLE_CLIENT_ID = creds.get("client_id")
-        GOOGLE_CLIENT_SECRET = creds.get("client_secret")
 
 events_router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -32,30 +19,42 @@ def get_google_creds(uid: str) -> Credentials:
         raise HTTPException(404, "User not found")
         
     user = user_doc.to_dict()
-    tokens = user.get('integrations', {}).get('google_calendar', {}).get('tokens', {})
+    google_cal = user.get('integrations', {}).get('google_calendar', {})
+    client_id = google_cal.get('client_id')
+    client_secret = google_cal.get('client_secret')
+    tokens = google_cal.get('tokens', {})
+    
+    if not client_id or not client_secret:
+        raise HTTPException(401, "Google credentials not set. Please add client ID and secret manually in Firestore.")
+    
     if not tokens.get('refresh_token'):
-        raise HTTPException(401, "Google Calendar not connected. Please connect your Google Calendar first.")
+        raise HTTPException(401, "Google Calendar not connected. Please add refresh token manually in Firestore.")
     
     creds = Credentials(
-        token=tokens['access_token'],
-        refresh_token=tokens['refresh_token'],
+        token=tokens.get('access_token'),
+        refresh_token=tokens.get('refresh_token'),
         token_uri='https://oauth2.googleapis.com/token',
-        client_id=GOOGLE_CLIENT_ID,
-        client_secret=GOOGLE_CLIENT_SECRET
+        client_id=client_id,
+        client_secret=client_secret
     )
     
     if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        new_tokens = {
-            'access_token': creds.token,
-            'expiry': creds.expiry.isoformat() if creds.expiry else None
-        }
-        db.collection('users').document(uid).update({
-            'integrations.google_calendar.tokens.access_token': new_tokens['access_token'],
-            'integrations.google_calendar.tokens.expiry': new_tokens['expiry']
-        })
-    
+        try:  # NEW: Catch refresh errors
+            creds.refresh(Request())
+            new_tokens = {
+                'access_token': creds.token,
+                'expiry': creds.expiry.isoformat() if creds.expiry else None
+            }
+            db.collection('users').document(uid).update({
+                'integrations.google_calendar.tokens.access_token': new_tokens['access_token'],
+                'integrations.google_calendar.tokens.expiry': new_tokens['expiry']
+            })
+        except Exception as refresh_err:
+            print(f"Token refresh failed for user {uid}: {str(refresh_err)}")  # NEW: Log error
+            raise HTTPException(500, f"Failed to refresh Google token: {str(refresh_err)}")
+        
     return creds
+
 
 @events_router.get("")
 async def list_events(

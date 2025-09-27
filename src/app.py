@@ -20,6 +20,8 @@ from firebase_client import save_chat_message, get_chat_history
 from operations_store import queue_operation_local, update_operation_local
 from typing import List
 from firebase_client import complete_user_profile
+from routes.google_auth import google_auth_router; 
+
 # Initialize Firebase
 initialize_firebase()
 
@@ -41,7 +43,7 @@ app.include_router(events_router)
 app.include_router(tasks_router)
 app.include_router(sync_router)
 app.include_router(other_router)
-
+app.include_router(google_auth_router)
 class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = None

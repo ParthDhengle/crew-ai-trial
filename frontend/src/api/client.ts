@@ -235,7 +235,19 @@ class ApiClient {
       body: JSON.stringify(updates),
     });
   }
+async uploadClientSecret(creds: { client_id: string; client_secret: string }) {
+  return this.request('/api/google-auth/client-secret', {
+    method: 'POST',
+    body: JSON.stringify(creds),
+  });
+}
 
+async completeOAuth(code: string) {
+  return this.request('/api/google-auth/complete', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+}
   // Operations endpoints
   async getOperations(status?: string) {
     const params = status ? `?status=${status}` : '';
