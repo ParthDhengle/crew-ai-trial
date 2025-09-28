@@ -227,7 +227,8 @@ class AiAgent:
                 'user_profile': json.dumps(user_profile),
                 'available_ops_info': available_ops_info,
                 'relevant_facts': relevant_facts,
-                'os_info': os_info
+                'os_info': os_info,
+                'today_date': date.today().isoformat()
             }
             
             # Classify query
@@ -414,9 +415,9 @@ class AiAgent:
             
             try:
                 if uid and name in ['create_task', 'read_task', 'update_task', 'delete_task', 'mark_complete']:
-                    params['uid'] = uid
+                    params['uid'] = uid  # Optional fallback injection here
                 single_op = [{'name': name, 'parameters': params}]
-                result = ops_tool._run(single_op)  
+                result = ops_tool._run(single_op, uid=uid)  # <-- CRITICAL: Add uid=uid here
                 result_text = str(result)
                 lines.append(f"Operation '{name}': {result_text}")
                 
