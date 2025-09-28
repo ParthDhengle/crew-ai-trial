@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-from src.firebase_client import db
+from firebase_client import db
 from typing import Optional, List, Dict, Tuple
 import json
 import os

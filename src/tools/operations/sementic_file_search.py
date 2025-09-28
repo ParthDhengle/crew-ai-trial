@@ -196,8 +196,8 @@ def sementic_file_search(query: str, root_dir: str = os.path.join(os.path.expand
 
 
 
-if __name__ == "__main__":
-    query = "trip itineraries"
-    results = sementic_file_search(query, use_semantic=True, top_k=3)
-    for res in results:
-        print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")
+# if __name__ == "__main__":
+#     query = "find file about parth dhengle"
+#     results = sementic_file_search(query, use_semantic=True, top_k=3)
+#     for res in results:
+#         print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")

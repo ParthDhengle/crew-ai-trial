@@ -11,6 +11,12 @@ from dotenv import load_dotenv
 import subprocess
 import platform
 
+# Add src/ to sys.path to fix module discovery for absolute imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(os.path.dirname(script_dir))  # This points to src/
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 # Suppress syntax warnings (no longer from PBI_dashboard_creator)
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 from common_functions.Find_project_root import find_project_root
@@ -38,6 +44,25 @@ except ImportError:
             console_handler.setFormatter(formatter)
             logger.addHandler(console_handler)
         return logger
+    
+    def find_project_root(marker_files=None):
+        """
+        Fallback: Walk up the directory tree to find the project root based on marker files.
+        Defaults to looking for 'README.md' at the root.
+        """
+        if marker_files is None:
+            marker_files = ['README.md']
+        
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+        root = os.path.dirname(current_dir)  # Start from parent to search upward
+        
+        while root != current_dir:
+            if any(os.path.exists(os.path.join(current_dir, marker)) for marker in marker_files):
+                return current_dir
+            current_dir = root
+            root = os.path.dirname(current_dir)
+        
+        raise ValueError("Project root not found. Ensure a marker file like 'README.md' exists at the root.")
 
 logger = setup_logger()
 PROJECT_ROOT = find_project_root()
@@ -279,8 +304,8 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
             logger.warning("Power BI Desktop not found. Dashboard files will be created but may not open automatically.")
         
         # Verify API keys
-        grok_api_key = os.getenv("GROQ_API_KEY1")
-        gemini_api_key = os.getenv("GEMINI_API_KEY1")
+        grok_api_key = os.getenv("GROQ_API_KEY3")
+        gemini_api_key = os.getenv("GEMINI_API_KEY3")
         if not grok_api_key and not gemini_api_key:
             logger.error(f"No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}")
             return False, f"Error: No API keys found for GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}"
@@ -422,14 +447,14 @@ Return only the JSON, no explanation.
 
 if __name__ == "__main__":
     # Ensure environment variables are loaded
-    grok_api_key = os.getenv("GROQ_API_KEY1")
-    gemini_api_key = os.getenv("GEMINI_API_KEY1")
+    grok_api_key = os.getenv("GROQ_API_KEY3")
+    gemini_api_key = os.getenv("GEMINI_API_KEY3")
     if not grok_api_key and not gemini_api_key:
         print(f"Error: Please set GROQ_API_KEY1 or GEMINI_API_KEY1 in {env_path}")
         sys.exit(1)
     
     # Example usage
-    test_csv = os.path.join(PROJECT_ROOT, "sales_data.csv")  # Relative to project root
+    test_csv = os.path.join(PROJECT_ROOT, "student_exam_scores.csv")  # Relative to project root
     test_query = "Generate Power BI dashboard showing bar chart and line chart."
     success, result = powerbi_generate_dashboard(test_csv, test_query)
     print(f"Success: {success}")

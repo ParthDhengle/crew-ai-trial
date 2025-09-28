@@ -7,7 +7,7 @@ from .operations.document_processor import document_summarize, document_translat
 from firebase_client import get_operations
 from .operations.custom_search import custom_search
 from .operations.powerbi_dashboard import powerbi_generate_dashboard
-from .operations.sementic_file_search import ai_assistant_file_query
+from .operations.sementic_file_search import sementic_file_search
 from .operations.run_terminal_command import run_command
 from .operations.app_opening import open_app
 from .operations.Mail_search import searchMail
@@ -62,7 +62,7 @@ class OperationsTool:
         """Wrapper for search_files to match op signature (returns tuple[bool, str])."""
         try:
             root_dir = path or os.path.join(os.path.expanduser('~'), 'Downloads')
-            results = ai_assistant_file_query(query, root_dir, use_semantic)
+            results = sementic_file_search(query, root_dir, use_semantic)
             result_str = json.dumps(results, indent=2) if results else "No files found."
             return True, f"Search results for '{query}':\n{result_str}"
         except Exception as e:
