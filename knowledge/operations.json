@@ -82,49 +82,71 @@
             "undo": "Cannot be undone once email is sent"
         },
         {
-            "name": "create_task",
-            "required_parameters": ["title"],
-            "optional_parameters": ["description", "deadline", "priority", "tags"],
-            "description": "Creates a new task as a Google Calendar event. Deadline should be in YYYY-MM-DD format for all-day events.",
-            "capabilities": "communication",
-            "preview": "task creation",
-            "undo": "N/A"
-        },
-        {
-            "name": "update_task",
-            "required_parameters": ["task_id"],
-            "optional_parameters": ["status", "title", "description", "deadline", "priority", "tags"],
-            "description": "Updates an existing task (Google Calendar event). Status can be 'needsAction' or 'completed'.",
-            "capabilities": "communication",
-            "preview": "task update",
-            "undo": "N/A"
-        },
-        {
-            "name": "delete_task",
-            "required_parameters": ["task_id"],
-            "optional_parameters": [],
-            "description": "Deletes a task (Google Calendar event).",
-            "capabilities": "communication",
-            "preview": "task deletion",
-            "undo": "N/A"
-        },
-        {
-            "name": "mark_complete",
-            "required_parameters": ["task_id"],
-            "optional_parameters": [],
-            "description": "Marks a task as complete by updating its status in the Google Calendar event.",
-            "capabilities": "communication",
-            "preview": "task completion",
-            "undo": "N/A"
-        },
-        {
-            "name": "read_task",
-            "required_parameters": [],
-            "optional_parameters": ["status"],
-            "description": "Reads tasks (Google Calendar events marked as tasks), optionally filtered by status ('needsAction' or 'completed').",
-            "capabilities": "communication",
-            "preview": "task list",
-            "undo": "N/A"
-        }
+          "name": "create_task",
+          "required_parameters": ["title"],
+          "optional_parameters": [
+              "description", 
+              "date", 
+              "start_time", 
+              "end_time", 
+              "priority", 
+              "reminder_minutes", 
+              "location", 
+              "attendees", 
+              "tags"
+          ],
+          "description": "Creates a new task as a Google Calendar event. Date should be in YYYY-MM-DD format. For timed events, provide start_time and end_time in HH:MM format. Priority can be 'High', 'Medium', or 'Low'. Attendees should be a list of email addresses. Tags should be a list of strings. uid is automatically injected.",
+          "capabilities": "communication",
+          "preview": "task creation",
+          "undo": "N/A"
+      },
+      {
+          "name": "read_task",
+          "required_parameters": [],
+          "optional_parameters": ["status"],
+          "description": "Reads tasks (Google Calendar events marked as tasks), optionally filtered by status ('needsAction' or 'completed'). Returns detailed task information including id, title, description, date, times, priority, location, attendees, and tags. uid is automatically injected.",
+          "capabilities": "communication",
+          "preview": "task list",
+          "undo": "N/A"
+      },
+      {
+          "name": "update_task",
+          "required_parameters": ["task_id"],
+          "optional_parameters": [
+              "status", 
+              "title", 
+              "description", 
+              "date", 
+              "start_time", 
+              "end_time", 
+              "priority", 
+              "reminder_minutes", 
+              "location", 
+              "attendees", 
+              "tags"
+          ],
+          "description": "Updates an existing task (Google Calendar event). Status can be 'needsAction' or 'completed'. Date should be in YYYY-MM-DD format. For timed events, provide start_time and end_time in HH:MM format. Priority can be 'High', 'Medium', or 'Low'. Attendees should be a list of email addresses. Tags should be a list of strings. uid is automatically injected.",
+          "capabilities": "communication",
+          "preview": "task update",
+          "undo": "N/A"
+      },
+      {
+          "name": "delete_task",
+          "required_parameters": ["task_id"],
+          "optional_parameters": [],
+          "description": "Deletes a task (Google Calendar event) permanently. This action cannot be undone. uid is automatically injected.",
+          "capabilities": "communication",
+          "preview": "task deletion",
+          "undo": "N/A"
+      },
+      {
+          "name": "mark_complete",
+          "required_parameters": ["task_id"],
+          "optional_parameters": [],
+          "description": "Marks a task as complete by updating its status to 'completed' in the Google Calendar event. This is a shortcut for update_task with status='completed'. uid is automatically injected.",
+          "capabilities": "communication",
+          "preview": "task completion",
+          "undo": "N/A"
+      }
     ]
 }

@@ -116,7 +116,12 @@ class OperationsTool:
             try:
                 func = self.operation_map[name]
                 if name in self.task_ops:
-                    success, result = func(uid=uid, **params)
+                    if uid is None:
+                        lines.append(f"❌ {name}: Missing uid for task operation.")
+                        continue
+                    # Add uid to params for task operations
+                    task_params = {**params, 'uid': uid}
+                    success, result = func(**task_params)
                 else:
                     success, result = func(**params)
                 lines.append(f"✅ {name}: {result}")
