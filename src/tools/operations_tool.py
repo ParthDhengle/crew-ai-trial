@@ -85,11 +85,6 @@ class OperationsTool:
             return False, f"Unknown op: {operation_name}", []
         definition = self.param_definitions[operation_name]
         required = definition["required"]
-        optional = definition["optional"]
-        all_valid = required + optional
-        invalid = [p for p in provided_params if p not in all_valid]
-        if invalid:
-            return False, f"Invalid params for {operation_name}: {invalid}", []
         missing = [p for p in required if p not in provided_params]
         if missing:
             return False, f"Missing required for {operation_name}: {missing}", missing

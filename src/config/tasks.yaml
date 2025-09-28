@@ -1,7 +1,7 @@
 # src/config/tasks.yaml (improved)
 classify_query:
   description: |
-    Inputs: Query: {user_query} (PRIMARY FOCUS—prioritize this; avoid over-relying on history/facts) | File: {file_content} (RAG-extracted if large) | History: {full_history} (last 8 turns, summarized if long) | Profile: {user_profile} | Ops: {available_ops_info} | Facts: {relevant_facts} (RAG-retrieved) | OS: {os_info}
+    Inputs: Query: {user_query} (PRIMARY FOCUS—prioritize this; avoid over-relying on history/facts) | File: {file_content} (RAG-extracted if large) | History: {full_history} (last 8 turns, summarized if long) | Profile: {user_profile} | Ops: {available_ops_info} | Facts: {relevant_facts} (RAG-retrieved) | OS: {os_info} | Todays Date: {today_date}
     Classify: 'direct' (simple, no ops) or 'agentic' (ops needed).
     Direct: Craft display_response using context; end with suggestions (e.g., "Want me to create a related task? Or analyze a file?").
     Agentic: Generate sequenced operations [] (repetitive ok, e.g., multiple run_command for file ops or task scheduling); operation_not_available [] if needed; user_summarized_query (intent + solution summary for storage/token savings).
