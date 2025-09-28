@@ -292,7 +292,7 @@ if __name__ == "__main__":
     success, message = create_task(
         title="Test Task",
         description="This is a test task for standalone script",
-        date="2025-12-27",  # Use YYYY-MM-DD format
+        date="2025-11-27",  # Use YYYY-MM-DD format
         start_time="10:00",
         end_time="11:00",
         priority="High",

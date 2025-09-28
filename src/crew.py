@@ -24,6 +24,20 @@ from datetime import datetime
 from pathlib import Path
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
+
+def get_system_info():
+        return {
+            "Home_directory":Path.home(),
+            "system": platform.system(),           # Windows, Linux, Darwin (macOS)
+            "release": platform.release(),         # OS release (e.g., 10, 11, 22.04)
+            "version": platform.version(),         # Detailed version
+            "architecture": platform.architecture()[0],  # 64bit / 32bit
+            "machine": platform.machine(),         # x86_64, AMD64, arm64
+            "processor": platform.processor(),     # CPU info
+            "python_version": platform.python_version(), # Python version
+            "node": platform.node(),               # Device/host name
+        }
+
 @CrewBase
 class AiAgent:
     agents: List[Agent]
@@ -156,18 +170,7 @@ class AiAgent:
     - Frame responses to align with their primary motivation
     - Use location context for time zones, local references, or regional considerations"""
 
-    def get_system_info():
-        return {
-            "Home_directory":Path.home(),
-            "system": platform.system(),           # Windows, Linux, Darwin (macOS)
-            "release": platform.release(),         # OS release (e.g., 10, 11, 22.04)
-            "version": platform.version(),         # Detailed version
-            "architecture": platform.architecture()[0],  # 64bit / 32bit
-            "machine": platform.machine(),         # x86_64, AMD64, arm64
-            "processor": platform.processor(),     # CPU info
-            "python_version": platform.python_version(), # Python version
-            "node": platform.node(),               # Device/host name
-        }
+    
 
     async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
         """
@@ -215,7 +218,7 @@ class AiAgent:
             relevant_facts = self.memory_manager.retrieve_long_term(user_query)
             
             # System info
-            os_info=self.get_system_info()
+            os_info = get_system_info()
     
             inputs = {
                 'user_query': user_query,
@@ -410,6 +413,8 @@ class AiAgent:
             })
             
             try:
+                if uid and name in ['create_task', 'read_task', 'update_task', 'delete_task', 'mark_complete']:
+                    params['uid'] = uid
                 single_op = [{'name': name, 'parameters': params}]
                 result = ops_tool._run(single_op)  
                 result_text = str(result)
