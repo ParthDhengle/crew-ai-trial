@@ -147,7 +147,7 @@ export default function AgentOpsPanel({
       transition={{ duration: 0.3 }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot size={16} className="text-primary" />
@@ -170,146 +170,153 @@ export default function AgentOpsPanel({
         </div>
       </div>
 
-      {/* Operations List */}
+      {/* Operations List with Fixed Scrolling */}
       <AnimatePresence>
         {!isCollapsed && (
           <motion.div
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
             exit={{ height: 0 }}
-            className="flex-1 overflow-hidden"
+            className="flex-1 min-h-0"
           >
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full w-full">
               <div className="p-4 space-y-3">
-                {operations.map((operation, index) => {
-                  const statusDisplay = getStatusDisplay(operation.status);
-                  const StatusIcon = statusDisplay.icon;
-                  
-                  return (
-                    <motion.div
-                      key={operation.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`card-nova p-4 ${statusDisplay.bgColor} border border-white/5`}
-                    >
-                      {/* Operation Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <div className={`mt-0.5 ${statusDisplay.color}`}>
-                            <StatusIcon size={16} />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">
-                              {operation.title}
+                <AnimatePresence mode="popLayout">
+                  {operations.map((operation, index) => {
+                    const statusDisplay = getStatusDisplay(operation.status);
+                    const StatusIcon = statusDisplay.icon;
+                    
+                    return (
+                      <motion.div
+                        key={operation.id}
+                        layout
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ 
+                          delay: index * 0.05,
+                          duration: 0.3,
+                          ease: "easeOut"
+                        }}
+                        className={`card-nova p-4 ${statusDisplay.bgColor} border border-white/5`}
+                      >
+                        {/* Operation Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className={`mt-0.5 ${statusDisplay.color} shrink-0`}>
+                              <StatusIcon size={16} />
                             </div>
                             
-                            {operation.desc && (
-                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {operation.desc}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">
+                                {operation.title}
                               </div>
-                            )}
-                            
-                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                              <Badge 
-                                variant="outline" 
-                                className={`${statusDisplay.color} border-current`}
-                              >
-                                {statusDisplay.label}
-                              </Badge>
                               
-                              <span className="flex items-center gap-1">
-                                <Clock size={10} />
-                                {formatElapsedTime(operation.startTime)}
-                              </span>
+                              {operation.desc && (
+                                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {operation.desc}
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`${statusDisplay.color} border-current`}
+                                >
+                                  {statusDisplay.label}
+                                </Badge>
+                                
+                                <span className="flex items-center gap-1">
+                                  <Clock size={10} />
+                                  {formatElapsedTime(operation.startTime)}
+                                </span>
+                              </div>
                             </div>
                           </div>
+
+                          {/* Cancel Button */}
+                          {(operation.status === 'pending' || operation.status === 'running') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleCancel(operation.id)}
+                              className="w-6 h-6 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                              aria-label="Cancel operation"
+                            >
+                              <X size={12} />
+                            </Button>
+                          )}
                         </div>
 
-                        {/* Cancel Button */}
-                        {(operation.status === 'pending' || operation.status === 'running') && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleCancel(operation.id)}
-                            className="w-6 h-6 p-0 text-muted-foreground hover:text-destructive shrink-0"
-                            aria-label="Cancel operation"
-                          >
-                            <X size={12} />
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Progress Bar */}
-                      {operation.status === 'running' && typeof operation.progress === 'number' && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Progress</span>
-                            <span className="text-primary font-medium">{operation.progress}%</span>
-                          </div>
-                          <Progress 
-                            value={operation.progress} 
-                            className="h-2 bg-white/5"
-                          />
-                        </div>
-                      )}
-
-                      {/* Indeterminate Progress for Running Operations */}
-                      {operation.status === 'running' && typeof operation.progress !== 'number' && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Processing...</div>
-                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-gradient-to-r from-primary to-accent"
-                              animate={{
-                                x: ['-100%', '100%'],
-                              }}
-                              transition={{
-                                repeat: Infinity,
-                                duration: 1.5,
-                                ease: 'linear',
-                              }}
+                        {/* Progress Bar */}
+                        {operation.status === 'running' && typeof operation.progress === 'number' && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="text-primary font-medium">{operation.progress}%</span>
+                            </div>
+                            <Progress 
+                              value={operation.progress} 
+                              className="h-2 bg-white/5"
                             />
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Action Buttons for Completed Operations */}
-                      {operation.status === 'success' && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            className="text-xs h-7"
-                          >
-                            View Results
-                          </Button>
-                        </div>
-                      )}
+                        {/* Indeterminate Progress for Running Operations */}
+                        {operation.status === 'running' && typeof operation.progress !== 'number' && (
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Processing...</div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full bg-gradient-to-r from-primary to-accent"
+                                animate={{
+                                  x: ['-100%', '100%'],
+                                }}
+                                transition={{
+                                  repeat: Infinity,
+                                  duration: 1.5,
+                                  ease: 'linear',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
 
-                      {operation.status === 'failed' && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            className="text-xs h-7"
-                          >
-                            Retry
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            className="text-xs h-7"
-                          >
-                            View Error
-                          </Button>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                        {/* Action Buttons for Completed Operations */}
+                        {operation.status === 'success' && (
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              className="text-xs h-7"
+                            >
+                              View Results
+                            </Button>
+                          </div>
+                        )}
+
+                        {operation.status === 'failed' && (
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              className="text-xs h-7"
+                            >
+                              Retry
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="text-xs h-7"
+                            >
+                              View Error
+                            </Button>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             </ScrollArea>
           </motion.div>
@@ -317,7 +324,7 @@ export default function AgentOpsPanel({
       </AnimatePresence>
 
       {/* Quick Stats Footer */}
-      <div className="p-4 border-t border-border bg-background/80">
+      <div className="p-4 border-t border-border bg-background/80 shrink-0">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-xs text-muted-foreground">Active</div>

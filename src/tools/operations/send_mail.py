@@ -12,8 +12,17 @@ from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
-from common_functions.Find_project_root import find_project_root
 from memory_manager import MemoryManager
+
+import os
+def find_project_root(marker_file='pyproject.toml') -> str:
+    """Find the project root by searching upwards for the marker file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):  # Stop at system root
+        if os.path.exists(os.path.join(current_dir, marker_file)):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,10 +34,11 @@ logger = logging.getLogger(__name__)
 def get_gmail_service(project_root: Optional[str] = None):
     """Authenticate with Gmail API and return a service object."""
     if project_root is None:
+
         project_root = find_project_root()
 
     token_file = os.path.join(project_root, "token.json")
-    client_secret_file = os.path.join(project_root, "client_secret.json")
+    client_secret_file = os.path.join(project_root, "client_secret_desktop.json")
     SCOPES = ["https://mail.google.com/"]
 
     creds = None
@@ -123,19 +133,49 @@ def is_valid_email(email: str) -> bool:
 # ------------------ Gemini LLM Handling with Fallback ------------------
 
 def get_llm_chain() -> List[LLM]:
-    """Return list of available LLMs with API keys."""
-    keys = [
-        os.getenv("GEMINI_API_KEY1"),
-        os.getenv("GEMINI_API_KEY2"),
-        os.getenv("GEMINI_API_KEY3"),
-        os.getenv("GEMINI_API_KEY4"),
-    ]
+    """Return list of available LLMs with multiple providers, prioritizing key3."""
     llms = []
-    for key in keys:
+    
+    # Primary: Groq (key3 first, then others)
+    groq_keys = [
+        ("GROQ_API_KEY3", "groq/llama-3.3-70b-versatile"),
+        ("GROQ_API_KEY1", "groq/llama-3.3-70b-versatile"),
+        ("GROQ_API_KEY2", "groq/llama-3.3-70b-versatile"),
+        ("GROQ_API_KEY4", "groq/llama-3.3-70b-versatile"),
+    ]
+    
+    for key_name, model in groq_keys:
+        key = os.getenv(key_name)
         if key:
-            llms.append(LLM(model="gemini/gemini-1.5-flash-latest", api_key=key))
+            llms.append(LLM(model=model, api_key=key))
+    
+    # Secondary: Gemini (key3 first, then others)
+    gemini_keys = [
+        ("GEMINI_API_KEY3", "gemini/gemini-1.5-flash-latest"),
+        ("GEMINI_API_KEY1", "gemini/gemini-1.5-flash-latest"),
+        ("GEMINI_API_KEY2", "gemini/gemini-1.5-flash-latest"),
+        ("GEMINI_API_KEY4", "gemini/gemini-1.5-flash-latest"),
+    ]
+    
+    for key_name, model in gemini_keys:
+        key = os.getenv(key_name)
+        if key:
+            llms.append(LLM(model=model, api_key=key))
+    
+    # Tertiary: OpenRouter (key3 first, then others)
+    openrouter_keys = [
+        ("OPENROUTER_API_KEY3", "openrouter/deepseek/deepseek-chat-v3.1:free"),
+        ("OPENROUTER_API_KEY1", "openrouter/deepseek/deepseek-chat-v3.1:free"),
+        ("OPENROUTER_API_KEY2", "openrouter/deepseek/deepseek-chat-v3.1:free"),
+        ("OPENROUTER_API_KEY4", "openrouter/deepseek/deepseek-chat-v3.1:free"),
+    ]
+    
+    for key_name, model in openrouter_keys:
+        key = os.getenv(key_name)
+        if key:
+            llms.append(LLM(model=model, api_key=key))
+    
     return llms
-
 
 def load_user_profile(project_root: str) -> dict:
     """Load user profile JSON and return only relevant fields for email writing."""
@@ -174,7 +214,7 @@ def refine_email_with_fallback(body: str, feedback: str, recipient: str, subject
                     f"Ensure tone matches a professional yet clear communication style.",
                 backstory="Expert in professional email writing with years of experience in corporate communication.",
                 llm=llm,
-                verbose=2
+                verbose=True
             )
 
             # Build task with user context included
@@ -254,24 +294,24 @@ def send_email(to: str, subject: str, body: str, project_root: Optional[str] = N
 
     final_body = body.strip()
 
-    while True:
-        # Preview
-        print("\n" + "="*50)
-        print("EMAIL PREVIEW")
-        print("="*50)
-        print(f"To: {recipient}")
-        print(f"Subject: {subject}\n")
-        print(final_body)
-        print("="*50)
+    # while True:
+    #     # Preview
+    #     print("\n" + "="*50)
+    #     print("EMAIL PREVIEW")
+    #     print("="*50)
+    #     print(f"To: {recipient}")
+    #     print(f"Subject: {subject}\n")
+    #     print(final_body)
+    #     print("="*50)
 
-        choice = input("\nIs this email okay? (yes/no): ").strip().lower()
-        if choice in ["yes", "y"]:
-            return _send_via_gmail(service, recipient, subject, final_body)
-        else:
-            feedback = input("Enter changes or feedback: ").strip()
-            print("\n🤖 Refining email with AI assistance...")
-            final_body = refine_email(final_body, feedback, recipient, subject)
-
+    #     choice = input("\nIs this email okay? (yes/no): ").strip().lower()
+    #     if choice in ["yes", "y"]:
+    #         return _send_via_gmail(service, recipient, subject, final_body)
+    #     else:
+    #         feedback = input("Enter changes or feedback: ").strip()
+    #         print("\n🤖 Refining email with AI assistance...")
+    #         final_body = refine_email(final_body, feedback, recipient, subject)
+    return _send_via_gmail(service, recipient, subject, final_body)
 
 def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
     """Send email via Gmail API."""
@@ -290,4 +330,4 @@ def _send_via_gmail(service, recipient: str, subject: str, body: str) -> bool:
 
 if  __name__ == "__main__":
     # Example usage
-    send_email("John Doe", "Meeting Reminder", "Don't forget our meeting tomorrow at 10 AM.")
+    send_email("deoatharva44@gmail.com", "Meeting Reminder", "Don't forget our meeting tomorrow at 10 AM.")

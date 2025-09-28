@@ -1,7 +1,8 @@
+/* frontend/src/index.css (Updated color palette for a more professional look) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Nova AI Assistant Design System - Dark Cyan Premium Theme
+/* Nova AI Assistant Design System - Professional Dark Theme
 All colors MUST be HSL. Local-first, privacy-focused design language.
 */
 @layer base {
@@ -23,15 +24,15 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
   }
   
   :root {
-    /* Nova Theme - Dark Cyan Premium */
-    --nova-bg: 225 33% 3%; /* #05060A */
-    --nova-cyan: 184 100% 39%; /* #00B7C7 */
-    --nova-accent: 185 100% 27%; /* #007F8A */
-    --nova-text: 184 43% 93%; /* #E6F7F8 */
-    --nova-muted: 197 25% 15%; /* #1a2930 */
-    --nova-surface: 225 33% 6%; /* Slightly lighter surface */
-    --nova-border: 197 25% 20%; /* Border variant */
-    --nova-glass: 184 100% 39% / 0.1; /* Glassmorphism */
+    /* Nova Theme - Professional Dark Theme (Toned down saturation and brightness for less neon) */
+    --nova-bg: 225 10% 5%; /* Subtle dark gray #0A0A0D */
+    --nova-cyan: 200 40% 50%; /* Muted professional blue-gray #4D8099 */
+    --nova-accent: 200 40% 30%; /* Darker muted accent #2E4D5C */
+    --nova-text: 0 0% 90%; /* Soft light gray #E6E6E6 */
+    --nova-muted: 200 15% 18%; /* Muted gray #2A2F33 */
+    --nova-surface: 225 10% 8%; /* Slightly lighter surface */
+    --nova-border: 200 15% 25%; /* Border variant */
+    --nova-glass: 200 40% 50% / 0.08; /* Subtler glassmorphism */
     /* Shadcn compatibility - mapped to Nova theme */
     --background: var(--nova-bg);
     --foreground: var(--nova-text);
@@ -44,10 +45,10 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
     --secondary: var(--nova-muted);
     --secondary-foreground: var(--nova-text);
     --muted: var(--nova-muted);
-    --muted-foreground: 184 20% 65%;
+    --muted-foreground: 200 10% 60%;
     --accent: var(--nova-accent);
     --accent-foreground: var(--nova-text);
-    --destructive: 0 84% 60%;
+    --destructive: 0 50% 50%;
     --destructive-foreground: var(--nova-text);
     --border: var(--nova-border);
     --input: var(--nova-border);
@@ -62,12 +63,12 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
     --sidebar-accent-foreground: var(--nova-text);
     --sidebar-border: var(--nova-border);
     --sidebar-ring: var(--nova-cyan);
-    /* Nova Gradients & Effects */
-    --gradient-nova: linear-gradient(135deg, hsl(var(--nova-cyan) / 0.8), hsl(var(--nova-accent) / 0.6));
-    --gradient-glass: linear-gradient(135deg, hsl(var(--nova-glass)), hsl(var(--nova-accent) / 0.05));
-    --shadow-nova: 0 20px 40px -10px hsl(var(--nova-cyan) / 0.3);
-    --shadow-glow: 0 0 30px hsl(var(--nova-cyan) / 0.4);
-    /* Animations */
+    /* Nova Gradients & Effects (Toned down for professionalism) */
+    --gradient-nova: linear-gradient(135deg, hsl(var(--nova-cyan) / 0.6), hsl(var(--nova-accent) / 0.4));
+    --gradient-glass: linear-gradient(135deg, hsl(var(--nova-glass)), hsl(var(--nova-accent) / 0.03));
+    --shadow-nova: 0 10px 20px -5px hsl(var(--nova-cyan) / 0.1);
+    --shadow-glow: 0 0 15px hsl(var(--nova-cyan) / 0.15);
+    /* Animations (Reduced intensity) */
     --transition-nova: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
@@ -92,13 +93,13 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
   [data-mini] #root {
     background: transparent;
   }
-  /* Nova glassmorphism utilities */
+  /* Nova glassmorphism utilities (Subtler) */
   .glass-nova {
-    @apply backdrop-blur-md bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10;
+    @apply backdrop-blur-sm bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.05];
   }
  
   .glow-nova {
-    box-shadow: 0 0 20px hsl(var(--nova-cyan) / 0.3);
+    box-shadow: 0 0 10px hsl(var(--nova-cyan) / 0.15);
   }
  
   .glow-nova-strong {
@@ -132,25 +133,25 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
   }
 }
 @layer components {
-  /* Nova component variants */
+  /* Nova component variants (Adjusted for professional look) */
   .btn-nova {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-2xl font-medium transition-all duration-300;
-    @apply hover:scale-105 hover:shadow-lg hover:shadow-primary/25 active:scale-95;
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-medium transition-all duration-300;
+    @apply hover:scale-[1.02] hover:shadow-md hover:shadow-primary/15 active:scale-[0.98];
   }
   .btn-nova-ghost {
-    @apply bg-transparent border border-primary/20 text-primary rounded-2xl font-medium transition-all duration-300;
-    @apply hover:bg-primary/10 hover:border-primary/40 hover:scale-105 active:scale-95;
+    @apply bg-transparent border border-primary/15 text-primary rounded-lg font-medium transition-all duration-300;
+    @apply hover:bg-primary/5 hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98];
   }
   .card-nova {
-    @apply glass-nova rounded-xl p-6 transition-all duration-300;
-    @apply hover:bg-gradient-to-br hover:from-white/5 hover:to-white/[0.02];
+    @apply glass-nova rounded-lg p-6 transition-all duration-300;
+    @apply hover:bg-gradient-to-br hover:from-white/[0.03] hover:to-white/[0.01];
   }
   .input-nova {
-    @apply bg-background/50 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground;
-    @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200;
+    @apply bg-background/50 border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground;
+    @apply focus:border-primary focus:ring-1 focus:ring-primary/15 focus:outline-none transition-all duration-200;
   }
   .sidebar-nova {
-    @apply bg-gradient-to-b from-background to-muted/20 border-r border-border backdrop-blur-sm;
+    @apply bg-gradient-to-b from-background to-muted/15 border-r border-border backdrop-blur-sm;
   }
   /* 🖥️ Custom Titlebar for Electron (frameless window) */
   .titlebar {
@@ -187,7 +188,7 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
     border-radius: 4px;
   }
 }
-/* Nova keyframes */
+/* Nova keyframes (Unchanged, but less intense due to color changes) */
 @keyframes nova-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -201,6 +202,6 @@ All colors MUST be HSL. Local-first, privacy-focused design language.
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes nova-pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(var(--nova-cyan) / 0.3); }
-  50% { box-shadow: 0 0 30px hsl(var(--nova-cyan) / 0.5), 0 0 40px hsl(var(--nova-cyan) / 0.2); }
+  0%, 100% { box-shadow: 0 0 10px hsl(var(--nova-cyan) / 0.15); }
+  50% { box-shadow: 0 0 15px hsl(var(--nova-cyan) / 0.25), 0 0 20px hsl(var(--nova-cyan) / 0.1); }
 }

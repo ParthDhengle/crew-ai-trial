@@ -58,7 +58,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       {/* Window Title Bar */}
       <div 
-        className={"flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50"}
+        className={"flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border/50 shrink-0"}
         style={{ 
           ['WebkitAppRegion' as any]: 'drag',
           userSelect: 'none'
@@ -104,25 +104,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </Button>
         </div>
       </div>
-
-        {/* Window Controls */}
-        
       
       {/* Single Topbar with Hamburger */}
-      <Topbar showSearch={state.view === 'chat'}>
-        {/* Hamburger - Always present */}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={toggleSidebar}
-          className="ml-2 w-8 h-8 p-0" // Show always, not just lg:hidden
-        >
-          <Menu size={16} />
-        </Button>
-      </Topbar>
+      <div className="shrink-0">
+        <Topbar showSearch={state.view === 'chat'}>
+          {/* Hamburger - Always present */}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={toggleSidebar}
+            className="ml-2 w-8 h-8 p-0" // Show always, not just lg:hidden
+          >
+            <Menu size={16} />
+          </Button>
+        </Topbar>
+      </div>
 
       {/* Sidebar + Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Collapsible Sidebar */}
         <motion.div
           initial={{ x: state.sidebarCollapsed ? -250 : 0 }}
@@ -134,9 +133,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </motion.div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-auto">
-            {renderContent()}
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Content Area */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="h-full overflow-auto">
+              {renderContent()}
+            </div>
           </div>
           
           {/* Agent Ops Panel - Only in chat/scheduler */}
@@ -145,9 +147,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
               initial={{ x: 300 }}
               animate={{ x: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-80 shrink-0 border-l border-border"
+              className="w-80 h-full shrink-0 border-l border-border flex flex-col"
             >
-              <AgentOpsPanel />
+              <AgentOpsPanel className="h-full" />
             </motion.div>
           )}
         </div>

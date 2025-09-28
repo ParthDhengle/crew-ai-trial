@@ -2,7 +2,6 @@ import os
 import json
 from typing import List, Dict, Any, Tuple
 import re
-from common_functions.Find_project_root import find_project_root
 from .operations.document_processor import document_summarize, document_translate
 from firebase_client import get_operations
 from .operations.custom_search import custom_search
@@ -17,8 +16,17 @@ from .operations.ragsearch import rag_search
 from .operations.word_doc import word_generate_from_query
 from .operations.powerpoint_generate import powerpoint_generate_from_query
 
-PROJECT_ROOT = find_project_root()
 
+
+def find_project_root(marker_file='pyproject.toml') -> str:
+    """Find the project root by searching upwards for the marker file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):  # Stop at system root
+        if os.path.exists(os.path.join(current_dir, marker_file)):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
+PROJECT_ROOT = find_project_root()
 
 class OperationsTool:
     """Dispatcher for active operations only. Maps 'name' to funcs; validates via Firebase/json defs."""
