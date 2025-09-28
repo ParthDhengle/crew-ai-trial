@@ -9,6 +9,7 @@ import type {
 } from '@/api/types';
 import { chatService } from '@/api/chatService';
 import { apiClient } from '@/api/client';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * Nova AI Assistant - Global State Management
@@ -177,7 +178,7 @@ const NovaContext = createContext<{
 
 export function NovaProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(novaReducer, initialState);
-
+  const { isAuthenticated } = useAuth();
   // Set up chat service callbacks
   useEffect(() => {
     chatService.setCallbacks({
@@ -207,6 +208,7 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
 
   // Load initial data from API
   useEffect(() => {
+    if (!isAuthenticated) return;
     const loadInitialData = async () => {
       try {
         // Load chat sessions
@@ -249,7 +251,7 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
       }
     };
     loadInitialData();
-  }, []);
+  }, [isAuthenticated]);
 
 
 
