@@ -240,9 +240,9 @@ def document_translate(file_path: str, query: str, target_lang: str) -> Tuple[bo
         return False, f"Error in document_translate: {str(e)}"
 
 
-if __name__ == "__main__":
-    # Test the function - use raw string for Windows paths to avoid escape issues
-    test_file_path = r"C:\Users\Parth Dhengle\Downloads\ML_text.txt"
-    success, result = document_translate(test_file_path, "translate the document to French", "French")
-    print(f"Success: {success}")
-    print(result)
+# if __name__ == "__main__":
+#     # Test the function - use raw string for Windows paths to avoid escape issues
+#     test_file_path = r"C:\Users\Parth Dhengle\Downloads\ML_text.txt"
+#     success, result = document_translate(test_file_path, "translate the document to French", "French")
+#     print(f"Success: {success}")
+#     print(result)

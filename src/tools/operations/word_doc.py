@@ -298,7 +298,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Example usage
-    test_query = "Write a detailed report on the impacts of artificial intelligence on society."
+    test_query = "Write a detailed report on Mahabharat"
     success, result = word_generate_from_query(test_query)
     print(f"Success: {success}")
     print(result)

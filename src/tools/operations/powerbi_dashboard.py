@@ -226,202 +226,148 @@ def create_fallback_dashboard_config(columns: list, query: str) -> dict:
         "slicers": date_cols + categorical_cols[:2]  # Add up to 2 categorical slicers plus date slicers
     }
 
-def create_manual_pbip_project(output_dir: str, project_name: str, csv_path: str, plan: dict) -> str:
-    """Create a Power BI project manually without using the problematic library."""
-    project_dir = os.path.join(output_dir, project_name)
-    os.makedirs(project_dir, exist_ok=True)
+def create_powerbi_template_file(output_dir: str, project_name: str, csv_path: str, plan: dict) -> str:
+    """Create a Power BI template file that opens CSV data directly."""
     
-    # Create .pbip file (main project file) - Fixed schema
-    pbip_content = {
-        "version": "1.0",
-        "artifacts": [
-            {
-                "report": {
-                    "path": f"{project_name}.Report"
-                }
-            },
-            {
-                "semanticModel": {
-                    "path": f"{project_name}.SemanticModel"
-                }
-            }
-        ]
-    }
-    
-    pbip_file = os.path.join(project_dir, f"{project_name}.pbip")
-    with open(pbip_file, 'w', encoding='utf-8') as f:
-        json.dump(pbip_content, f, indent=2)
-    
-    # Create Report folder and definition
-    report_dir = os.path.join(project_dir, f"{project_name}.Report")
-    os.makedirs(report_dir, exist_ok=True)
-    
-    # Create basic report definition
-    report_content = {
-        "version": "5.0",
-        "config": {
-            "version": "5.0",
-            "themeCollection": {
-                "baseTheme": {
-                    "name": "CY24SU06"
-                }
-            }
-        },
-        "sections": [
-            {
-                "name": "ReportSection",
-                "displayName": "Main Page",
-                "visualContainers": create_visual_containers(plan)
-            }
-        ]
-    }
-    
-    report_file = os.path.join(report_dir, "definition.pbir")
-    with open(report_file, 'w', encoding='utf-8') as f:
-        json.dump(report_content, f, indent=2)
-    
-    # Create SemanticModel folder and definition
-    model_dir = os.path.join(project_dir, f"{project_name}.SemanticModel")
-    os.makedirs(model_dir, exist_ok=True)
-    
-    # Copy CSV file to model directory
+    # Generate Power BI M Query for CSV import
     csv_name = os.path.basename(csv_path)
-    target_csv = os.path.join(model_dir, csv_name)
-    shutil.copy2(csv_path, target_csv)
+    csv_full_path = os.path.abspath(csv_path).replace('\\', '\\\\')  # Escape backslashes for M query
     
-    # Create semantic model definition
-    model_content = create_semantic_model_definition(csv_name, plan)
+    # Create M Query string
+    m_query = f'''let
+    Source = Csv.Document(File.Contents("{csv_full_path}"),[Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{}})
+in
+    #"Changed Type"'''
     
-    model_file = os.path.join(model_dir, "definition.pbism")
-    with open(model_file, 'w', encoding='utf-8') as f:
-        json.dump(model_content, f, indent=2)
+    # Create a simple Power BI template file (.pbit)
+    template_content = create_pbit_template(csv_name, m_query, plan)
     
-    logger.info(f"Manual Power BI project created at: {project_dir}")
-    return pbip_file
+    # Save as .pbit file (Power BI Template)
+    template_path = os.path.join(output_dir, f"{project_name}.pbit")
+    
+    try:
+        # Create the .pbit file (which is essentially a zip file)
+        with zipfile.ZipFile(template_path, 'w', zipfile.ZIP_DEFLATED) as pbit_zip:
+            # Add the main template files
+            pbit_zip.writestr('DataModelSchema', json.dumps(template_content['schema'], indent=2))
+            pbit_zip.writestr('Connections', json.dumps(template_content['connections'], indent=2))
+            pbit_zip.writestr('Report/Layout', json.dumps(template_content['layout'], indent=2))
+            pbit_zip.writestr('Metadata', json.dumps(template_content['metadata'], indent=2))
+            
+        logger.info(f"Power BI template created at: {template_path}")
+        return template_path
+    except Exception as e:
+        logger.error(f"Failed to create .pbit file: {e}")
+        # Fallback: Create instruction file instead
+        return create_instruction_file(output_dir, project_name, csv_path, plan)
 
-def create_visual_containers(plan: dict) -> list:
-    """Create visual containers for the report."""
-    containers = []
+def create_instruction_file(output_dir: str, project_name: str, csv_path: str, plan: dict) -> str:
+    """Create an instruction file with manual steps if PBIT creation fails."""
+    instruction_file = os.path.join(output_dir, f"{project_name}_Instructions.txt")
     
-    for i, visual in enumerate(plan.get("visuals", [])):
-        visual_type = visual.get("type", "bar")
+    instructions = f"""Power BI Dashboard Creation Instructions
+======================================
+
+CSV File: {csv_path}
+Query: {plan.get('query', 'Dashboard creation')}
+
+MANUAL STEPS TO CREATE DASHBOARD:
+
+1. Open Power BI Desktop
+2. Click "Get Data" > "Text/CSV"
+3. Select the CSV file: {csv_path}
+4. Click "Load" to import the data
+
+RECOMMENDED VISUALS:
+"""
+    
+    for i, visual in enumerate(plan.get('visuals', []), 1):
+        visual_type = visual.get('type', 'bar').title()
+        x_field = visual.get('x_field', '')
+        y_field = visual.get('y_field', '')
+        aggregation = visual.get('aggregation', 'sum').title()
         
-        # Map visual types to Power BI visual types
-        pbi_visual_type = {
-            "bar": "clusteredBarChart",
-            "line": "lineChart", 
-            "pie": "pieChart",
-            "card": "card"
-        }.get(visual_type, "clusteredBarChart")
-        
-        container = {
-            "name": f"visual_{i}",
-            "position": {
-                "x": 100 + (i * 400),
-                "y": 200,
-                "width": 400,
-                "height": 300,
-                "tabOrder": i
-            },
-            "visual": {
-                "visualType": pbi_visual_type,
-                "query": create_visual_query(visual),
-                "objects": {}
-            }
-        }
-        containers.append(container)
+        instructions += f"""
+{i}. {visual_type} Chart:
+   - Drag '{x_field}' to Axis/Category
+   - Drag '{y_field}' to Values
+   - Aggregation: {aggregation}
+"""
     
-    return containers
+    if plan.get('slicers'):
+        instructions += f"""
+RECOMMENDED SLICERS:
+"""
+        for slicer in plan.get('slicers', []):
+            instructions += f"- {slicer}\n"
+    
+    instructions += f"""
+NOTES:
+- All files have been prepared in: {output_dir}
+- The CSV data should load automatically when you follow these steps
+- Adjust visual formatting as needed
+- Save your work as a .pbix file when complete
 
-def create_visual_query(visual: dict) -> dict:
-    """Create query definition for a visual."""
-    return {
-        "queryState": {
-            "Values": [{
-                "Column": {
-                    "Expression": {
-                        "SourceRef": {"Source": "c1"}
-                    },
-                    "Property": visual.get("y_field", "")
-                },
-                "Name": f"Aggregate({visual.get('y_field', '')})"
-            }],
-            "Category": [{
-                "Column": {
-                    "Expression": {
-                        "SourceRef": {"Source": "c1"}
-                    },
-                    "Property": visual.get("x_field", "")
-                },
-                "Name": visual.get("x_field", "")
-            }]
-        }
-    }
+For automatic dashboard creation, ensure you have the latest Power BI Desktop version
+and that all file paths are accessible.
+"""
+    
+    with open(instruction_file, 'w', encoding='utf-8') as f:
+        f.write(instructions)
+    
+    logger.info(f"Instruction file created at: {instruction_file}")
+    return instruction_file
 
-def create_semantic_model_definition(csv_name: str, plan: dict) -> dict:
-    """Create semantic model definition."""
+def create_pbit_template(csv_name: str, m_query: str, plan: dict) -> dict:
+    """Create a basic Power BI template structure."""
     table_name = os.path.splitext(csv_name)[0]
     
-    return {
-        "version": "1.0",
-        "model": {
-            "culture": "en-US",
-            "dataSources": [
-                {
-                    "name": "LocalFile",
-                    "connectionDetails": {
-                        "protocol": "file",
-                        "address": {
-                            "path": csv_name
+    # Basic template structure
+    template = {
+        'schema': {
+            'version': '2.0',
+            'model': {
+                'name': table_name,
+                'tables': [
+                    {
+                        'name': table_name,
+                        'source': {
+                            'type': 'm',
+                            'expression': m_query
                         }
                     }
-                }
-            ],
-            "tables": [
+                ]
+            }
+        },
+        'connections': [],
+        'layout': {
+            'sections': [
                 {
-                    "name": table_name,
-                    "dataCategory": "Uncategorized",
-                    "columns": [],  # Will be populated based on CSV
-                    "partitions": [
-                        {
-                            "name": "Partition",
-                            "dataView": "full",
-                            "source": {
-                                "type": "m",
-                                "expression": f'let\n    Source = Csv.Document(File.Contents("{csv_name}"),[Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),\n    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])\nin\n    #"Promoted Headers"'
-                            }
-                        }
-                    ]
+                    'name': 'ReportSection',
+                    'displayName': 'Page 1',
+                    'visualContainers': []
                 }
             ]
+        },
+        'metadata': {
+            'version': '1.0',
+            'template': True
         }
     }
+    
+    return template
 
-def fix_pbi_dashboard_creator_resources():
-    """Attempt to fix the PBI_dashboard_creator resources issue."""
+def open_powerbi_with_csv(csv_path: str, pbi_path: str) -> bool:
+    """Try to open Power BI Desktop and let user manually import CSV."""
     try:
-        import PBI_dashboard_creator
-        package_path = Path(PBI_dashboard_creator.__file__).parent
-        resources_path = package_path / "dashboard_resources"
-        
-        if not resources_path.exists():
-            logger.warning(f"Resources path doesn't exist: {resources_path}")
-            # Try to create the missing directory structure
-            resources_path.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created resources directory: {resources_path}")
-            
-            # Create minimal required files
-            template_dir = resources_path / "template"
-            template_dir.mkdir(exist_ok=True)
-            
-            # Create a basic template structure
-            with open(template_dir / "template.pbip", 'w') as f:
-                f.write('{"version": "1.0", "artifacts": []}')
-            
-            return True
+        # Just open Power BI Desktop - user will manually load CSV
+        subprocess.Popen([pbi_path])
+        logger.info("Power BI Desktop opened. Please manually import your CSV file.")
         return True
     except Exception as e:
-        logger.error(f"Failed to fix PBI_dashboard_creator resources: {str(e)}")
+        logger.error(f"Failed to open Power BI Desktop: {e}")
         return False
 
 def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
@@ -439,7 +385,7 @@ def powerbi_generate_dashboard(csv_file: str, query: str) -> tuple[bool, str]:
         # Check Power BI installation
         pbi_installed, pbi_path = check_powerbi_installation()
         if not pbi_installed:
-            logger.warning("Power BI Desktop not found. Dashboard files will be created but may not open automatically.")
+            logger.warning("Power BI Desktop not found. Instructions will be created instead.")
         
         # Verify API keys
         grok_api_key = os.getenv("GROQ_API_KEY3")
@@ -547,113 +493,54 @@ Return only the JSON, no explanation.
             logger.warning("LLM parsing failed after all retries. Using fallback configuration.")
             plan = create_fallback_dashboard_config(columns, query)
         
+        # Add the query to the plan for instruction generation
+        plan['query'] = query
+        
         logger.info(f"Dashboard plan: {plan}")
         
         # Create temporary directory for dashboard
         output_dir = tempfile.mkdtemp(prefix="powerbi_dashboard_")
         dashboard_name = f"auto_dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # Try using the library first, but fall back to manual creation
-        use_manual_creation = True
-        pbip_file = None
+        # Copy CSV to output directory for easier access
+        csv_copy_path = os.path.join(output_dir, os.path.basename(csv_path))
+        shutil.copy2(csv_path, csv_copy_path)
+        logger.info(f"CSV copied to: {csv_copy_path}")
         
-        try:
-            # Try to fix the library resources issue
-            if fix_pbi_dashboard_creator_resources():
-                import PBI_dashboard_creator
-                
-                # Create new blank dashboard
-                PBI_dashboard_creator.create_blank_dashboard.create_new_dashboard(output_dir, dashboard_name)
-                dashboard_path = os.path.join(output_dir, dashboard_name)
-                logger.info(f"Created new dashboard at: {dashboard_path}")
-                
-                # Add CSV data source
-                dataset_id = PBI_dashboard_creator.add_local_csv.add_csv(dashboard_path, csv_path)
-                logger.info(f"Added CSV data source with dataset_id: {dataset_id}")
-                
-                # Determine dataset_name (assuming it's the CSV filename without extension)
-                dataset_name = os.path.basename(csv_path).split('.')[0]
-                logger.info(f"Using dataset_name: {dataset_name}")
-                
-                # Add a new page
-                page_id = PBI_dashboard_creator.create_new_page.add_new_page(dashboard_path, "MainPage", title=query)
-                logger.info(f"Added new page with page_id: {page_id}")
-                
-                # Add visuals based on plan
-                visual_index = 0
-                agg_map = {
-                    "sum": "Sum",
-                    "count": "Count",
-                    "avg": "Average", 
-                    "min": "Minimum",
-                    "max": "Maximum"
-                }
-                for visual in plan.get("visuals", []):
-                    visual_type = visual.get("type")
-                    x_field = visual.get("x_field")
-                    y_field = visual.get("y_field")
-                    agg = visual.get("aggregation").lower()
-                    agg_type = agg_map.get(agg, "Sum")  # Default to Sum if unknown
-                    
-                    # Example positions (adjust as needed)
-                    x_pos = 100 + visual_index * 400
-                    y_pos = 200
-                    height = 300
-                    width = 400
-                    visual_id = f"visual_{visual_index}"
-                    chart_title = f"{visual_type.capitalize()} of {y_field} by {x_field}"
-                    x_axis_title = x_field
-                    y_axis_title = y_field
-                    
-                    chart_type = None
-                    if visual_type == "bar":
-                        chart_type = "clusteredBarChart"  # Horizontal bar chart; use "clusteredColumnChart" for vertical/column
-                    elif visual_type == "line":
-                        chart_type = "lineChart"
-                    elif visual_type == "pie":
-                        chart_type = "pieChart"
-                    elif visual_type == "card":
-                        chart_type = "card"  # Assuming supported; if not, skip
-                    else:
-                        logger.warning(f"Unsupported visual type: {visual_type}")
-                        continue
-                    
-                    PBI_dashboard_creator.create_new_chart.add_chart(
-                        dashboard_path, page_id, visual_id, chart_type, dataset_name,
-                        chart_title=chart_title, x_axis_title=x_axis_title, y_axis_title=y_axis_title,
-                        x_axis_var=x_field, y_axis_var=y_field,
-                        y_axis_var_aggregation_type=agg_type,
-                        x_position=x_pos, y_position=y_pos, height=height, width=width
-                    )
-                    logger.info(f"Added {visual_type} chart with id: {visual_id}")
-                    visual_index += 1
-                
-                pbip_file = os.path.join(dashboard_path, f"{dashboard_name}.pbip")
-                use_manual_creation = False
-                
-        except Exception as e:
-            logger.warning(f"Library approach failed: {str(e)}. Falling back to manual creation.")
-            use_manual_creation = True
+        # Create template or instruction file
+        logger.info("Creating Power BI template/instruction file")
+        result_file = create_powerbi_template_file(output_dir, dashboard_name, csv_copy_path, plan)
         
-        # Manual creation fallback
-        if use_manual_creation:
-            logger.info("Using manual Power BI project creation")
-            pbip_file = create_manual_pbip_project(output_dir, dashboard_name, csv_path, plan)
+        # Prepare success message
+        success_message = f"Power BI dashboard resources created at: {output_dir}\n"
+        success_message += f"Main file: {result_file}\n"
+        success_message += f"CSV file: {csv_copy_path}\n\n"
         
-        # Try to open the dashboard directly in Power BI Desktop
-        success_message = f"Dashboard created at: {os.path.dirname(pbip_file)}"
-        
-        if pbi_installed and pbip_file and os.path.exists(pbip_file):
-            try:
-                subprocess.run([pbi_path, pbip_file], check=True)
-                success_message += "\nDashboard opened in Power BI Desktop."
-            except Exception as e:
-                logger.warning(f"Failed to open dashboard: {str(e)}")
-                success_message += f"\nFailed to open dashboard automatically: {str(e)}. You can open it manually by double-clicking: {pbip_file}"
+        if result_file.endswith('.pbit'):
+            success_message += "NEXT STEPS:\n"
+            success_message += "1. Double-click the .pbit file to open it in Power BI Desktop\n"
+            success_message += "2. The template should load with your data automatically\n"
+            success_message += "3. Customize visuals as needed\n"
+            success_message += "4. Save as .pbix when complete\n"
         else:
-            success_message += f"\nTo open the dashboard, double-click: {pbip_file}"
+            success_message += "Please follow the instructions in the text file to manually create your dashboard.\n"
         
-        logger.info(success_message)
+        # Try to open Power BI Desktop or the result file
+        if pbi_installed:
+            try:
+                if result_file.endswith('.pbit'):
+                    # Try to open the template file directly
+                    subprocess.run([pbi_path, result_file], check=False)
+                    success_message += "\nTemplate opened in Power BI Desktop."
+                else:
+                    # Just open Power BI Desktop
+                    open_powerbi_with_csv(csv_copy_path, pbi_path)
+                    success_message += "\nPower BI Desktop opened. Please follow the instructions to import your data."
+            except Exception as e:
+                logger.warning(f"Failed to open Power BI automatically: {str(e)}")
+                success_message += f"\nNote: Could not open Power BI automatically. Please open manually: {result_file}"
+        
+        logger.info("Dashboard creation process completed successfully")
         return True, success_message
         
     except Exception as e:
@@ -669,9 +556,8 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Example usage (replace with your CSV and query)
-    test_csv = r"C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\music_model_data.csv"
+    test_csv = r"C:\Users\parth\Downloads\CarPrice_Assignment.csv"
     test_query = "Generate Power BI dashboard showing bar chart and line chart."
     success, result = powerbi_generate_dashboard(test_csv, test_query)
     print(f"Success: {success}")
     print(result)
-    

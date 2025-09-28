@@ -1,0 +1,1038 @@
+2025-09-14 00:29:19 - AIAssistant - INFO - Starting AI Assistant
+2025-09-14 00:29:19 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-14 00:29:19 - AIAssistant - INFO - Displayed welcome message
+2025-09-14 00:29:19 - AIAssistant - INFO - Processing single query: None
+2025-09-14 00:29:19 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-14 00:29:20 - AIAssistant - INFO - Firebase connected successfully
+2025-09-14 00:29:20 - AIAssistant - INFO - Loading or creating user profile
+2025-09-14 00:29:20 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Grow career skills", "integrations": {"email": "parthdhengle12@gmail.com"}, "Productive Time": "Morning", "updated_at": "2025-09-11T17:04:07.698024", "focus_hours": ["Morning"], "Mood Check": "Daily", "name": "Parth", "Name": "Parth Dhengle", "AI Tone": "Motivational", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "IST", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-14 00:30:08 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-14 00:30:08 - AIAssistant - INFO - User requested to quit
+2025-09-16 09:32:08 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 09:32:08 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 09:32:08 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 09:32:08 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:32:08 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:32:08 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:32:08 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:32:08 - AIAssistant - WARNING - Missing profile fields: ['Name', 'Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-16 09:32:54 - AIAssistant - DEBUG - Received CLI input: Atharva Deo
+2025-09-16 09:32:57 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:10 - AIAssistant - DEBUG - Received CLI input: pune india
+2025-09-16 09:33:12 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:14 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:19 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:22 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:34 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-16 09:33:37 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:42 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:46 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 09:33:57 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 09:33:58 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:34:15 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-16 09:34:15 - AIAssistant - INFO - Processing query: what is my name for user Atharva Deo
+2025-09-16 09:34:45 - AIAssistant - DEBUG - Query response: Your name is Atharva Deo
+2025-09-16 09:34:45 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:34:45 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:34:45 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:34:45 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:34:45 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:38:29 - AIAssistant - DEBUG - Received CLI input: i am working on an project for stress relief which reduce human stress. analyze this and create me task accordingly
+2025-09-16 09:38:29 - AIAssistant - INFO - Processing query: i am working on an project for stress relief which reduce human stress. analyze this and create me task accordingly for user Atharva Deo
+2025-09-16 09:38:44 - AIAssistant - DEBUG - Query response: Attempted operations for Atharva Deo's stress reduction project: task creation (failed due to invalid parameters: task_name, task_type, deadline required), focus session start (not implemented), semantic search for stress relief techniques (not implemented), knowledge base entry creation (not implemented), and folder creation (not implemented). No operations succeeded; manual input or alternative methods needed for project setup.
+2025-09-16 09:38:44 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:38:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:38:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:38:44 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:38:44 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 09:47:18 - AIAssistant - DEBUG - Received CLI input: create a file using command line
+2025-09-16 09:47:18 - AIAssistant - INFO - Processing query: create a file using command line for user Atharva Deo
+2025-09-16 09:47:33 - AIAssistant - DEBUG - Query response: Attempted file.create operation: ❌ Not implemented. Since the file creation command is not available, I recommend using standard command-line methods like 'touch filename' (Linux/macOS) or 'echo. > filename' (Windows) to create a new file for your notes or project.
+2025-09-16 09:47:33 - AIAssistant - INFO - Processing single query: None
+2025-09-16 09:47:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 09:47:33 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 09:47:33 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 09:47:33 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 10:04:29 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 10:04:29 - AIAssistant - INFO - User requested to quit
+2025-09-16 10:04:47 - AIAssistant - INFO - Starting AI Assistant
+2025-09-16 10:04:47 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-16 10:04:47 - AIAssistant - INFO - Displayed welcome message
+2025-09-16 10:04:47 - AIAssistant - INFO - Processing single query: None
+2025-09-16 10:04:47 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 10:04:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 10:04:47 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 10:04:47 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 10:04:52 - AIAssistant - DEBUG - Received CLI input: create a file using command line
+2025-09-16 10:04:52 - AIAssistant - INFO - Processing query: create a file using command line for user Atharva Deo
+2025-09-16 10:05:17 - AIAssistant - DEBUG - Query response: Performed run_command: Command execution is not implemented. To create a file named 'filename.txt' via command line, you can use 'touch filename.txt' (Unix/Linux/macOS) or 'echo.> filename.txt' (Windows). Since the operation failed, manual execution is required.
+2025-09-16 10:05:17 - AIAssistant - INFO - Processing single query: None
+2025-09-16 10:05:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 10:05:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 10:05:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 10:05:17 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Explore & learn", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T00:28:29.350264", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva Deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-16 14:55:23 - AIAssistant - DEBUG - Received CLI input: tell me about my self
+2025-09-16 14:55:23 - AIAssistant - INFO - Processing query: tell me about my self for user Atharva Deo
+2025-09-16 14:55:30 - AIAssistant - ERROR - Error processing query 'tell me about my self': 'os_info'
+2025-09-16 14:55:30 - AIAssistant - INFO - Processing single query: None
+2025-09-16 14:55:30 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 14:55:30 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 14:55:30 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 14:55:31 - AIAssistant - WARNING - Missing profile fields: ['Name', 'Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-16 14:55:53 - AIAssistant - DEBUG - Received CLI input: Atharva deo
+2025-09-16 14:55:54 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:55:58 - AIAssistant - DEBUG - Received CLI input: pune
+2025-09-16 14:56:00 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:01 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:05 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-16 14:56:07 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:09 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:11 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 14:56:14 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-16 14:56:15 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:20 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-16 14:56:20 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-16 14:56:30 - AIAssistant - DEBUG - Received CLI input: tell me about my self
+2025-09-16 14:56:30 - AIAssistant - INFO - Processing query: tell me about my self for user Atharva deo
+2025-09-16 14:56:54 - AIAssistant - ERROR - Error processing query 'tell me about my self': 'os_info'
+2025-09-16 14:56:54 - AIAssistant - INFO - Processing single query: None
+2025-09-16 14:56:54 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-16 14:56:54 - AIAssistant - INFO - Firebase connected successfully
+2025-09-16 14:56:54 - AIAssistant - INFO - Loading or creating user profile
+2025-09-16 14:56:54 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-16 15:58:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-16 15:58:28 - AIAssistant - INFO - User requested to quit
+2025-09-17 00:01:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:01:15 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:01:15 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:01:15 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:01:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:01:16 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:01:16 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 00:01:16 - AIAssistant - DEBUG - User profile loaded: {"Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-16T12:59:51.335815", "focus_hours": [], "Mood Check": "Daily", "name": "tanish", "Name": "Atharva deo", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune", "Top Task Type": "Study", "Reminder Type": "Email", "permissions": {}, "email": "tanishjagtap272@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 00:31:48 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:31:48 - AIAssistant - INFO - User requested to quit
+2025-09-17 00:32:03 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:32:03 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:32:03 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:32:03 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:32:03 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:32:03 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:32:10 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 00:32:18 - AIAssistant - DEBUG - Received CLI input: parthdhengle
+2025-09-17 00:32:23 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:32:43 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:32:43 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:32:43 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:32:43 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:32:43 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:32:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:32:47 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 00:33:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:33:29 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 00:33:44 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:33:44 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:33:44 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:33:44 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:33:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:33:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:33:54 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:34:11 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:34:17 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:34:24 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:44:44 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:44:44 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:44:44 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:44:44 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:44:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:44:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:44:48 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:44:57 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:45:03 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:45:06 - AIAssistant - DEBUG - Received CLI input: Parth
+2025-09-17 00:45:49 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:45:49 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:45:49 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:45:49 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:45:49 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:45:49 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:45:55 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:45:58 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:46:00 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:46:08 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:52:36 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 00:52:36 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 00:52:36 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 00:52:36 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:52:36 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:52:37 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 00:52:44 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 00:52:48 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 00:52:51 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 00:52:53 - AIAssistant - DEBUG - Received CLI input: Parth Dhengle
+2025-09-17 00:52:55 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 00:52:55 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 00:53:05 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:11 - AIAssistant - DEBUG - Received CLI input: pune india
+2025-09-17 00:53:13 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:15 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:34 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:36 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:38 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 00:53:41 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 00:53:43 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 00:53:45 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 00:53:50 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 00:53:50 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 00:56:00 - AIAssistant - DEBUG - Received CLI input: tell me about myself
+2025-09-17 00:56:00 - AIAssistant - INFO - Processing query: tell me about myself for user Parth Dhengle
+2025-09-17 00:56:11 - AIAssistant - ERROR - Error processing query 'tell me about myself': 'os_info'
+2025-09-17 00:56:11 - AIAssistant - INFO - Processing single query: None
+2025-09-17 00:56:11 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 00:56:11 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:02:44 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 01:02:52 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 01:02:55 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:02:55 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:02:55 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:03:13 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-17 01:03:13 - AIAssistant - INFO - Processing query: what is my name for user Parth Dhengle
+2025-09-17 01:03:17 - AIAssistant - ERROR - Error processing query 'what is my name': 'os_info'
+2025-09-17 01:03:17 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:03:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:03:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:07:26 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:28 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:07:48 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:07:48 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:07:48 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:07:48 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:07:48 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:07:48 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:08:02 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 01:08:06 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 01:08:13 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:08:14 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:08:14 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:08:17 - AIAssistant - DEBUG - Received CLI input: tell me about myself
+2025-09-17 01:08:17 - AIAssistant - INFO - Processing query: tell me about myself for user Parth Dhengle
+2025-09-17 01:08:27 - AIAssistant - DEBUG - Query response: You are Parth Dhengle, a student from Pune, India, with a focus on growing your career skills. Your current productive time is in the morning, and you have a daily mood check. You are motivated by personal development and have a reminder type set to email. You are currently using a Windows 10 system and have various applications and tools available to you.
+2025-09-17 01:08:27 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:08:27 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:08:27 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:13:44 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:13:45 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:13:46 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:13:58 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:13:58 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:13:58 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:13:58 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:13:58 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:13:58 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:14:01 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 01:14:04 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-17 01:14:07 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:14:07 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:14:07 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:14:09 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-17 01:14:09 - AIAssistant - INFO - Processing query: what is my name for user Parth Dhengle
+2025-09-17 01:14:19 - AIAssistant - DEBUG - Query response: Your name is Parth Dhengle
+2025-09-17 01:14:19 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:14:19 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:14:19 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:14:19 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:14:19 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-17 01:14:48 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 01:14:48 - AIAssistant - INFO - User requested to quit
+2025-09-17 01:15:00 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:15:00 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:15:00 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:15:00 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:15:00 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:15:00 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:15:03 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 01:15:15 - AIAssistant - DEBUG - Received CLI input: parthdhengle2004@gmail.com
+2025-09-17 01:15:20 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:15:28 - AIAssistant - DEBUG - Received CLI input: Parth2004
+2025-09-17 01:17:33 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:17:33 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:17:33 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:17:33 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:17:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:17:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:17:36 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 01:17:39 - AIAssistant - DEBUG - Received CLI input: parthdhengle2004@gmail.com
+2025-09-17 01:17:42 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:17:43 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:18:34 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 01:18:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 01:18:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 01:18:34 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:18:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:18:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:18:37 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 01:18:40 - AIAssistant - DEBUG - Received CLI input: parthdhengle2004@gmail.com
+2025-09-17 01:18:44 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 01:18:52 - AIAssistant - DEBUG - Received CLI input: Parth2004
+2025-09-17 01:18:53 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:18:53 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 01:18:57 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 01:19:08 - AIAssistant - DEBUG - Received CLI input: wani maharashtra india
+2025-09-17 01:19:15 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 01:19:17 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 01:19:28 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 01:19:31 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 01:19:38 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 01:19:42 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 01:19:47 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 01:19:51 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 01:20:02 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 01:20:02 - AIAssistant - DEBUG - User profile loaded: {"uid": "6tkvZi4D6zPD7CucbIwmT0FUgZv2", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T01:18:53.030447", "focus_hours": [], "Name": "Parth2004", "Mood Check": "Daily", "AI Tone": "Casual", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "wani maharashtra india", "Top Task Type": "Personal", "display_name": "Parth2004", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle2004@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-17 01:20:34 - AIAssistant - DEBUG - Received CLI input: what is ur name
+2025-09-17 01:20:34 - AIAssistant - INFO - Processing query: what is ur name for user Parth2004
+2025-09-17 01:20:44 - AIAssistant - DEBUG - Query response: My name is not explicitly stated, but I'm an AI designed to assist. Your name, according to your profile, is Parth2004.
+2025-09-17 01:20:44 - AIAssistant - INFO - Processing single query: None
+2025-09-17 01:20:44 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 01:20:44 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 01:20:44 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 01:20:44 - AIAssistant - DEBUG - User profile loaded: {"uid": "6tkvZi4D6zPD7CucbIwmT0FUgZv2", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T01:18:53.030447", "focus_hours": [], "Name": "Parth2004", "Mood Check": "Daily", "AI Tone": "Casual", "Role": "Professional (Engineer/Developer)", "timezone": "UTC", "Location": "wani maharashtra india", "Top Task Type": "Personal", "display_name": "Parth2004", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle2004@gmail.com", "Break Reminder": "Every 2 hours", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Work-Life Balance"}
+2025-09-17 20:16:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:16:15 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:16:15 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:16:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:16:16 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:17:09 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 20:18:43 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:18:48 - AIAssistant - DEBUG - Received CLI input: atharvadeo
+2025-09-17 20:18:51 - AIAssistant - DEBUG - Received CLI input: Atharva
+2025-09-17 20:18:53 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 20:18:53 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 20:18:57 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:18:59 - AIAssistant - DEBUG - Received CLI input: Pune
+2025-09-17 20:19:03 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 20:19:09 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:12 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:24 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 20:19:26 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:19:27 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:19:30 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 20:19:34 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 20:19:38 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 20:19:38 - AIAssistant - DEBUG - User profile loaded: {"uid": "ZvSOs2HnstYaLphRNwKDchN8oBm1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T20:18:52.847791", "focus_hours": [], "Name": "Atharva", "Mood Check": "None", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Personal", "display_name": "Atharva", "Reminder Type": "None", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Mark as Overdue", "Top Motivation": "Career Growth"}
+2025-09-17 20:19:38 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user Atharva
+2025-09-17 20:19:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 20:43:59 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:43:59 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:43:59 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:43:59 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:44:01 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:44:06 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 20:45:08 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:45:12 - AIAssistant - DEBUG - Received CLI input: atharvadeo
+2025-09-17 20:46:54 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:46:54 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:46:54 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:46:54 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:50:46 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 20:50:46 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:50:46 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 20:50:46 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 20:50:46 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 20:53:13 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 20:53:21 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 20:53:24 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 20:53:26 - AIAssistant - DEBUG - Received CLI input: atharva
+2025-09-17 20:53:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 20:53:28 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 20:53:29 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:33 - AIAssistant - DEBUG - Received CLI input: Pune
+2025-09-17 20:53:34 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:35 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:37 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:39 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:40 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:41 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:42 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:43 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:44 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 20:53:44 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 20:53:44 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 20:53:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 21:15:26 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:15:26 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:15:26 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:15:26 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:15:28 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:15:28 - AIAssistant - DEBUG - Received CLI input: 
+2025-09-17 21:15:31 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:15:35 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:16:21 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:16:21 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:16:21 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:16:21 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:16:22 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:17:20 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:17:26 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 21:17:29 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:17:32 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 21:17:32 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 21:17:32 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 21:18:04 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 21:22:03 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 21:22:03 - AIAssistant - INFO - Running single query mode with: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:22:03 - AIAssistant - INFO - Processing single query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf
+2025-09-17 21:22:03 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 21:22:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 21:22:15 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-17 21:22:22 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-17 21:22:25 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-17 21:22:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 21:22:28 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-17 21:22:28 - AIAssistant - INFO - Processing query: Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf for user atharva
+2025-09-17 21:22:57 - AIAssistant - ERROR - Error processing query 'Summarize the document at C:\Users\parth\Downloads\Extended Synopsis.pdf': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-17 23:21:15 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 23:21:15 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 23:21:15 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 23:21:15 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:21:15 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:21:15 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:21:38 - AIAssistant - DEBUG - Received CLI input: s
+2025-09-17 23:21:56 - AIAssistant - DEBUG - Received CLI input: parthdhengle.spot@gmail.com
+2025-09-17 23:22:00 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-17 23:22:08 - AIAssistant - DEBUG - Received CLI input: Parth spot
+2025-09-17 23:22:09 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 23:22:09 - AIAssistant - WARNING - Missing profile fields: ['Role', 'Location', 'Productive Time', 'Reminder Type', 'Top Task Type', 'Missed Task Handling', 'Top Motivation', 'AI Tone', 'Break Reminder', 'Mood Check', 'Current Focus']. Collecting...
+2025-09-17 23:22:13 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:18 - AIAssistant - DEBUG - Received CLI input: japan
+2025-09-17 23:22:20 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:22 - AIAssistant - DEBUG - Received CLI input: 1
+2025-09-17 23:22:24 - AIAssistant - DEBUG - Received CLI input: 2
+2025-09-17 23:22:26 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 23:22:27 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:29 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:31 - AIAssistant - DEBUG - Received CLI input: 4
+2025-09-17 23:22:32 - AIAssistant - DEBUG - Received CLI input: 3
+2025-09-17 23:22:34 - AIAssistant - DEBUG - Received CLI input: 5
+2025-09-17 23:22:34 - AIAssistant - DEBUG - User profile loaded: {"uid": "7ld8w3dvSzQfiNwbUDKELAHn5Fs2", "Current Focus": "Health & balance", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T23:22:09.206297", "focus_hours": [], "Name": "Parth spot", "Mood Check": "None", "AI Tone": "Motivational", "Role": "Other", "timezone": "UTC", "Location": "japan", "Top Task Type": "Study", "display_name": "Parth spot", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle.spot@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Delete", "Top Motivation": "Health"}
+2025-09-17 23:22:51 - AIAssistant - DEBUG - Received CLI input: what is the weather today??
+2025-09-17 23:22:51 - AIAssistant - INFO - Processing query: what is the weather today?? for user Parth spot
+2025-09-17 23:23:17 - AIAssistant - DEBUG - Query response: Performed web_search: Current weather in Japan today includes sunny skies with a high of 25°C in Tokyo and scattered showers in Osaka with 22°C. Overall, conditions vary by region but are generally mild.
+2025-09-17 23:23:17 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:23:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:23:17 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:23:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-17 23:23:17 - AIAssistant - DEBUG - User profile loaded: {"uid": "7ld8w3dvSzQfiNwbUDKELAHn5Fs2", "Current Focus": "Health & balance", "integrations": {}, "Productive Time": "Night", "updated_at": "2025-09-17T23:22:09.206297", "focus_hours": [], "Name": "Parth spot", "Mood Check": "None", "AI Tone": "Motivational", "Role": "Other", "timezone": "UTC", "Location": "japan", "Top Task Type": "Study", "display_name": "Parth spot", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle.spot@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Delete", "Top Motivation": "Health"}
+2025-09-17 23:28:19 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-17 23:28:19 - AIAssistant - INFO - User requested to quit
+2025-09-17 23:28:34 - AIAssistant - INFO - Starting AI Assistant
+2025-09-17 23:28:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-17 23:28:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-17 23:28:34 - AIAssistant - INFO - Processing single query: None
+2025-09-17 23:28:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-17 23:28:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-17 23:28:36 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:14 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:21:34 - AIAssistant - INFO - Starting AI Assistant
+2025-09-18 00:21:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 00:21:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 00:21:34 - AIAssistant - INFO - Processing single query: None
+2025-09-18 00:21:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 00:21:34 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 00:59:13 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:15 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 00:59:26 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 00:59:26 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 00:59:26 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 00:59:26 - AIAssistant - INFO - Processing single query: None
+2025-09-18 00:59:26 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 00:59:26 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 00:59:29 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 00:59:43 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 00:59:47 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 00:59:47 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:04 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 01:05:04 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 01:05:04 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 01:05:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 01:05:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 01:05:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 01:05:14 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 01:05:19 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 01:05:20 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 01:05:21 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:21 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 01:05:27 - AIAssistant - DEBUG - Received CLI input: what is my name
+2025-09-18 01:05:27 - AIAssistant - INFO - Processing query: what is my name for user Parth Dhengle
+2025-09-18 01:05:38 - AIAssistant - DEBUG - Query response: Your name is Parth Dhengle.
+2025-09-18 01:05:38 - AIAssistant - INFO - Processing single query: None
+2025-09-18 01:05:38 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 01:05:38 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 01:05:38 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 01:05:38 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 01:18:59 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 01:18:59 - AIAssistant - INFO - User requested to quit
+2025-09-18 01:19:21 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-18 09:45:38 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 09:45:46 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 09:45:46 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 09:45:46 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 09:45:46 - AIAssistant - INFO - Processing single query: None
+2025-09-18 09:45:46 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 09:45:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 09:45:50 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 09:46:03 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 09:46:07 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 09:46:07 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 09:46:07 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 09:47:00 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 09:47:00 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 09:47:11 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 09:47:11 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 09:47:11 - AIAssistant - ERROR - Failed to initialize Groq client: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 09:47:11 - AIAssistant - ERROR - Error in document_translate: Failed to initialize Groq client. Please check your API key: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 09:47:29 - AIAssistant - DEBUG - Query response: Performed operations: custom_search (failed due to missing Google API keys), search_files (no PDF files found for 'machine learning'), document_translate (failed due to Groq client initialization error), run_command (failed due to incorrect syntax). Unable to complete Wikipedia search, file search, translation, or renaming due to configuration and execution errors.
+2025-09-18 09:47:29 - AIAssistant - INFO - Processing single query: None
+2025-09-18 09:47:29 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 09:47:29 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 09:47:29 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 09:47:29 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 09:59:16 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 09:59:16 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 09:59:16 - AIAssistant - ERROR - Error in document_translate: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:01:34 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 10:01:34 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:01:34 - AIAssistant - ERROR - Error in document_translate: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:02:57 - AIAssistant - INFO - Running document_translate for file: C:\Users\Parth Dhengle\Downloads\ML_text.txt to French
+2025-09-18 10:02:57 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:02:57 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:02:57 - AIAssistant - INFO - Processing document: C:\Users\Parth Dhengle\Downloads\ML_text.txt with query: translate the document to French
+2025-09-18 10:02:57 - AIAssistant - INFO - Successfully extracted text from text file: C:\Users\Parth Dhengle\Downloads\ML_text.txt
+2025-09-18 10:02:57 - AIAssistant - WARNING - Groq API unavailable; using basic fallback processing.
+2025-09-18 10:02:57 - AIAssistant - INFO - Successfully translated document: C:\Users\Parth Dhengle\Downloads\ML_text.txt
+2025-09-18 10:15:42 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:15:42 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:15:50 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 10:15:50 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:15:50 - AIAssistant - ERROR - Failed to initialize Groq client: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:15:50 - AIAssistant - ERROR - Error in document_translate: Failed to initialize Groq client. Please check your API key: "DocumentProcessorTool" object has no field "groq_client"
+2025-09-18 10:16:04 - AIAssistant - DEBUG - Query response: Performed operations: custom_search (failed due to missing API keys), search_files (no PDF files found in Documents folder), document_translate (failed due to Groq client initialization error), run_command (failed to rename file as it did not exist). All operations encountered errors: unable to search Wikipedia, no machine learning PDFs found, translation not possible, and file rename unsuccessful.
+2025-09-18 10:16:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:16:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:16:04 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:16:04 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:16:04 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:19:13 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:19:17 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:19:17 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:19:17 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:19:17 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:19:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:19:18 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:19:20 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:19:29 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 10:19:34 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 10:19:35 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:19:35 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:20:31 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:20:31 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:20:40 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 10:20:40 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:20:41 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:20:41 - AIAssistant - INFO - Processing document: top matching file path with query: AI ethics
+2025-09-18 10:20:41 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:20:52 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for AI ethics articles, but encountered an error: '<' not supported between instances of 'int' and 'str'. Searched Documents folder for machine learning PDFs, but no files were found. Attempted to translate the top matching file to Spanish and save as 'AI_Ethics_ES.pdf', but both operations failed due to file not found errors. No AI ethics or machine learning files were processed successfully.
+2025-09-18 10:20:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:20:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:20:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:20:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:20:53 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:25:04 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:25:04 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:26:00 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:26:04 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:26:04 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:26:04 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:26:04 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:26:04 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:26:05 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:26:18 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:26:23 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 10:26:26 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 10:26:27 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:26:27 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:26:31 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command.
+2025-09-18 10:26:31 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command. for user Parth Dhengle
+2025-09-18 10:26:41 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 10:26:41 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:26:42 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:26:42 - AIAssistant - INFO - Processing document: top matching file path with query: machine learning
+2025-09-18 10:26:42 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:26:52 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics', yielding multiple relevant entries on AI ethics topics. Semantically searched Documents folder for 'machine learning' PDFs, but no files were found. Translation and renaming operations failed due to missing file. Recommendation: Ensure Documents folder contains PDFs related to machine learning for successful processing, and verify file paths.
+2025-09-18 10:26:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:26:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:26:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:26:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:26:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 10:27:12 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:27:12 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:32:38 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:32:43 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:32:43 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:32:43 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:32:43 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:32:43 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:32:46 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:32:50 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:33:12 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:33:16 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:33:17 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:33:17 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:34:19 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 10:34:19 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user atharva
+2025-09-18 10:34:35 - AIAssistant - INFO - Running document_translate for file: top matching file from search_files operation to es
+2025-09-18 10:34:35 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:34:36 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:34:36 - AIAssistant - INFO - Processing document: top matching file from search_files operation with query: machine learning
+2025-09-18 10:34:36 - AIAssistant - ERROR - File not found: top matching file from search_files operation
+2025-09-18 10:34:53 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics': Found multiple relevant articles, including 'Ethics of artificial intelligence', 'Generative artificial intelligence', and 'Regulation of artificial intelligence'. Searched Documents folder for PDF files on 'machine learning' using semantic search: No files found. Translation and renaming operations failed due to missing file.
+2025-09-18 10:34:53 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:34:53 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:34:53 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:34:53 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:34:53 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:36:16 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthong. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 10:36:16 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthong. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user atharva
+2025-09-18 10:36:31 - AIAssistant - INFO - Running document_translate for file: top matching file path to es
+2025-09-18 10:36:31 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:36:32 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:36:32 - AIAssistant - INFO - Processing document: top matching file path with query: AI ethics
+2025-09-18 10:36:32 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 10:36:45 - AIAssistant - DEBUG - Query response: Performed custom_search (found Wikipedia articles on AI ethics), search_files (no matching files found), document_translate (failed due to missing file), and run_command (failed due to missing file). No PDF files related to AI ethics were found in Documents folder, so translation and renaming could not be completed.
+2025-09-18 10:36:45 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:36:45 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:36:45 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:36:45 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:36:45 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:38:03 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthon. Translate the top matching file to Spanish.
+2025-09-18 10:38:03 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on hackthon. Translate the top matching file to Spanish. for user atharva
+2025-09-18 10:38:20 - AIAssistant - INFO - Running document_translate for file: top_matching_file.pdf to Spanish
+2025-09-18 10:38:20 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 10:38:20 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 10:38:20 - AIAssistant - INFO - Processing document: top_matching_file.pdf with query: hackathon
+2025-09-18 10:38:20 - AIAssistant - ERROR - File not found: top_matching_file.pdf
+2025-09-18 10:38:39 - AIAssistant - DEBUG - Query response: Performed custom_search: Found recent Wikipedia articles on AI ethics, including topics like ethics of AI, conferences, and key figures. Performed search_files: No files matching 'hackathon' were found in the Documents folder. Performed document_translate: Translation could not proceed due to no matching file found. Key insight: No relevant PDF files available for semantic search or translation, suggesting a need to acquire or create content related to 'hackathon' in AI ethics context.
+2025-09-18 10:38:39 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:38:39 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:38:40 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:38:40 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:38:40 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:46:40 - AIAssistant - DEBUG - Received CLI input: document related to parth dhengle
+2025-09-18 10:46:40 - AIAssistant - INFO - Processing query: document related to parth dhengle for user atharva
+2025-09-18 10:47:15 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 10:47:30 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:47:35 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:47:35 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:47:35 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:47:35 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:47:35 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:47:38 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:47:39 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:47:48 - AIAssistant - DEBUG - Received CLI input: atharva20051@gail.com
+2025-09-18 10:47:55 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:48:09 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:48:14 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:48:14 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:48:14 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:48:14 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:48:14 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:48:15 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:48:16 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:48:23 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:48:26 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:48:26 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:48:27 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:48:54 - AIAssistant - DEBUG - Received CLI input: find me document related to parth dhengle in my downloads.
+2025-09-18 10:48:54 - AIAssistant - INFO - Processing query: find me document related to parth dhengle in my downloads. for user atharva
+2025-09-18 10:49:14 - AIAssistant - DEBUG - Query response: Performed search_files: No files matching 'parth dhengle' were found in your downloads folder.
+2025-09-18 10:49:14 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:49:14 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:49:14 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:49:14 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:49:14 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:50:11 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 10:50:11 - AIAssistant - INFO - User requested to quit
+2025-09-18 10:50:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 10:50:34 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 10:50:34 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 10:50:34 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 10:50:34 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:50:34 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:50:35 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:51:14 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 10:51:20 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 10:55:12 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 10:55:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:55:13 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 10:56:15 - AIAssistant - DEBUG - Received CLI input: find me document related to parth dhengle from "C:\Users\Parth Dhengle\Downloads"
+2025-09-18 10:56:15 - AIAssistant - INFO - Processing query: find me document related to parth dhengle from "C:\Users\Parth Dhengle\Downloads" for user atharva
+2025-09-18 10:56:48 - AIAssistant - DEBUG - Query response: Performed search_files: No files related to 'Parth Dhengle' were found in the downloads folder using semantic content matching.
+2025-09-18 10:56:48 - AIAssistant - INFO - Processing single query: None
+2025-09-18 10:56:48 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 10:56:48 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 10:56:48 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 10:56:48 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 11:02:52 - AIAssistant - DEBUG - Received CLI input: sgx
+2025-09-18 11:02:52 - AIAssistant - INFO - Processing query: sgx for user atharva
+2025-09-18 11:02:56 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 11:03:11 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 11:03:17 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 11:03:17 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 11:03:17 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 11:03:17 - AIAssistant - INFO - Processing single query: None
+2025-09-18 11:03:17 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 11:03:18 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 11:04:00 - AIAssistant - INFO - CLI input interrupted by user
+2025-09-18 11:04:02 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 11:04:07 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-18 13:36:17 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:36:32 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:36:32 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:36:32 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:36:32 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:36:32 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:37:54 - AIAssistant - INFO - Interactive mode terminated by user
+2025-09-18 13:38:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:38:33 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:38:33 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:38:33 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:38:33 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:38:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:41:40 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-18 13:41:47 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 13:41:47 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 13:41:47 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 13:41:47 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:41:47 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:41:47 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:41:55 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 13:42:07 - AIAssistant - DEBUG - Received CLI input: parthdhengle12@gmail.com
+2025-09-18 13:42:12 - AIAssistant - DEBUG - Received CLI input: Parth@2006
+2025-09-18 13:42:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:42:12 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 13:42:46 - AIAssistant - DEBUG - Received CLI input: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command
+2025-09-18 13:42:46 - AIAssistant - INFO - Processing query: Search Wikipedia for recent articles on AI ethics (site-restricted to wikipedia.org). Then, semantically search my Documents folder for related PDF files on machine learning. Translate the top matching file to Spanish, and save the output as 'AI_Ethics_ES.pdf' using a shell command for user Parth Dhengle
+2025-09-18 13:42:56 - AIAssistant - INFO - Running document_translate for file: top matching file path to Spanish
+2025-09-18 13:42:56 - AIAssistant - INFO - Using GROQ_API_KEY1 for Groq API
+2025-09-18 13:42:56 - AIAssistant - WARNING - Groq API test failed (e.g., rate limit or invalid model): Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}. Using basic mode.
+2025-09-18 13:42:56 - AIAssistant - INFO - Processing document: top matching file path with query: machine learning
+2025-09-18 13:42:56 - AIAssistant - ERROR - File not found: top matching file path
+2025-09-18 13:43:12 - AIAssistant - DEBUG - Query response: Performed Wikipedia search for 'recent articles on AI ethics', yielding 5 relevant results including topics like AI ethics, machine ethics, and generative AI ethics. Searched for 'machine learning' PDF files in Documents folder but found none. Translation and rename operations failed due to missing file. Key insights: Wikipedia provides comprehensive AI ethics coverage, but no local machine learning PDFs were available for processing.
+2025-09-18 13:43:12 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:43:12 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:43:12 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:43:12 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:43:12 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 13:48:20 - AIAssistant - DEBUG - Received CLI input: give me information abouyt contry india
+2025-09-18 13:48:20 - AIAssistant - INFO - Processing query: give me information abouyt contry india for user Parth Dhengle
+2025-09-18 13:48:38 - AIAssistant - DEBUG - Query response: Performed custom_search: India is officially the Republic of India, located in South Asia. It is the seventh-largest country by area and the most populous country since 2023, with over 1.4 billion people. Key facts: capital is New Delhi; government is a federal republic; official languages include Hindi and English; consists of 28 states and 8 union territories. This information can support your career growth by enhancing your general knowledge and cultural awareness.
+2025-09-18 13:48:38 - AIAssistant - INFO - Processing single query: None
+2025-09-18 13:48:38 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 13:48:39 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 13:48:39 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 13:48:39 - AIAssistant - DEBUG - User profile loaded: {"uid": "HgJj0c2EKmTsj3Jg5tG4qHHZZrn1", "Current Focus": "Grow career skills", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T00:52:55.040758", "focus_hours": [], "Name": "Parth Dhengle", "Mood Check": "Daily", "AI Tone": "Motivational", "Role": "Student", "timezone": "UTC", "Location": "pune india", "Top Task Type": "Work", "display_name": "Parth Dhengle", "Reminder Type": "Email", "permissions": {}, "email": "parthdhengle12@gmail.com", "Break Reminder": "None", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Personal Development"}
+2025-09-18 19:13:06 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-18 19:13:33 - AIAssistant - INFO - Starting AI Assistant (CLI)
+2025-09-18 19:13:33 - AIAssistant - INFO - Running in interactive CLI mode
+2025-09-18 19:13:33 - AIAssistant - INFO - Displayed welcome message
+2025-09-18 19:13:33 - AIAssistant - INFO - Processing single query: None
+2025-09-18 19:13:33 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 19:13:35 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 19:16:19 - AIAssistant - DEBUG - Received CLI input: l
+2025-09-18 19:16:27 - AIAssistant - DEBUG - Received CLI input: atharva20051@gmail.com
+2025-09-18 19:16:30 - AIAssistant - DEBUG - Received CLI input: atharva20051
+2025-09-18 19:16:31 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 19:16:32 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+2025-09-18 19:16:41 - AIAssistant - DEBUG - Received CLI input: What is ai
+2025-09-18 19:16:41 - AIAssistant - INFO - Processing query: What is ai for user atharva
+2025-09-18 19:16:52 - AIAssistant - ERROR - Error processing query 'What is ai': litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-18 19:16:52 - AIAssistant - INFO - Processing single query: None
+2025-09-18 19:16:52 - AIAssistant - INFO - Validating Firebase connectivity
+2025-09-18 19:16:52 - AIAssistant - INFO - Firebase connected successfully
+2025-09-18 19:16:52 - AIAssistant - INFO - Loading or creating user profile
+2025-09-18 19:16:52 - AIAssistant - DEBUG - User profile loaded: {"uid": "4DbFQ8ViPyOPjyZkPIsPMU3QjY82", "Current Focus": "Finish studies", "integrations": {}, "Productive Time": "Morning", "updated_at": "2025-09-17T20:53:27.836689", "focus_hours": [], "Name": "atharva", "Mood Check": "Daily", "AI Tone": "Friendly", "Role": "Student", "timezone": "UTC", "Location": "Pune", "Top Task Type": "Work", "display_name": "atharva", "Reminder Type": "Email", "permissions": {}, "email": "atharva20051@gmail.com", "Break Reminder": "Every 25 minutes", "Missed Task Handling": "Reschedule Automatically", "Top Motivation": "Career Growth"}
+<<<<<<< HEAD
+2025-09-21 12:58:07 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-21 12:58:27 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+=======
+2025-09-19 15:22:20 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:28 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 15:24:33 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:03:26 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:03:31 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:13:42 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:13:55 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 16:28:03 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 16:28:11 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:20:17 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:20:24 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-19 19:24:06 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-19 19:24:18 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:36:52 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:36:56 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:37:51 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:37:59 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:38:29 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:38:36 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:39:30 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:39:37 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:39:52 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:39:59 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8000
+2025-09-20 01:40:50 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:40:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-20 01:43:14 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-20 01:43:19 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 00:05:02 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 00:05:10 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 02:57:49 - AIAssistant - INFO - Loaded .env file from C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\.env
+2025-09-21 02:57:57 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+>>>>>>> 98edb2a8b5c8fa7c968307c08ff813d9c0ea5ee6
+2025-09-21 13:06:51 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-21 13:07:01 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 13:33:04 - AIAssistant - INFO - Loaded .env file from C:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-21 13:34:15 - AIAssistant - INFO - Starting FastAPI server on http://127.0.0.1:8001
+2025-09-21 13:37:51 - AIAssistant - ERROR - Error processing query: litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-21 13:44:49 - AIAssistant - ERROR - Error processing query: litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+2025-09-28 21:56:52 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 21:56:52 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 21:56:52 - AIAssistant - ERROR - CSV file not found: C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\music_model_data.csv
+2025-09-28 21:58:48 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 21:58:48 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 21:58:48 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 21:58:48 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 21:58:48 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 21:58:48 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 21:58:54 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 21:58:54 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 21:58:54 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 21:58:54 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 21:58:58 - AIAssistant - WARNING - Library approach failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\parth\\AppData\\Local\\Temp\\tmp21bn8msxdashboard_resources'. Falling back to manual creation.
+2025-09-28 21:58:58 - AIAssistant - INFO - Using manual Power BI project creation
+2025-09-28 21:58:58 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_oxv2ll3p\auto_dashboard_20250928_215854
+2025-09-28 22:08:47 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:08:48 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:08:48 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:08:48 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:08:48 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:08:48 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:08:52 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "car_ID",
+      "y_field": "horsepower", 
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:08:52 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": ...
+2025-09-28 22:08:52 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:08:52 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'car_ID', 'y_field': 'horsepower', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:08:52 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:08:52 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_t_sdd9lh\auto_dashboard_20250928_220852
+2025-09-28 22:10:43 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:10:43 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:10:43 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:10:43 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:10:43 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:10:43 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:10:46 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:10:46 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 22:10:46 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:10:46 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:10:46 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:10:46 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_85ye6i2u\auto_dashboard_20250928_221046
+2025-09-28 22:11:07 - AIAssistant - INFO - Dashboard created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_85ye6i2u\auto_dashboard_20250928_221046
+Dashboard opened in Power BI Desktop.
+2025-09-28 22:11:50 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:11:50 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:11:50 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:11:50 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:11:50 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:11:50 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:11:53 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "carlength",
+      "y_field": "horsepower",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:11:53 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 22:11:53 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:11:53 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'carlength', 'y_field': 'horsepower', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:11:53 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:11:53 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_6jbgwvme\auto_dashboard_20250928_221153
+2025-09-28 22:15:10 - AIAssistant - INFO - Dashboard created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_6jbgwvme\auto_dashboard_20250928_221153
+Dashboard opened in Power BI Desktop.
+2025-09-28 22:15:14 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:15:14 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:15:14 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:15:14 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:15:14 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:15:14 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:15:16 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price", 
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:15:16 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": ...
+2025-09-28 22:15:16 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:15:16 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel'], 'query': 'Generate Power BI dashboard showing bar chart and line chart.'}
+2025-09-28 22:15:16 - AIAssistant - INFO - CSV copied to: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard__qp55o38\CarPrice_Assignment.csv
+2025-09-28 22:15:16 - AIAssistant - INFO - Creating Power BI template/instruction file
+2025-09-28 22:15:16 - AIAssistant - INFO - Power BI template created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard__qp55o38\auto_dashboard_20250928_221516.pbit

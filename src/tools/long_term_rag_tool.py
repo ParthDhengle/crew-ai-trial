@@ -52,3 +52,5 @@ class LongTermRagTool(BaseTool):
 
         except Exception as e:
             return f"❌ Error in LongTermMemorySearch: {str(e)}"
+        
+

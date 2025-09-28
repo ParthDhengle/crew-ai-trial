@@ -77,4 +77,4 @@ class ChatHistory:
             return summary
         except Exception as e:
             print(f"Error summarizing history: {e}. Returning default summary.")
-            return "History summary unavailable."
+            return "History summary unavailable."        
