@@ -172,7 +172,7 @@ class OSFileSearcher:
 
         return results
 
-def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.expanduser('~'), 'Downloads'), use_semantic: bool = True, top_k: int = 3):
+def sementic_file_search(query: str, root_dir: str = os.path.join(os.path.expanduser('~'), 'Downloads'), use_semantic: bool = True, top_k: int = 3):
     """
     High-level function for your AI assistant to handle file queries.
     Determines if query is semantic (e.g., contains phrases) or keyword-based.
@@ -196,8 +196,8 @@ def ai_assistant_file_query(query: str, root_dir: str = os.path.join(os.path.exp
 
 
 
-# if __name__ == "__main__":
-#     query = "document related to parth dhengle"
-#     results = ai_assistant_file_query(query, use_semantic=True, top_k=3)
-#     for res in results:
-#         print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")
+if __name__ == "__main__":
+    query = "trip itineraries"
+    results = sementic_file_search(query, use_semantic=True, top_k=3)
+    for res in results:
+        print(f"Title: {res['title']}\nPath: {res['path']}\nSnippet: {res['snippet']}\nScore: {res['relevance_score']}\n---")

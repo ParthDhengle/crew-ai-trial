@@ -21,7 +21,7 @@ from operations_store import queue_operation_local, update_operation_local, get_
 import asyncio
 from firebase_client import add_summary  # For storing summaries
 from datetime import datetime
-
+from pathlib import Path
 PROJECT_ROOT = find_project_root()
 MEMORY_DIR = os.path.join(PROJECT_ROOT, "knowledge", "memory")
 @CrewBase
@@ -105,6 +105,7 @@ class AiAgent:
             return "\n".join([doc.page_content for doc in results])
         return content
 
+    
 
     def _format_user_profile_for_llm(self, profile_data: dict) -> str:
         """Format user profile data into comprehensive context for the LLM"""
@@ -155,6 +156,19 @@ class AiAgent:
     - Frame responses to align with their primary motivation
     - Use location context for time zones, local references, or regional considerations"""
 
+    def get_system_info():
+        return {
+            "Home_directory":Path.home(),
+            "system": platform.system(),           # Windows, Linux, Darwin (macOS)
+            "release": platform.release(),         # OS release (e.g., 10, 11, 22.04)
+            "version": platform.version(),         # Detailed version
+            "architecture": platform.architecture()[0],  # 64bit / 32bit
+            "machine": platform.machine(),         # x86_64, AMD64, arm64
+            "processor": platform.processor(),     # CPU info
+            "python_version": platform.python_version(), # Python version
+            "node": platform.node(),               # Device/host name
+        }
+
     async def run_workflow(self, user_query: str, file_path: str = None, session_id: str = None, uid: str = None):
         """
         Enhanced workflow with proper error handling and uid management
@@ -201,8 +215,8 @@ class AiAgent:
             relevant_facts = self.memory_manager.retrieve_long_term(user_query)
             
             # System info
-            os_info = f"{platform.system()} {platform.release()}"
-            
+            os_info=self.get_system_info()
+    
             inputs = {
                 'user_query': user_query,
                 'file_content': file_content or "",

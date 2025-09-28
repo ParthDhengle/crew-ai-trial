@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-from firebase_client import db
+from src.firebase_client import db
 from typing import Optional, List, Dict, Tuple
 import json
 import os
@@ -221,3 +221,11 @@ def delete_task(
         return False, str(ve)
     except Exception as e:
         return False, f"Failed to delete task: {str(e)}"
+    
+
+
+if __name__ == "__main__":
+    # Example usage
+    uid = "user123"  # Replace with actual user ID
+    success, message = create_task("Test Task", "This is a test task", "2024-12-31", "High", ["test", "demo"], uid)
+    print(success, message)

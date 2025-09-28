@@ -7,7 +7,7 @@ from .operations.document_processor import document_summarize, document_translat
 from firebase_client import get_operations
 from .operations.custom_search import custom_search
 from .operations.powerbi_dashboard import powerbi_generate_dashboard
-from .operations.os_ai_file_search import ai_assistant_file_query
+from .operations.sementic_file_search import ai_assistant_file_query
 from .operations.run_terminal_command import run_command
 from .operations.app_opening import open_app
 from .operations.Mail_search import searchMail

@@ -28,7 +28,7 @@
             "undo": "N/A"
         },
         {
-            "name": "search_files",
+            "name": "sementic_file_search",
             "required_parameters": ["query"],
             "optional_parameters": ["path", "use_semantic"],
             "description": "Searches for files (PDF, DOCX, TXT) using keywords or semantic content matching.",
