@@ -13,11 +13,25 @@ import DashboardCard from "@/components/DashboardCard"; // Assume this exists
 import Settings from "@/components/Settings"; // Assume this exists
 import { useNova } from "@/context/NovaContext";
 import NotFound from "./pages/NotFound";
+import { initializeApp } from 'firebase/app';
+import ProfileSetupForm from "@/components/ProfileSetupForm";
+import { useState, useEffect } from "react";
+
 const queryClient = new QueryClient();
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, needsProfileSetup } = useAuth();
   const { state } = useNova();
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   
+  useEffect(() => {
+    if (isAuthenticated && needsProfileSetup) {
+      setShowProfileSetup(true);
+    }
+  }, [isAuthenticated, needsProfileSetup]);
+
+  const handleProfileComplete = () => {
+    setShowProfileSetup(false);
+  }
   // Show loading while checking authentication
   if (isLoading) {
     return (
@@ -33,6 +47,11 @@ function AppContent() {
   // Show login if not authenticated
   if (!isAuthenticated) {
     return <LoginForm />;
+  }
+
+  // Show profile setup if needed (NEW)
+  if (showProfileSetup) {
+    return <ProfileSetupForm onComplete={handleProfileComplete} />;
   }
 
   // FIXED: Detect mini ONLY via URL/global (Electron prod) or ?mini (dev). Ignore state.isMiniMode to avoid override after IPC switch.

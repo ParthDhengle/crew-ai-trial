@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNova } from '@/context/NovaContext';
 import Composer from './Composer';
 import type { ChatMessage, NovaRole } from '@/api/types';
-
+import { useAuth } from '@/context/AuthContext';
 /**
  * FullChat - Pure chat content (no layout—use in MainLayout)
  */
@@ -24,11 +24,25 @@ export default function FullChat({
 }: FullChatProps) {
   const { state, dispatch } = useNova();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const { user } = useAuth();
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.currentSession?.messages]);
+
+  useEffect(() => {
+    if (!state.currentSession) {
+      // Auto-create if none (handled in context, but fallback)
+      const newSession = {
+        id: crypto.randomUUID(),
+        title: 'Main Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
+    }
+  }, [state.currentSession]);
 
   // Message actions
   const handleMessageAction = async (action: { type: string; payload?: any }) => {
@@ -85,7 +99,11 @@ export default function FullChat({
                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-primary-foreground">
                   N
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to Nova</h2>
+                <h2 className="text-2xl font-bold mb-2">
+                  {user
+                    ? `Hi ${user.displayName || user.email?.split('@')[0]}, welcome to Nova!!`
+                    : "Welcome to Nova"}
+                </h2>
                 <p className="text-muted-foreground mb-4">
                   {getRoleGreeting(state.role)}
                 </p>
@@ -100,9 +118,9 @@ export default function FullChat({
               </motion.div>
             )}
             {/* Messages */}
-            {state.currentSession?.messages.map((message, index) => (
+            {state.currentSession?.messages?.length > 0 && state.currentSession?.messages.map((message, index) => (
               <motion.div
-                key={message.id}
+                key={`${message.id}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -130,7 +148,10 @@ export default function FullChat({
                     </div>
                     {/* Content */}
                     <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
+                      {typeof message.content === 'string' 
+                        ? message.content 
+                        : JSON.stringify(message.content, null, 2)  // Pretty-print object as fallback
+                      }
                     </div>
                     {/* Actions */}
                     {message.actions && message.actions.length > 0 && (

@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { useAgentOps } from '@/hooks/useElectronApi';
+import { useAgentOps } from '@/hooks/useAgentOps'; // Updated to SSE hook;
 import { useNova } from '@/context/NovaContext';
 import type { AgentOp } from '@/api/types';
 
@@ -43,7 +43,7 @@ export default function AgentOpsPanel({
   className = '',
   collapsible = true 
 }: AgentOpsPanelProps) {
-  const { operations, cancelOperation } = useAgentOps();
+  const { operations, cancelOperation, agentStatus } = useAgentOps();
   const { state, dispatch } = useNova();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
@@ -89,10 +89,16 @@ export default function AgentOpsPanel({
   };
 
   // Format elapsed time
-  const formatElapsedTime = (startTime?: number) => {
+  const formatElapsedTime = (startTime?: number | string) => {
     if (!startTime) return '0s';
-    
-    const elapsed = Date.now() - startTime;
+    let timeMs: number;
+    if (typeof startTime === 'string') {
+      timeMs = new Date(startTime).getTime();
+    } else {
+      timeMs = startTime;
+    }
+
+    const elapsed = Date.now() - timeMs;
     const seconds = Math.floor(elapsed / 1000);
     const minutes = Math.floor(seconds / 60);
     

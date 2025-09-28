@@ -10,9 +10,24 @@ import google.generativeai as genai
 from common_functions.Find_project_root import find_project_root
 import uuid
 from firebase_client import add_chat_message, get_chat_history  # Updated imports
-
+from firebase_client import add_chat_message
+import os
 project_root = find_project_root()
 genai.configure(api_key=os.getenv('GEMINI_API_KEY1'))
+import asyncio
+
+async def save_chat_message(session_id: str, uid: str, role: str, content: str, timestamp: str) -> str:
+    """
+    Save a single chat message to Firebase and return the session ID.
+    Wrapper around add_chat_message to maintain compatibility with app.py.
+    """
+    if session_id is None:
+        session_id = f"session_{datetime.now().strftime('%Y-%m-%d')}_{uuid.uuid4().hex[:8]}"
+    await asyncio.get_event_loop().run_in_executor(
+        None, lambda: add_chat_message(uid, role, content, session_id, timestamp)
+    )
+    print(f"Saved message to Firebase (session: {session_id}, role: {role}).")
+    return session_id
 
 class ChatHistory:
     @staticmethod
@@ -25,34 +40,24 @@ class ChatHistory:
     def load_history(session_id: str = None):
         if session_id is None:
             session_id = ChatHistory.get_session_id()
-        # Fetch recent history (last 50 docs, filter to session if provided)
         history_docs = get_chat_history(session_id)
-        # Sort by timestamp and limit to last 20 turns (user/assistant pairs)
         history_docs.sort(key=lambda x: x.get('timestamp', ''))
-        history = []
-        for doc in history_docs[-40:]:  # Up to 40 to get ~20 pairs
-            history.append({
-                "role": doc["role"],
-                "content": doc["content"]
-            })
-        # Ensure even number (trim if odd)
+        history = [{"role": doc["role"], "content": doc["content"]} for doc in history_docs[-16:]]  # Up to 16 for 8 pairs
         if len(history) % 2 == 1:
             history = history[:-1]
         print(f"Loaded {len(history)//2} turns from Firebase (session: {session_id}).")
         return history
 
     @staticmethod
-    def save_history(history: list, session_id: str = None):
+    def save_history(history: list, session_id: str = None, uid: str = None):
         if session_id is None:
             session_id = ChatHistory.get_session_id()
+        if uid is None:
+            uid = os.getenv("USER_ID", "default_uid")  # Fallback; in app.py, pass explicitly
         for entry in history:
-            add_chat_message(
-                role=entry["role"],
-                content=entry["content"],
-                session_id=session_id
-            )
+            add_chat_message(uid, entry["role"], entry["content"], session_id)  # <- Added uid
         print(f"Saved history to Firebase (session: {session_id}).")
-
+    
     @staticmethod
     def summarize(history: list):
         if len(history) < 2:

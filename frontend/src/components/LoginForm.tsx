@@ -20,7 +20,7 @@ import {
   Maximize2 // Added for close functionality
 } from 'lucide-react';
 interface LoginFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (needsProfileSetup?: boolean) => void;
   className?: string;
 }
 import { useWindowControls } from '@/hooks/useElectronApi';
@@ -47,14 +47,15 @@ export default function LoginForm({ onSuccess, className = '' }: LoginFormProps)
     if (activeTab === 'signup' && formData.password !== formData.confirmPassword) {
       return;
     }
-
     try {
+      let result: { needsProfileSetup: boolean };
+      
       if (activeTab === 'login') {
-        await login(formData.email, formData.password);
+        result = await login(formData.email, formData.password);
       } else {
-        await signup(formData.email, formData.password);
+        result = await signup(formData.email, formData.password);
       }
-      onSuccess?.();
+      onSuccess?.(result.needsProfileSetup);
     } catch (error) {
       // Error is handled by the auth context
     }
@@ -310,6 +311,11 @@ export default function LoginForm({ onSuccess, className = '' }: LoginFormProps)
             
             <div className="mt-6 text-center text-sm text-muted-foreground">
               <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+              {activeTab === 'signup' && (
+                <p className="mt-2 text-primary">
+                  After signup, you'll complete a quick profile setup to personalize your Nova experience.
+                </p>
+                )}
             </div>
           </CardContent>
         </Card>

@@ -1,51 +1,55 @@
-# src/tools/operations_tool.py
 import os
 import json
 from typing import List, Dict, Any, Tuple
 import re
 from common_functions.Find_project_root import find_project_root
 from .operations.document_processor import document_summarize, document_translate
-from firebase_client import get_operations  # For defs; fallback to JSON
+from firebase_client import get_operations
+from .operations.custom_search import custom_search
+from .operations.powerbi_dashboard import powerbi_generate_dashboard
+from .operations.sementic_file_search import sementic_file_search
+from .operations.run_terminal_command import run_command
+from .operations.app_opening import open_app
+from .operations.Mail_search import searchMail
+from .operations.send_mail import send_email
+from .operations.event_op import create_task, update_task, delete_task, mark_complete, read_task
+from .operations.ragsearch import rag_search
+from .operations.word_doc import word_generate_from_query
+from .operations.powerpoint_generate import powerpoint_generate_from_query
 
 PROJECT_ROOT = find_project_root()
 
-# Dynamic imports for active ops only
-from .operations.custom_search import custom_search
-from .operations.powerbi_dashboard import powerbi_generate_dashboard
-from .operations.os_ai_file_search import ai_assistant_file_query  # For search_files wrapper
-from .operations.run_terminal_command import run_command  # Note: returns dict, so wrap it
-from .operations.app_opening import open_app  # New import for open_app function
-from .operations.Mail_search import searchMail  # Import searchMail function
-from .operations.send_mail import send_email  # Import send_email function
+
 class OperationsTool:
     """Dispatcher for active operations only. Maps 'name' to funcs; validates via Firebase/json defs."""
-
     def __init__(self):
         self.param_definitions = self._parse_operations()
         self.operation_map = {
-            # Active ops only
             "custom_search": custom_search,
             "document_summarize": document_summarize,
             "document_translate": document_translate,
             "powerbi_generate_dashboard": powerbi_generate_dashboard,
-            # File search wrapper
-            "search_files": self._search_files_wrapper,
-            # Command wrapper (converts dict to tuple)
+            "sementic_file_search": self._search_files_wrapper,
+            "powerpoint_generate_from_query": powerpoint_generate_from_query,
             "run_command": self._run_command_wrapper,
-            # Open app wrapper
             "open_app": open_app,
-            # Mail search wrapper
-            "searchMail": searchMail,
-            # Send mail wrapper
-            "send_email": send_email,
+            "search_mail": searchMail,
+            "send_mail": send_email,
+            "create_task": create_task,
+            "update_task": update_task,
+            "delete_task": delete_task,
+            "mark_complete": mark_complete,
+            "read_task": read_task,
+            "rag_search": rag_search,
+            "word_generate_from_query": word_generate_from_query,
         }
+        self.task_ops = ["create_task", "update_task", "delete_task", "mark_complete", "read_task"]
 
     def _parse_operations(self) -> Dict[str, Dict[str, List[str]]]:
         """Load op defs from Firebase (fallback json)."""
         try:
             operations = get_operations()
         except:
-            # Fallback to local JSON
             json_path = os.path.join(PROJECT_ROOT, "knowledge", "operations.json")
             with open(json_path, "r") as f:
                 data = json.load(f)
@@ -60,14 +64,14 @@ class OperationsTool:
         return param_defs
 
     def _search_files_wrapper(self, query: str, path: str = None, use_semantic: bool = True) -> Tuple[bool, str]:
-        """Wrapper for search_files to match op signature (returns tuple[bool, str])."""
+        """Wrapper for sementic_file_search to match op signature (returns tuple[bool, str])."""
         try:
             root_dir = path or os.path.join(os.path.expanduser('~'), 'Downloads')
-            results = ai_assistant_file_query(query, root_dir, use_semantic)
+            results = sementic_file_search(query, root_dir, use_semantic)
             result_str = json.dumps(results, indent=2) if results else "No files found."
             return True, f"Search results for '{query}':\n{result_str}"
         except Exception as e:
-            return False, f"Error in search_files: {str(e)}"
+            return False, f"Error in sementic_file_search: {str(e)}"
 
     def _run_command_wrapper(self, command: str) -> Tuple[bool, str]:
         """Wrapper for run_command to convert dict return to tuple[bool, str]."""
@@ -86,17 +90,12 @@ class OperationsTool:
             return False, f"Unknown op: {operation_name}", []
         definition = self.param_definitions[operation_name]
         required = definition["required"]
-        optional = definition["optional"]
-        all_valid = required + optional
-        invalid = [p for p in provided_params if p not in all_valid]
-        if invalid:
-            return False, f"Invalid params for {operation_name}: {invalid}", []
         missing = [p for p in required if p not in provided_params]
         if missing:
             return False, f"Missing required for {operation_name}: {missing}", missing
         return True, "Valid", []
 
-    def _run(self, operations: List[Dict[str, Any]]) -> str:
+    def _run(self, operations: List[Dict[str, Any]], uid: str = None) -> str:
         """Exec ops sequentially; append results. Handles missing params via placeholders."""
         if not operations:
             return "No ops provided."
@@ -116,7 +115,15 @@ class OperationsTool:
                 continue
             try:
                 func = self.operation_map[name]
-                success, result = func(**params)
+                if name in self.task_ops:
+                    if uid is None:
+                        lines.append(f"❌ {name}: Missing uid for task operation.")
+                        continue
+                    # Add uid to params for task operations
+                    task_params = {**params, 'uid': uid}
+                    success, result = func(**task_params)
+                else:
+                    success, result = func(**params)
                 lines.append(f"✅ {name}: {result}")
             except Exception as e:
                 lines.append(f"❌ {name}: {str(e)}")

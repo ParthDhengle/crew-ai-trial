@@ -7,7 +7,8 @@ import type {
   Integration,
   NovaRole
 } from '@/api/types';
-
+import { apiClient } from '@/api/client';
+import { useNova } from '@/context/NovaContext'; // FIXED: Import useNova for state/dispatch
 /**
  * React hook wrapper for Electron API interactions
  * Provides typed access to window.api methods with React state management
@@ -18,7 +19,6 @@ export const useElectronApi = () => {
     window.api &&
     typeof window.api === 'object'
   );
- 
   // Enhanced fallback for when running in browser (development)
   const mockApi = {
     requestExpand: async () => {
@@ -61,60 +61,97 @@ export const useElectronApi = () => {
     notify: (title: string, body?: string) => console.log('Mock: notify', title, body),
   };
   const api = isElectron ? window.api : mockApi;
- 
-  // FIXED: Remove the test call—causes IPC loop/crash!
   console.log('HOOK: useElectronApi initialized, isElectron:', isElectron);
- 
   return {
     api,
     isElectron,
   };
 };
-
 /**
- * Hook for managing agent operations state
+ * Hook for managing window state with improved error handling
  */
-export const useAgentOps = () => {
-  const [operations, setOperations] = useState<AgentOp[]>([]);
+export const useWindowControls = () => {
   const { api, isElectron } = useElectronApi();
-  useEffect(() => {
-    if (!isElectron) {
-      // Mock data for development
-      setOperations([
-        {
-          id: '1',
-          title: 'Analyzing calendar conflicts',
-          desc: 'Checking for scheduling conflicts in next week',
-          status: 'running',
-          progress: 65,
-          startTime: Date.now() - 30000,
-        },
-        {
-          id: '2',
-          title: 'Email draft preparation',
-          desc: 'Preparing response to client inquiry',
-          status: 'pending',
-          startTime: Date.now() - 5000,
-        }
-      ]);
-      return;
+  const [isExpanding, setIsExpanding] = useState(false);
+  const contract = useCallback(async () => { // FIXED: Override to switch to mini
+    try {
+      if (isElectron) {
+        // Switch to mini instead of taskbar minimize
+        await api.requestMinimize?.();
+        console.log('HOOK: Minimized to mini widget');
+      } else {
+        console.log('Mock: windowMinimize (switching to mini)');
+      }
+    } catch (error) {
+      console.error('Failed to minimize window:', error);
     }
-    const unsubscribe = api.onAgentOpsUpdate?.(setOperations);
-    return unsubscribe;
   }, [api, isElectron]);
-  const cancelOperation = useCallback((id: string) => {
-    // TODO: IMPLEMENT IN PRELOAD - api.cancelOperation(id)
-    setOperations(ops => ops.filter(op => op.id !== id));
-  }, []);
+  const minimize = useCallback(() => {
+    try {
+      api.windowMinimize?.(); // <- must be exposed from preload → main
+      console.log('HOOK: Minimized to taskbar');
+    } catch (error) {
+      console.error('Failed to minimize window:', error);
+    }
+  }, [api]);
+  const maximize = useCallback(() => {
+    try {
+      api.windowMaximize?.();
+    } catch (error) {
+      console.error('Failed to maximize window:', error);
+    }
+  }, [api]);
+  const close = useCallback(() => {
+    try {
+      api.windowClose?.();
+    } catch (error) {
+      console.error('Failed to close window:', error);
+    }
+  }, [api]);
+  const expand = useCallback(async () => {
+    if (isExpanding) {
+      console.log('HOOK: Expand already in progress, skipping...');
+      return { success: false, error: 'Expand already in progress' };
+    }
+    setIsExpanding(true);
+    console.log('HOOK: Calling api.requestExpand...');
+    try {
+      console.log('HOOK: About to await requestExpand...');
+      const result = await api.requestExpand?.();
+      console.log('HOOK: api.requestExpand succeeded:', result);
+      // FIXED: Reset immediately on success
+      setIsExpanding(false);
+      // Add a small delay to ensure window switch completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return result || { success: true };
+    } catch (error) {
+      console.error('HOOK: api.requestExpand failed:', error);
+      // FIXED: Reset on error too
+      setIsExpanding(false);
+      return { success: false, error: error.message };
+    }
+  }, [api, isExpanding]);
+  const miniClose = useCallback(() => {
+    try {
+      if (isElectron && api.miniClose) {
+        api.miniClose();
+      } else {
+        api.windowClose?.();
+      }
+    } catch (error) {
+      console.error('Failed to close mini window:', error);
+    }
+  }, [api, isElectron]);
   return {
-    operations,
-    cancelOperation,
+    contract,
+    minimize,
+    maximize,
+    close,
+    expand,
+    miniClose,
+    isExpanding
   };
 };
-
-/**
- * Hook for managing voice transcription
- */
 export const useVoiceTranscription = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -151,100 +188,5 @@ export const useVoiceTranscription = () => {
     isPartial,
     startRecording,
     stopRecording,
-  };
-};
-
-/**
- * Hook for managing window state with improved error handling
- */
-/**
- * Hook for managing window state with improved error handling
- */
-export const useWindowControls = () => {
-  const { api, isElectron } = useElectronApi();
-  const [isExpanding, setIsExpanding] = useState(false);
-  const contract  = useCallback(async () => { // FIXED: Override to switch to mini
-    try {
-      if (isElectron) {
-        // Switch to mini instead of taskbar minimize
-        await api.requestMinimize?.();
-        console.log('HOOK: Minimized to mini widget');
-      } else {
-        console.log('Mock: windowMinimize (switching to mini)');
-      }
-    } catch (error) {
-      console.error('Failed to minimize window:', error);
-    }
-  }, [api, isElectron]);
-
-  const minimize = useCallback(() => {
-    try {
-      api.windowMinimize?.(); // <- must be exposed from preload → main
-      console.log('HOOK: Minimized to taskbar');
-    } catch (error) {
-      console.error('Failed to minimize window:', error);
-    }
-  }, [api]);
-
-  const maximize = useCallback(() => {
-    try {
-      api.windowMaximize?.();
-    } catch (error) {
-      console.error('Failed to maximize window:', error);
-    }
-  }, [api]);
-  const close = useCallback(() => {
-    try {
-      api.windowClose?.();
-    } catch (error) {
-      console.error('Failed to close window:', error);
-    }
-  }, [api]);
-  const expand = useCallback(async () => {
-    if (isExpanding) {
-      console.log('HOOK: Expand already in progress, skipping...');
-      return { success: false, error: 'Expand already in progress' };
-    }
-    setIsExpanding(true);
-    console.log('HOOK: Calling api.requestExpand...');
-  
-    try {
-      console.log('HOOK: About to await requestExpand...');
-      const result = await api.requestExpand?.();
-      console.log('HOOK: api.requestExpand succeeded:', result);
-    
-      // FIXED: Reset immediately on success
-      setIsExpanding(false);
-    
-      // Add a small delay to ensure window switch completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-    
-      return result || { success: true };
-    } catch (error) {
-      console.error('HOOK: api.requestExpand failed:', error);
-      // FIXED: Reset on error too
-      setIsExpanding(false);
-      return { success: false, error: error.message };
-    }
-  }, [api, isExpanding]);
-  const miniClose = useCallback(() => {
-    try {
-      if (isElectron && api.miniClose) {
-        api.miniClose();
-      } else {
-        api.windowClose?.();
-      }
-    } catch (error) {
-      console.error('Failed to close mini window:', error);
-    }
-  }, [api, isElectron]);
-  return {
-    contract,
-    minimize,
-    maximize,
-    close,
-    expand,
-    miniClose,
-    isExpanding
   };
 };
