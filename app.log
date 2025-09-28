@@ -812,3 +812,227 @@
 
 2025-09-21 13:44:49 - AIAssistant - ERROR - Error processing query: litellm.BadRequestError: GroqException - {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
 
+2025-09-28 21:56:52 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 21:56:52 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 21:56:52 - AIAssistant - ERROR - CSV file not found: C:\Users\Parth Dhengle\Desktop\Projects\Gen Ai\crew\agent_demo\music_model_data.csv
+2025-09-28 21:58:48 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 21:58:48 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 21:58:48 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 21:58:48 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 21:58:48 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 21:58:48 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 21:58:54 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 21:58:54 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 21:58:54 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 21:58:54 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 21:58:58 - AIAssistant - WARNING - Library approach failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\parth\\AppData\\Local\\Temp\\tmp21bn8msxdashboard_resources'. Falling back to manual creation.
+2025-09-28 21:58:58 - AIAssistant - INFO - Using manual Power BI project creation
+2025-09-28 21:58:58 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_oxv2ll3p\auto_dashboard_20250928_215854
+2025-09-28 22:08:47 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:08:48 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:08:48 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:08:48 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:08:48 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:08:48 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:08:52 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "car_ID",
+      "y_field": "horsepower", 
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:08:52 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": ...
+2025-09-28 22:08:52 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:08:52 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'car_ID', 'y_field': 'horsepower', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:08:52 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:08:52 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_t_sdd9lh\auto_dashboard_20250928_220852
+2025-09-28 22:10:43 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:10:43 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:10:43 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:10:43 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:10:43 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:10:43 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:10:46 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:10:46 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 22:10:46 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:10:46 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:10:46 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:10:46 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_85ye6i2u\auto_dashboard_20250928_221046
+2025-09-28 22:11:07 - AIAssistant - INFO - Dashboard created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_85ye6i2u\auto_dashboard_20250928_221046
+Dashboard opened in Power BI Desktop.
+2025-09-28 22:11:50 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:11:50 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:11:50 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:11:50 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:11:50 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:11:50 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:11:53 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "carlength",
+      "y_field": "horsepower",
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:11:53 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price",
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "...
+2025-09-28 22:11:53 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:11:53 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'carlength', 'y_field': 'horsepower', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel']}
+2025-09-28 22:11:53 - AIAssistant - INFO - Creating Power BI project with corrected schema
+2025-09-28 22:11:53 - AIAssistant - INFO - Manual Power BI project created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_6jbgwvme\auto_dashboard_20250928_221153
+2025-09-28 22:15:10 - AIAssistant - INFO - Dashboard created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard_6jbgwvme\auto_dashboard_20250928_221153
+Dashboard opened in Power BI Desktop.
+2025-09-28 22:15:14 - AIAssistant - INFO - Loaded .env file from c:\Users\parth\OneDrive\Desktop\crew-ai-trial\.env
+2025-09-28 22:15:14 - AIAssistant - INFO - Power BI Desktop found at: C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe
+2025-09-28 22:15:14 - AIAssistant - INFO - Generating Power BI dashboard for CSV: C:\Users\parth\Downloads\CarPrice_Assignment.csv with query: Generate Power BI dashboard showing bar chart and line chart.
+2025-09-28 22:15:14 - AIAssistant - INFO - Successfully read CSV with encoding: utf-8
+2025-09-28 22:15:14 - AIAssistant - DEBUG - CSV columns: ['car_ID', 'symboling', 'CarName', 'fueltype', 'aspiration', 'doornumber', 'carbody', 'drivewheel', 'enginelocation', 'wheelbase', 'carlength', 'carwidth', 'carheight', 'curbweight', 'enginetype', 'cylindernumber', 'enginesize', 'fuelsystem', 'boreratio', 'stroke', 'compressionratio', 'horsepower', 'peakrpm', 'citympg', 'highwaympg', 'price'], Sample data: [{'car_ID': 1, 'symboling': 3, 'CarName': 'alfa-romero giulia', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 13495.0}, {'car_ID': 2, 'symboling': 3, 'CarName': 'alfa-romero stelvio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'convertible', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 88.6, 'carlength': 168.8, 'carwidth': 64.1, 'carheight': 48.8, 'curbweight': 2548, 'enginetype': 'dohc', 'cylindernumber': 'four', 'enginesize': 130, 'fuelsystem': 'mpfi', 'boreratio': 3.47, 'stroke': 2.68, 'compressionratio': 9.0, 'horsepower': 111, 'peakrpm': 5000, 'citympg': 21, 'highwaympg': 27, 'price': 16500.0}, {'car_ID': 3, 'symboling': 1, 'CarName': 'alfa-romero Quadrifoglio', 'fueltype': 'gas', 'aspiration': 'std', 'doornumber': 'two', 'carbody': 'hatchback', 'drivewheel': 'rwd', 'enginelocation': 'front', 'wheelbase': 94.5, 'carlength': 171.2, 'carwidth': 65.5, 'carheight': 52.4, 'curbweight': 2823, 'enginetype': 'ohcv', 'cylindernumber': 'six', 'enginesize': 152, 'fuelsystem': 'mpfi', 'boreratio': 2.68, 'stroke': 3.47, 'compressionratio': 9.0, 'horsepower': 154, 'peakrpm': 5000, 'citympg': 19, 'highwaympg': 26, 'price': 16500.0}]
+2025-09-28 22:15:14 - AIAssistant - INFO - Attempting LLM call #1
+2025-09-28 22:15:16 - AIAssistant - DEBUG - Raw LLM response: ```json
+{
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": "horsepower",
+      "y_field": "price", 
+      "aggregation": "sum",
+      "filters": {}
+    }
+  ],
+  "slicers": ["carbody", "drivewheel"]
+}
+```...
+2025-09-28 22:15:16 - AIAssistant - DEBUG - Extracted JSON: {
+  "visuals": [
+    {
+      "type": "bar",
+      "x_field": "fueltype",
+      "y_field": "price", 
+      "aggregation": "avg",
+      "filters": {}
+    },
+    {
+      "type": "line",
+      "x_field": ...
+2025-09-28 22:15:16 - AIAssistant - INFO - Successfully parsed Grok response
+2025-09-28 22:15:16 - AIAssistant - INFO - Dashboard plan: {'visuals': [{'type': 'bar', 'x_field': 'fueltype', 'y_field': 'price', 'aggregation': 'avg', 'filters': {}}, {'type': 'line', 'x_field': 'horsepower', 'y_field': 'price', 'aggregation': 'sum', 'filters': {}}], 'slicers': ['carbody', 'drivewheel'], 'query': 'Generate Power BI dashboard showing bar chart and line chart.'}
+2025-09-28 22:15:16 - AIAssistant - INFO - CSV copied to: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard__qp55o38\CarPrice_Assignment.csv
+2025-09-28 22:15:16 - AIAssistant - INFO - Creating Power BI template/instruction file
+2025-09-28 22:15:16 - AIAssistant - INFO - Power BI template created at: C:\Users\parth\AppData\Local\Temp\powerbi_dashboard__qp55o38\auto_dashboard_20250928_221516.pbit

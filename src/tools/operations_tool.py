@@ -128,6 +128,3 @@ class OperationsTool:
             except Exception as e:
                 lines.append(f"❌ {name}: {str(e)}")
         return "\n".join(lines) if lines else "✅ Ops complete."
-    
-if __name__ == "__main__":
-    pass
