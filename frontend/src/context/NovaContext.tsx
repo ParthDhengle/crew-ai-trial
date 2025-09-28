@@ -195,8 +195,12 @@ export function NovaProvider({ children }: { children: React.ReactNode }) {
       onError: (error) => {
         console.error('Chat service error:', error);
       },
-      onSessionUpdate: (session) => {
+      onSessionUpdate: async (session) => {
+
         dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
+        // Refresh full sessions list to update sidebar
+        const sessions = await chatService.getChatSessions();
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
       }
     });
   }, [state.currentSession]);

@@ -13,7 +13,9 @@ from .operations.app_opening import open_app
 from .operations.Mail_search import searchMail
 from .operations.send_mail import send_email
 from .operations.event_op import create_task, update_task, delete_task, mark_complete, read_task
-
+from .operations.ragsearch import rag_search
+from .operations.word_doc import word_generate_from_query
+from .operations.powerpoint_generate import powerpoint_generate_from_query
 
 PROJECT_ROOT = find_project_root()
 
@@ -27,7 +29,8 @@ class OperationsTool:
             "document_summarize": document_summarize,
             "document_translate": document_translate,
             "powerbi_generate_dashboard": powerbi_generate_dashboard,
-            "search_files": self._search_files_wrapper,
+            "sementic_file_search": self._search_files_wrapper,
+            "powerpoint_generate_from_query": powerpoint_generate_from_query,
             "run_command": self._run_command_wrapper,
             "open_app": open_app,
             "search_mail": searchMail,
@@ -37,6 +40,8 @@ class OperationsTool:
             "delete_task": delete_task,
             "mark_complete": mark_complete,
             "read_task": read_task,
+            "rag_search": rag_search,
+            "word_generate_from_query": word_generate_from_query,
         }
         self.task_ops = ["create_task", "update_task", "delete_task", "mark_complete", "read_task"]
 
@@ -59,14 +64,14 @@ class OperationsTool:
         return param_defs
 
     def _search_files_wrapper(self, query: str, path: str = None, use_semantic: bool = True) -> Tuple[bool, str]:
-        """Wrapper for search_files to match op signature (returns tuple[bool, str])."""
+        """Wrapper for sementic_file_search to match op signature (returns tuple[bool, str])."""
         try:
             root_dir = path or os.path.join(os.path.expanduser('~'), 'Downloads')
             results = sementic_file_search(query, root_dir, use_semantic)
             result_str = json.dumps(results, indent=2) if results else "No files found."
             return True, f"Search results for '{query}':\n{result_str}"
         except Exception as e:
-            return False, f"Error in search_files: {str(e)}"
+            return False, f"Error in sementic_file_search: {str(e)}"
 
     def _run_command_wrapper(self, command: str) -> Tuple[bool, str]:
         """Wrapper for run_command to convert dict return to tuple[bool, str]."""

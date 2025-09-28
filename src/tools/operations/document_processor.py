@@ -6,13 +6,19 @@ from groq import Groq
 from dotenv import load_dotenv
 import PyPDF2
 from docx import Document
-from common_functions.Find_project_root import find_project_root
-from utils.logger import setup_logger
+import os
+def find_project_root(marker_file='pyproject.toml') -> str:
+    """Find the project root by searching upwards for the marker file."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):  # Stop at system root
+        if os.path.exists(os.path.join(current_dir, marker_file)):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    raise FileNotFoundError("Project root not found. Ensure 'pyproject.toml' exists at the root.")
 
 # Load environment variables
 load_dotenv()
 PROJECT_ROOT = find_project_root()
-logger = setup_logger()
 
 class DocumentProcessorInput(BaseModel):
     """Input schema for DocumentProcessorTool."""
@@ -45,11 +51,10 @@ class DocumentProcessorTool(BaseTool):
         for key_var in api_key_vars:
             groq_api_key = os.getenv(key_var)
             if groq_api_key and groq_api_key.strip():
-                logger.info(f"Using {key_var} for Groq API")
+                
                 break
         
         if not groq_api_key:
-            logger.warning("No valid GROQ API key found. Falling back to local processing (no AI enhancement).")
             return
         
         try:
@@ -58,12 +63,9 @@ class DocumentProcessorTool(BaseTool):
             try:
                 self._test_api_key()
                 self._api_available = True
-                logger.info("DocumentProcessorTool initialized with Groq API successfully.")
             except Exception as test_e:
-                logger.warning(f"Groq API test failed (e.g., rate limit or invalid model): {str(test_e)}. Using basic mode.")
                 self._api_available = False  # Don't raise; fallback
         except Exception as e:
-            logger.error(f"Failed to initialize Groq client: {str(e)}. Using basic mode.")
             self._api_available = False
 
     def _test_api_key(self):
@@ -76,12 +78,10 @@ class DocumentProcessorTool(BaseTool):
             max_tokens=10,
             temperature=0.1
         )
-        logger.info("API key validation successful")
-
+        
     def _extract_text(self, file_path: str) -> Tuple[bool, str]:
         """Extract text from PDF, Word, or text files."""
         if not os.path.exists(file_path):
-            logger.error(f"File not found: {file_path}")
             return False, f"File not found: {file_path}"
 
         ext = os.path.splitext(file_path)[1].lower()
@@ -95,9 +95,7 @@ class DocumentProcessorTool(BaseTool):
                             extracted = page.extract_text()
                             text += extracted or ""
                         except Exception as page_error:
-                            logger.warning(f"Error extracting text from page: {page_error}")
                             continue
-                logger.info(f"Successfully extracted text from PDF: {file_path}")
                 return True, text.strip()
 
             elif ext in ['.docx', '.doc']:
@@ -105,9 +103,7 @@ class DocumentProcessorTool(BaseTool):
                     doc = Document(file_path)
                     text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
                 else:
-                    logger.warning("DOC files not fully supported, only DOCX")
                     return False, "DOC files not supported, please use DOCX format"
-                logger.info(f"Successfully extracted text from Word document: {file_path}")
                 return True, text.strip()
 
             elif ext == '.txt':
@@ -125,15 +121,12 @@ class DocumentProcessorTool(BaseTool):
                 if text is None:
                     return False, f"Could not decode text file with any supported encoding"
                 
-                logger.info(f"Successfully extracted text from text file: {file_path}")
                 return True, text.strip()
 
             else:
-                logger.error(f"Unsupported file type: {ext}")
                 return False, f"Unsupported file type: {ext}. Supported: .pdf, .docx, .txt"
 
         except Exception as e:
-            logger.error(f"Error extracting text from {file_path}: {str(e)}")
             return False, f"Error extracting text from {file_path}: {str(e)}"
 
     def _process_with_groq(self, text: str, query: str, target_lang: str = None, max_length: int = 100) -> Tuple[bool, str]:
@@ -150,19 +143,15 @@ class DocumentProcessorTool(BaseTool):
         max_text_length = 8000
         if len(text) > max_text_length:
             text = text[:max_text_length] + "... [truncated]"
-            logger.warning(f"Text truncated to {max_text_length} characters due to token limits")
-
+            
         if not is_summary and not is_translation:
-            logger.error("Query must specify 'summarize' or 'translate'")
             return False, "Query must specify 'summarize' or 'translate'"
 
         if is_translation and not target_lang:
-            logger.error("Translation requires target_lang parameter")
             return False, "Translation requires target language to be specified"
 
         # Fallback if API not available
         if not self._api_available or not self._groq_client:
-            logger.warning("Groq API unavailable; using basic fallback processing.")
             if is_summary:
                 # Simple word-based summary
                 words = text.split()
@@ -195,12 +184,9 @@ class DocumentProcessorTool(BaseTool):
             if not result:
                 return False, "Empty response from Groq API"
             
-            logger.info(f"Groq API processed {'summary' if is_summary else 'translation'} successfully.")
             return True, result
 
         except Exception as e:
-            logger.error(f"Groq API error: {str(e)}")
-            # Fallback
             if is_summary:
                 words = text.split()
                 summary = ' '.join(words[:max_length * 2]) + "..."
@@ -210,7 +196,6 @@ class DocumentProcessorTool(BaseTool):
 
     def _run(self, file_path: str, query: str, target_lang: str = None, max_length: int = 100) -> str:
         """Run document processing: extract text and summarize or translate based on query."""
-        logger.info(f"Processing document: {file_path} with query: {query}")
         
         # Validate inputs
         if not file_path or not query:
@@ -230,39 +215,34 @@ class DocumentProcessorTool(BaseTool):
             return f"Error: {result}"
 
         action = "summarized" if 'summar' in query.lower() else "translated"
-        logger.info(f"Successfully {action} document: {file_path}")
         return f"Successfully {action} content from {os.path.basename(file_path)}:\n\n{result}"
 
 
 def document_summarize(file_path: str, query: str, max_length: int = 100) -> Tuple[bool, str]:
     """Operation to summarize document content."""
-    logger.info(f"Running document_summarize for file: {file_path}")
     try:
         tool = DocumentProcessorTool()
         result = tool._run(file_path=file_path, query=query, max_length=max_length)
         success = not result.startswith("Error:")
         return success, result
     except Exception as e:
-        logger.error(f"Error in document_summarize: {str(e)}")
         return False, f"Error in document_summarize: {str(e)}"
 
 
 def document_translate(file_path: str, query: str, target_lang: str) -> Tuple[bool, str]:
     """Operation to translate document content."""
-    logger.info(f"Running document_translate for file: {file_path} to {target_lang}")
     try:
         tool = DocumentProcessorTool()
         result = tool._run(file_path=file_path, query=query, target_lang=target_lang)
         success = not result.startswith("Error:")
         return success, result
     except Exception as e:
-        logger.error(f"Error in document_translate: {str(e)}")
         return False, f"Error in document_translate: {str(e)}"
 
 
-# if __name__ == "__main__":
-#     # Test the function - use raw string for Windows paths to avoid escape issues
-#     test_file_path = r"C:\Users\Parth Dhengle\Downloads\ML_text.txt"
-#     success, result = document_translate(test_file_path, "translate the document to French", "French")
-#     print(f"Success: {success}")
-#     print(result)
+if __name__ == "__main__":
+    # Test the function - use raw string for Windows paths to avoid escape issues
+    test_file_path = r"C:\Users\Parth Dhengle\Downloads\ML_text.txt"
+    success, result = document_translate(test_file_path, "translate the document to French", "French")
+    print(f"Success: {success}")
+    print(result)
